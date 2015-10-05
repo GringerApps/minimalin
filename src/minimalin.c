@@ -1,38 +1,67 @@
 #include <pebble.h>
 
+#define RADIUS 55
+#define HAND_MARGIN 10
+  
+typedef struct {
+  int hours;
+  int minutes;
+} Time;
+
 static Window *s_main_window;
-static TextLayer *s_time_layer;
+static Layer *s_time_layer;
+static Time current_time;
+static GRect screen_bounds;
 
 static void update_time() {
   time_t temp = time(NULL); 
   struct tm *tick_time = localtime(&temp);
-  static char buffer[] = "00:00";
-  if(clock_is_24h_style() == true) {
-    strftime(buffer, sizeof("00:00"), "%H:%M", tick_time);
-  } else {
-    strftime(buffer, sizeof("00:00"), "%I:%M", tick_time);
+  current_time.hours = tick_time->tm_hour;
+  current_time.minutes = tick_time->tm_min;
+  if(s_time_layer) {
+    layer_mark_dirty(s_time_layer);
   }
-  text_layer_set_text(s_time_layer, buffer);
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
 }
 
+static void time_layer_update_callback(Layer *layer, GContext *ctx) {
+  graphics_context_set_fill_color(ctx, GColorClear);
+  graphics_context_set_stroke_color(ctx, GColorBlack);
+  
+  GPoint center = grect_center_point(&screen_bounds);
+  float minute_angle = TRIG_MAX_ANGLE * current_time.minutes / 60;
+  float hour_angle;
+  hour_angle = TRIG_MAX_ANGLE * current_time.hours / 12;
+  hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
+
+  // Plot hands
+  GPoint minute_hand = (GPoint) {
+    .x = (int16_t)(sin_lookup(TRIG_MAX_ANGLE * current_time.minutes / 60) * (int32_t)(RADIUS - HAND_MARGIN) / TRIG_MAX_RATIO) + center.x,
+    .y = (int16_t)(-cos_lookup(TRIG_MAX_ANGLE * current_time.minutes / 60) * (int32_t)(RADIUS - HAND_MARGIN) / TRIG_MAX_RATIO) + center.y,
+  };
+  GPoint hour_hand = (GPoint) {
+    .x = (int16_t)(sin_lookup(hour_angle) * (int32_t)(RADIUS - (2 * HAND_MARGIN)) / TRIG_MAX_RATIO) + center.x,
+    .y = (int16_t)(-cos_lookup(hour_angle) * (int32_t)(RADIUS - (2 * HAND_MARGIN)) / TRIG_MAX_RATIO) + center.y,
+  };
+
+  // Draw hands with positive length only
+  graphics_draw_line(ctx, center, hour_hand);
+  graphics_draw_line(ctx, center, minute_hand);
+}
+
 static void main_window_load(Window *window) {
-  s_time_layer = text_layer_create(GRect(0, 55, 144, 50));
-  text_layer_set_background_color(s_time_layer, GColorClear);
-  text_layer_set_text_color(s_time_layer, GColorBlack);
-  text_layer_set_text(s_time_layer, "00:00");
-
-  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
-  text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
-
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
+  Layer * root_layer = window_get_root_layer(window);
+  screen_bounds = layer_get_bounds(root_layer);
+  s_time_layer = layer_create(screen_bounds);
+  layer_set_update_proc(s_time_layer, time_layer_update_callback);
+  layer_add_child(root_layer, s_time_layer);
 }
 
 static void main_window_unload(Window *window) {
-  layer_destroy(text_layer_get_layer(s_time_layer));
+  layer_destroy(s_time_layer);
 }
 
 static void init() {
