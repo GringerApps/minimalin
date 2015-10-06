@@ -27,17 +27,15 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
 }
 
-static void time_layer_update_callback(Layer *layer, GContext *ctx) {
+static void draw_hands(Layer *layer, GContext *ctx) {
   graphics_context_set_fill_color(ctx, GColorClear);
   graphics_context_set_stroke_color(ctx, GColorBlack);
   
   GPoint center = grect_center_point(&screen_bounds);
   float minute_angle = TRIG_MAX_ANGLE * current_time.minutes / 60;
-  float hour_angle;
-  hour_angle = TRIG_MAX_ANGLE * current_time.hours / 12;
+  float hour_angle = TRIG_MAX_ANGLE * current_time.hours / 12;
   hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
 
-  // Plot hands
   GPoint minute_hand = (GPoint) {
     .x = (int16_t)(sin_lookup(TRIG_MAX_ANGLE * current_time.minutes / 60) * (int32_t)(RADIUS - HAND_MARGIN) / TRIG_MAX_RATIO) + center.x,
     .y = (int16_t)(-cos_lookup(TRIG_MAX_ANGLE * current_time.minutes / 60) * (int32_t)(RADIUS - HAND_MARGIN) / TRIG_MAX_RATIO) + center.y,
@@ -47,9 +45,12 @@ static void time_layer_update_callback(Layer *layer, GContext *ctx) {
     .y = (int16_t)(-cos_lookup(hour_angle) * (int32_t)(RADIUS - (2 * HAND_MARGIN)) / TRIG_MAX_RATIO) + center.y,
   };
 
-  // Draw hands with positive length only
   graphics_draw_line(ctx, center, hour_hand);
   graphics_draw_line(ctx, center, minute_hand);
+}
+
+static void time_layer_update_callback(Layer *layer, GContext *ctx) {
+  draw_hands(layer, ctx);  
 }
 
 static void main_window_load(Window *window) {
