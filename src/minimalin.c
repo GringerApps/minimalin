@@ -1,5 +1,6 @@
 #include <pebble.h>
-
+#include <time.h>
+  
 #define RADIUS 55
 #define HAND_MARGIN 10
   
@@ -16,7 +17,11 @@ static GRect screen_bounds;
 static void update_time() {
   time_t temp = time(NULL); 
   struct tm *tick_time = localtime(&temp);
-  current_time.hours = tick_time->tm_hour - 12;
+  int hours = tick_time->tm_hour;
+  if(hours > 11){
+    hours -= 12;
+  }
+  current_time.hours   = hours;
   current_time.minutes = tick_time->tm_min;
   if(s_time_layer) {
     layer_mark_dirty(s_time_layer);
