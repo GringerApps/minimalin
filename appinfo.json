@@ -7,17 +7,23 @@
     "longName": "minimalin",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "characterRegex": "[0-9:]",
+                "file": "fonts/OSP-DIN.ttf",
+                "name": "FONT_DIN_19",
+                "type": "font"
+            }
+        ]
     },
     "sdkVersion": "3",
     "shortName": "minimalin",
     "targetPlatforms": [
-        "aplite",
         "basalt"
     ],
     "uuid": "46e3f887-596e-4a67-b4a7-f277128e7de7",
-    "versionLabel": "1.1",
+    "versionLabel": "1.2",
     "watchapp": {
-        "watchface": false
+        "watchface": true
     }
 }
