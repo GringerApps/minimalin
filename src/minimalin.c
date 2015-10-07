@@ -72,7 +72,7 @@ static void draw_hands(Layer *layer, GContext *ctx) {
 static void draw_closest_time(Layer *layer, GContext *ctx) {
   int hours = current_time.hours;
   float hour_angle = angle(hours, 12);
-  GPoint hour_number = point_for_angle_and_radius(hour_angle, RADIUS + 10); 
+  GPoint hour_number = point_for_angle_and_radius(hour_angle, MINUTE_HAND_RADIUS + 10); 
   hour_number.x -= 10;
   hour_number.y -= 10;    
   static char buffer[] = "00";
@@ -82,7 +82,7 @@ static void draw_closest_time(Layer *layer, GContext *ctx) {
   graphics_draw_text(
     ctx, 
     buffer, 
-    fonts_get_system_font(FONT_KEY_GOTHIC_14),
+    fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DIN_19)),
     rect,
     GTextOverflowModeWordWrap, 
     GTextAlignmentCenter,

@@ -7,7 +7,14 @@
     "longName": "minimalin",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "characterRegex": "[0-9:]",
+                "file": "fonts/OSP-DIN.ttf",
+                "name": "FONT_DIN_19",
+                "type": "font"
+            }
+        ]
     },
     "sdkVersion": "3",
     "shortName": "minimalin",
