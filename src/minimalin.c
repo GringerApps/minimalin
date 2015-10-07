@@ -1,5 +1,4 @@
 #include <pebble.h>
-#include <time.h>
   
 #define RADIUS 55
 #define HAND_MARGIN 10
@@ -56,9 +55,6 @@ static void draw_hands(Layer *layer, GContext *ctx) {
 static void draw_closest_time(Layer *layer, GContext *ctx) {
   GPoint center = grect_center_point(&screen_bounds);
   int hours = current_time.hours;
-  if (current_time.minutes > 30){
-    hours = (hours + 1) % 12;
-  }
   float hour_angle = TRIG_MAX_ANGLE * hours / 12;
   GPoint hour_number = (GPoint) {
     .x = (int16_t)(sin_lookup(hour_angle) * (RADIUS + 10) / TRIG_MAX_RATIO) + center.x - 10,
