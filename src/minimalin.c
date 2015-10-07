@@ -24,8 +24,10 @@ static void update_time() {
   time_t temp = time(NULL); 
   struct tm *tick_time = localtime(&temp);
   int hours = tick_time->tm_hour;
-  if(hours > 11){
+  if(hours > 12){
     hours -= 12;
+  }else if(hours == 0){
+    hours = 12;
   }
   current_time.hours   = hours;
   current_time.minutes = tick_time->tm_min;
