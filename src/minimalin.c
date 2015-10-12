@@ -3,7 +3,7 @@
   
 #define HAND_STROKE 4
 #define CENTER_CIRCLE_RADIUS 4
-#define HOUR_HAND_RADIUS 28
+#define HOUR_HAND_RADIUS 31
 #define MINUTE_HAND_RADIUS 46
 #define BACKGROUND_COLOR GColorBlack
 #define HOUR_HAND_COLOR GColorRed
