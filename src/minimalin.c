@@ -105,8 +105,16 @@ static void draw_background(Layer *layer, GContext *ctx) {
 }
 
 static void draw_closest_tick(Layer *layer, GContext *ctx) {
-  float tick_angle = angle(current_time.hours, 12);
-  Vector vector = tick_vector(tick_angle, &screen_bounds);
+  float hour_tick_angle = angle(current_time.hours, 12);
+  Vector vector = tick_vector(hour_tick_angle, &screen_bounds);
+  SSC(ctx, TICK_COLOR);
+  SSW(ctx, TICK_STROKE);
+  DL(ctx, vector.ori, vector.ext);
+  float minute_tick_angle = angle(current_time.minutes / 5, 12);
+  if(minute_tick_angle == hour_tick_angle){
+    return;
+  }
+  vector = tick_vector(minute_tick_angle, &screen_bounds);
   SSC(ctx, TICK_COLOR);
   SSW(ctx, TICK_STROKE);
   DL(ctx, vector.ori, vector.ext);
