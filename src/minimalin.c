@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "geo.h"
   
 #define HAND_STROKE 4
 #define CENTER_CIRCLE_RADIUS 4
@@ -8,11 +9,21 @@
 #define HOUR_HAND_COLOR GColorRed
 #define MINUTE_HAND_COLOR GColorWhite
 #define TIME_INFO_COLOR GColorWhite
+#define TICK_COLOR GColorWhite
+#define TICK_STROKE 2
 
+#define SAA(ctx, boolean) graphics_context_set_antialiased(ctx, boolean)
+#define SSW(ctx, stroke_width) graphics_context_set_stroke_width(ctx, stroke_width)
+#define SSC(ctx, color)  graphics_context_set_stroke_color(ctx, color)
+#define SFC(ctx, color)  graphics_context_set_fill_color(ctx, color)
+#define DL(clx, p1, p2)  graphics_draw_line(ctx, p1, p2)
+#define FC(ctx, center, radius)  graphics_fill_circle(ctx, center, radius);
+  
 typedef struct {
   int hours;
   int minutes;
 } Time;
+
 
 static Window *s_main_window;
 static Layer *s_time_layer;
@@ -40,10 +51,6 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
 }
 
-static float angle(int time, int max){
-  return TRIG_MAX_ANGLE * time / max;
-}
-
 static GPoint point_for_angle_and_radius(float angle, int radius){
   return (GPoint) {
     .x = (int16_t)(sin_lookup(angle) * (int32_t)radius / TRIG_MAX_RATIO) + screen_center.x,
@@ -61,14 +68,14 @@ static void draw_hands(Layer *layer, GContext *ctx) {
   hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
   GPoint minute_hand = point_for_angle_and_radius(minute_angle, MINUTE_HAND_RADIUS);
   GPoint hour_hand = point_for_angle_and_radius(hour_angle, HOUR_HAND_RADIUS);
-  graphics_context_set_antialiased(ctx, true);
-  graphics_context_set_stroke_width(ctx, HAND_STROKE);
-  graphics_context_set_stroke_color(ctx, MINUTE_HAND_COLOR);
-  graphics_draw_line(ctx, screen_center, minute_hand);
-  graphics_context_set_stroke_color(ctx, HOUR_HAND_COLOR);
-  graphics_draw_line(ctx, screen_center, hour_hand);
-  graphics_context_set_fill_color(ctx, HOUR_HAND_COLOR);
-  graphics_fill_circle(ctx, screen_center, CENTER_CIRCLE_RADIUS);
+  SAA(ctx, true);
+  SSW(ctx, HAND_STROKE);
+  SSC(ctx, MINUTE_HAND_COLOR);
+  DL(ctx, screen_center, minute_hand);
+  SSC(ctx, HOUR_HAND_COLOR);
+  DL(ctx, screen_center, hour_hand);
+  SFC(ctx, HOUR_HAND_COLOR);
+  FC(ctx, screen_center, CENTER_CIRCLE_RADIUS);
 }
 
 static void draw_closest_time(Layer *layer, GContext *ctx) {
@@ -97,10 +104,19 @@ static void draw_background(Layer *layer, GContext *ctx) {
   graphics_fill_rect(ctx, screen_bounds, 0, GCornerNone);
 }
 
+static void draw_closest_tick(Layer *layer, GContext *ctx) {
+  float tick_angle = angle(current_time.hours, 12);
+  Vector vector = tick_vector(tick_angle, &screen_bounds);
+  SSC(ctx, TICK_COLOR);
+  SSW(ctx, TICK_STROKE);
+  DL(ctx, vector.ori, vector.ext);
+}
+
 static void time_layer_update_callback(Layer *layer, GContext *ctx) {
   draw_background(layer, ctx);
   draw_hands(layer, ctx);
   draw_closest_time(layer, ctx);
+  draw_closest_tick(layer, ctx);
 }
 
 static void main_window_load(Window *window) {
