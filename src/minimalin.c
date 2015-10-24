@@ -27,6 +27,7 @@ static void update_time() {
   }
   current_time.hours   = hours;
   current_time.minutes = tick_time->tm_min;
+  current_time.day     = tick_time->tm_mday;
   if(s_time_layer) {
     layer_mark_dirty(s_time_layer);
   }
@@ -81,8 +82,8 @@ static void draw_closest_tick(Layer *layer, GContext *ctx) {
 
 static void time_layer_update_callback(Layer *layer, GContext *ctx) {
   draw_background(layer, ctx);
-  draw_hands(layer, ctx);
   display_times(ctx, &screen_bounds, &current_time);
+  draw_hands(layer, ctx);
   draw_closest_tick(layer, ctx);
 }
 
