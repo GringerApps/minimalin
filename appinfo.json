@@ -9,6 +9,12 @@
     "resources": {
         "media": [
             {
+                "file": "images/img_menu.png",
+                "menuIcon": true,
+                "name": "MENU_IMAGE",
+                "type": "png"
+            },
+            {
                 "characterRegex": "[0-9:]",
                 "file": "fonts/OSP-DIN.ttf",
                 "name": "FONT_DIN_19",
