@@ -1,16 +1,7 @@
 #include <pebble.h>
 #include "geo.h"
-  
-#define HAND_STROKE 4
-#define CENTER_CIRCLE_RADIUS 4
-#define HOUR_HAND_RADIUS 31
-#define MINUTE_HAND_RADIUS 46
-#define BACKGROUND_COLOR GColorBlack
-#define HOUR_HAND_COLOR GColorRed
-#define MINUTE_HAND_COLOR GColorWhite
-#define TIME_INFO_COLOR GColorWhite
-#define TICK_COLOR GColorWhite
-#define TICK_STROKE 2
+#include "macros.h"  
+#include "time_display.h"
 
 #define SAA(ctx, boolean) graphics_context_set_antialiased(ctx, boolean)
 #define SSW(ctx, stroke_width) graphics_context_set_stroke_width(ctx, stroke_width)
@@ -18,12 +9,6 @@
 #define SFC(ctx, color)  graphics_context_set_fill_color(ctx, color)
 #define DL(clx, p1, p2)  graphics_draw_line(ctx, p1, p2)
 #define FC(ctx, center, radius)  graphics_fill_circle(ctx, center, radius);
-  
-typedef struct {
-  int hours;
-  int minutes;
-} Time;
-
 
 static Window *s_main_window;
 static Layer *s_time_layer;
@@ -51,13 +36,6 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
 }
 
-static GPoint point_for_angle_and_radius(float angle, int radius){
-  return (GPoint) {
-    .x = (int16_t)(sin_lookup(angle) * (int32_t)radius / TRIG_MAX_RATIO) + screen_center.x,
-    .y = (int16_t)(-cos_lookup(angle) * (int32_t)radius / TRIG_MAX_RATIO) + screen_center.y,
-  };
-}
-
 static void draw_hands(Layer *layer, GContext *ctx) {
   graphics_context_set_fill_color(ctx, GColorClear);
   graphics_context_set_stroke_color(ctx, GColorBlack);
@@ -66,37 +44,18 @@ static void draw_hands(Layer *layer, GContext *ctx) {
   float minute_angle = angle(current_time.minutes, 60);
   float hour_angle = angle(current_time.hours, 12);
   hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
-  GPoint minute_hand = point_for_angle_and_radius(minute_angle, MINUTE_HAND_RADIUS);
-  GPoint hour_hand = point_for_angle_and_radius(hour_angle, HOUR_HAND_RADIUS);
+  GPoint minute_hand_end = screen_center;
+  translate(minute_angle, MINUTE_HAND_RADIUS, &minute_hand_end);
+  GPoint hour_hand_end = screen_center;
+  translate(hour_angle, HOUR_HAND_RADIUS, &hour_hand_end);
   SAA(ctx, true);
-  SSW(ctx, HAND_STROKE);
+  SSW(ctx, MINUTE_HAND_STROKE);
   SSC(ctx, MINUTE_HAND_COLOR);
-  DL(ctx, screen_center, minute_hand);
+  DL(ctx, screen_center, minute_hand_end);
   SSC(ctx, HOUR_HAND_COLOR);
-  DL(ctx, screen_center, hour_hand);
+  DL(ctx, screen_center, hour_hand_end);
   SFC(ctx, HOUR_HAND_COLOR);
-  FC(ctx, screen_center, CENTER_CIRCLE_RADIUS);
-}
-
-static void draw_closest_time(Layer *layer, GContext *ctx) {
-  int hours = current_time.hours;
-  float hour_angle = angle(hours, 12);
-  GPoint hour_number = point_for_angle_and_radius(hour_angle, MINUTE_HAND_RADIUS + 10); 
-  hour_number.x -= 10;
-  hour_number.y -= 10;    
-  static char buffer[] = "00";
-  snprintf(buffer, sizeof("00"), "%d", hours);
-  GRect rect = GRect(hour_number.x, hour_number.y, 20, 20);
-  graphics_context_set_text_color(ctx, TIME_INFO_COLOR);
-  graphics_draw_text(
-    ctx, 
-    buffer, 
-    fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DIN_19)),
-    rect,
-    GTextOverflowModeWordWrap, 
-    GTextAlignmentCenter,
-    NULL
-  );
+  FC(ctx, screen_center, HOUR_CIRCLE_RADIUS);
 }
 
 static void draw_background(Layer *layer, GContext *ctx) {
@@ -123,7 +82,7 @@ static void draw_closest_tick(Layer *layer, GContext *ctx) {
 static void time_layer_update_callback(Layer *layer, GContext *ctx) {
   draw_background(layer, ctx);
   draw_hands(layer, ctx);
-  draw_closest_time(layer, ctx);
+  display_times(ctx, &screen_bounds, &current_time);
   draw_closest_tick(layer, ctx);
 }
 
