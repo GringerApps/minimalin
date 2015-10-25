@@ -1,4 +1,5 @@
 #pragma once
+
 #include <pebble.h>
 
 #define _45_DEGREES 0x2000

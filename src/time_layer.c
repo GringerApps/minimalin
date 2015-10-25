@@ -1,5 +1,5 @@
 #include <pebble.h>
-#include "time_display.h"
+#include "time_layer.h"
 #include "geo.h"
 #include "macros.h"
 
@@ -7,6 +7,8 @@
 #define CHAR_WIDTH 23
 
 typedef enum { NoLeading = 1, LeadingZero = 2, Analog = 5 } TimeFormat;
+
+static Layer * s_time_layer;
 
 /**
  * Returns whether the hour and minute displays would conflict.
@@ -117,18 +119,38 @@ static void display_date(GContext * ctx, const GRect * screen_bounds, const int 
   display_time(ctx, &rect, NoLeading, day);
 }
 
-void display_times(GContext *ctx, const GRect * screen_bounds, const Time * current_time) {
+static void time_layer_update_callback(Layer * layer, GContext *ctx){
+  GRect screen_bounds = layer_get_bounds(layer);
+  Time current_time;
+  set_current_time(&current_time);
   graphics_context_set_text_color(ctx, TIME_COLOR);
-  int hour = current_time->hours;
-  if(conflicting_times(hour, current_time->minutes)){
+  int hour = current_time.hours;
+  if(conflicting_times(hour, current_time.minutes)){
     if (display_vertical(hour)){
-      display_vertical_time(ctx, screen_bounds, current_time);
+      display_vertical_time(ctx, &screen_bounds, &current_time);
     }else{
-      display_horizontal_time(ctx, screen_bounds, current_time);
+      display_horizontal_time(ctx, &screen_bounds, &current_time);
     }
   }else{
-    display_normal_time(ctx, screen_bounds, NoLeading, current_time->hours, current_time->hours);
-    display_normal_time(ctx, screen_bounds, LeadingZero, current_time->minutes / 5, current_time->minutes);
+    display_normal_time(ctx, &screen_bounds, NoLeading, current_time.hours, current_time.hours);
+    display_normal_time(ctx, &screen_bounds, LeadingZero, current_time.minutes / 5, current_time.minutes);
   }
-  display_date(ctx, screen_bounds, current_time->day);
+  display_date(ctx, &screen_bounds, current_time.day);
+}
+
+void init_time_layer(Layer * root_layer){
+  GRect screen_bounds = layer_get_bounds(root_layer);
+  s_time_layer = layer_create(screen_bounds);
+  layer_set_update_proc(s_time_layer, time_layer_update_callback);
+  layer_add_child(root_layer, s_time_layer);
+}
+
+void deinit_time_layer(){
+  layer_destroy(s_time_layer); 
+}
+
+void mark_dirty_time_layer(){
+  if(s_time_layer){
+    layer_mark_dirty(s_time_layer);
+  }
 }
