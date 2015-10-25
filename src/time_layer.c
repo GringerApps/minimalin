@@ -5,6 +5,9 @@
 
 #define CHAR_HEIGHT 23
 #define CHAR_WIDTH 23
+#define VERTICAL_TOP_DIGITS_OFFSET 2
+#define VERTICAL_BOTTOM_DIGITS_OFFSET 1
+#define LETTER_OFFSET -3
 
 typedef enum { NoLeading = 1, LeadingZero = 2, Analog = 5 } TimeFormat;
 
@@ -34,11 +37,11 @@ static void set_size_for_format(const TimeFormat format, GSize * size){
 }
 
 static int box_origin_x(const int x, const GSize * box_size){
-  return x - box_size->w / 2 + 1; // TODO: fix +1 due to font
+  return x - box_size->w / 2;
 }
 
 static int box_origin_y(const int y, const GSize * box_size){
-  return y - box_size->h / 2 - 3; // TODO: fix -4 due to font
+  return y - box_size->h / 2 + LETTER_OFFSET;
 }
 
 /**
@@ -82,9 +85,10 @@ static void display_vertical_time(GContext * ctx, const GRect * screen_bounds, c
   float time_angle = angle(hour, 12);
   GRect rect;
   set_display_box(time_angle, LeadingZero, screen_bounds, &rect);
-  rect.origin.y -= rect.size.h / 2;
+  rect.origin.y -= rect.size.h / 2 + VERTICAL_TOP_DIGITS_OFFSET;
   display_time(ctx, &rect, NoLeading, hour);
-  rect.origin.y += rect.size.h;
+  set_display_box(time_angle, LeadingZero, screen_bounds, &rect);
+  rect.origin.y += rect.size.h / 2 + VERTICAL_BOTTOM_DIGITS_OFFSET;
   display_time(ctx, &rect, LeadingZero, current_time->minutes);
 }
 

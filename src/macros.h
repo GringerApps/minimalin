@@ -38,4 +38,4 @@
 #define SFC(ctx, color)  graphics_context_set_fill_color(ctx, color)
 #define DL(clx, p1, p2)  graphics_draw_line(ctx, p1, p2)
 #define FC(ctx, center, radius)  graphics_fill_circle(ctx, center, radius)
-#define DT(ctx, text, rect) graphics_draw_text(ctx, text, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DIN_23)), rect, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL)
+#define DT(ctx, text, rect) graphics_draw_text(ctx, text, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_NUPE_23)), rect, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL)

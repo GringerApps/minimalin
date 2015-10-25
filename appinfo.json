@@ -9,16 +9,19 @@
     "resources": {
         "media": [
             {
+                "characterRegex": "[0-9:]",
+                "file": "fonts/nupe.tff",
+                "name": "FONT_NUPE_23",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "font"
+            },
+            {
                 "file": "images/img_menu.png",
                 "menuIcon": true,
                 "name": "MENU_IMAGE",
                 "type": "png"
-            },
-            {
-                "characterRegex": "[0-9:]",
-                "file": "fonts/OSP-DIN.ttf",
-                "name": "FONT_DIN_23",
-                "type": "font"
             }
         ]
     },
