@@ -48,7 +48,7 @@ static void set_display_box(const float angle, const TimeFormat format, const GR
 /**
  * Displays the given time in the given format in the given GRect.
  */
-static void display_time(GContext *ctx, const GRect * rect, const TimeFormat time_format, const int time)
+static void display_time(GContext * ctx, const GRect * rect, const TimeFormat time_format, const int time)
 {
   char buffer[] = "00:00";
   if(time_format == NoLeading){
@@ -58,14 +58,13 @@ static void display_time(GContext *ctx, const GRect * rect, const TimeFormat tim
   }else{
     snprintf(buffer, sizeof(buffer), "%02d:%02d", time / 100, time % 100);
   }
-  graphics_context_set_text_color(ctx, DISPLAY_COLOR);
   DT(ctx, buffer, *rect);
 }
 
 /**
  * Displays the given time vertically.
  */
-static void display_vertical_time(GContext *ctx, const GRect * screen_bounds, const Time * current_time){
+static void display_vertical_time(GContext * ctx, const GRect * screen_bounds, const Time * current_time){
   int hour         = current_time->hours;
   float time_angle = angle(hour, 12);
   GRect rect;
@@ -79,7 +78,7 @@ static void display_vertical_time(GContext *ctx, const GRect * screen_bounds, co
 /**
  * Displays the given time horinzontally.
  */
-static void display_horizontal_time(GContext *ctx, const GRect * screen_bounds, const Time * current_time){
+static void display_horizontal_time(GContext * ctx, const GRect * screen_bounds, const Time * current_time){
   int hour         = current_time->hours;
   float time_angle = angle(hour, 12);
   GRect rect;
@@ -90,14 +89,25 @@ static void display_horizontal_time(GContext *ctx, const GRect * screen_bounds, 
 /**
  * Displays a one or two digit time for the given tick number with the given time in the given format.
  */
-static void display_normal_time(GContext *ctx, const GRect * screen_bounds, const TimeFormat format, const int tick_number, const int time){
+static void display_normal_time(GContext * ctx, const GRect * screen_bounds, const TimeFormat format, const int tick_number, const int time){
   float time_angle  = angle(tick_number, 12);
   GRect rect;
   set_display_box(time_angle, format, screen_bounds, &rect);
   display_time(ctx, &rect, format, time);
 }
 
+static void display_date(GContext * ctx, const GRect * screen_bounds, const int day){
+  graphics_context_set_text_color(ctx, DATE_COLOR);
+  GRect rect;
+  GPoint center = grect_center_point(screen_bounds);
+  set_size_for_format(NoLeading, &rect.size);
+  rect.origin.x = center.x - rect.size.w / 2 + 1;
+  rect.origin.y = center.y + DATE_RADIUS - rect.size.h / 2 - 2;
+  display_time(ctx, &rect, NoLeading, day);
+}
+
 void display_times(GContext *ctx, const GRect * screen_bounds, const Time * current_time) {
+  graphics_context_set_text_color(ctx, TIME_COLOR);
   int hour = current_time->hours;
   if(conflicting_times(hour, current_time->minutes)){
     if (display_vertical(hour)){
@@ -109,4 +119,5 @@ void display_times(GContext *ctx, const GRect * screen_bounds, const Time * curr
     display_normal_time(ctx, screen_bounds, NoLeading, current_time->hours, current_time->hours);
     display_normal_time(ctx, screen_bounds, LeadingZero, current_time->minutes / 5, current_time->minutes);
   }
+  display_date(ctx, screen_bounds, current_time->day);
 }
