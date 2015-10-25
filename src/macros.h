@@ -30,4 +30,4 @@
 #define DATE_COLOR GColorDarkGray
 
 // Pebble specific macros
-#define DT(ctx, text, rect) graphics_draw_text(ctx, text, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DIN_19)), rect, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL)
+#define DT(ctx, text, rect) graphics_draw_text(ctx, text, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DIN_23)), rect, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL)
