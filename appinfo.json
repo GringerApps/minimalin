@@ -9,6 +9,17 @@
     "resources": {
         "media": [
             {
+                "file": "images/icn_bt_black.png",
+                "name": "ICN_BT_BLACK",
+                "type": "png"
+            },
+            {
+                "file": "images/img_menu.png",
+                "menuIcon": true,
+                "name": "MENU_IMAGE",
+                "type": "png"
+            },
+            {
                 "characterRegex": "[0-9:]",
                 "file": "fonts/nupe.tff",
                 "name": "FONT_NUPE_23",
@@ -16,12 +27,6 @@
                     "basalt"
                 ],
                 "type": "font"
-            },
-            {
-                "file": "images/img_menu.png",
-                "menuIcon": true,
-                "name": "MENU_IMAGE",
-                "type": "png"
             }
         ]
     },
