@@ -1,12 +1,6 @@
 #include <pebble.h>
 #include "geo.h"
 #include "macros.h"
-
-#define _45_DEGREES 0x2000
-#define _90_DEGREES 0x4000
-#define _135_DEGREES 0x6000
-#define _225_DEGREES 0xA000
-#define _315_DEGREES 0xE000  
   
 int x_plus_dx(const int x, const float angle, const int radius){
   return x + dx(angle, radius);
@@ -17,11 +11,11 @@ int y_plus_dy(const int y, const float angle, const int radius){
 }
 
 int dx(float angle, int radius){
-  return sin_lookup(angle) * radius / TRIG_MAX_RATIO;
+  return (float) sin_lookup(angle) * radius / TRIG_MAX_RATIO + 0.5;
 }
 
 int dy(float angle, int radius){
-  return -cos_lookup(angle) * radius / TRIG_MAX_RATIO;
+  return (float) -cos_lookup(angle) * radius / TRIG_MAX_RATIO + 0.5;
 }
 
 void translate(const float angle, const int radius, GPoint * point){

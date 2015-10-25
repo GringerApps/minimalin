@@ -17,7 +17,7 @@
             {
                 "characterRegex": "[0-9:]",
                 "file": "fonts/OSP-DIN.ttf",
-                "name": "FONT_DIN_19",
+                "name": "FONT_DIN_23",
                 "type": "font"
             }
         ]

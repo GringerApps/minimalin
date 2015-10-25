@@ -3,8 +3,8 @@
 #include "geo.h"
 #include "macros.h"
 
-#define CHAR_HEIGHT 20
-#define CHAR_WIDTH 20
+#define CHAR_HEIGHT 23
+#define CHAR_WIDTH 23
 
 typedef enum { NoLeading = 1, LeadingZero = 2, Analog = 5 } TimeFormat;
 
@@ -31,6 +31,14 @@ static void set_size_for_format(const TimeFormat format, GSize * size){
   size->h = CHAR_HEIGHT;
 }
 
+static int box_origin_x(const int x, const GSize * box_size){
+  return x - box_size->w / 2 + 1; // TODO: fix +1 due to font
+}
+
+static int box_origin_y(const int y, const GSize * box_size){
+  return y - box_size->h / 2 - 3; // TODO: fix -4 due to font
+}
+
 /**
  * Sets the GRect of the box necessary to display a time in the given format at the given angle.
  */
@@ -40,9 +48,12 @@ static void set_display_box(const float angle, const TimeFormat format, const GR
   GSize * size              = &display_box->size;
   set_size_for_format(format, size);
   int display_margin = radius_to_border(angle, size); // TODO: refactor radius_to_border to use GSize
+  if((int)angle % _90_DEGREES != 0){
+    display_margin += 2;
+  }
   int radius         = radius_to_border(angle, screen_size) - TICK_LENGTH - display_margin;
-  display_box->origin.x = x_plus_dx(center.x, angle, radius) - size->w / 2 + 1; // TODO: fix +1 due to font
-  display_box->origin.y = y_plus_dy(center.y, angle, radius) - size->h / 2 - 2; // TODO: fix -2 due to font
+  display_box->origin.x = box_origin_x(x_plus_dx(center.x, angle, radius), size);
+  display_box->origin.y = box_origin_y(y_plus_dy(center.y, angle, radius), size);
 }
 
 /**
@@ -76,7 +87,7 @@ static void display_vertical_time(GContext * ctx, const GRect * screen_bounds, c
 }
 
 /**
- * Displays the given time horinzontally.
+ * Displays the given time horizontally.
  */
 static void display_horizontal_time(GContext * ctx, const GRect * screen_bounds, const Time * current_time){
   int hour         = current_time->hours;
@@ -101,8 +112,8 @@ static void display_date(GContext * ctx, const GRect * screen_bounds, const int 
   GRect rect;
   GPoint center = grect_center_point(screen_bounds);
   set_size_for_format(NoLeading, &rect.size);
-  rect.origin.x = center.x - rect.size.w / 2 + 1;
-  rect.origin.y = center.y + DATE_RADIUS - rect.size.h / 2 - 2;
+  rect.origin.x = box_origin_x(center.x, &rect.size);
+  rect.origin.y = box_origin_y(center.y + DATE_RADIUS, &rect.size);
   display_time(ctx, &rect, NoLeading, day);
 }
 
