@@ -2,6 +2,11 @@
 
 #include <pebble.h>
 
+// Message Keys
+#define KEY_MINUTE_HAND_COLOR_RED     0
+#define KEY_MINUTE_HAND_COLOR_GREEN   1
+#define KEY_MINUTE_HAND_COLOR_BLUE    2
+
 #define BACKGROUND_COLOR GColorBlack
 
 // Hour hand constants
@@ -13,7 +18,6 @@
 //#define HOUR_HAND_RADIUS 31
 
 // Minute hand constants
-#define MINUTE_HAND_COLOR GColorWhite
 #define MINUTE_HAND_STROKE 6
 #define MINUTE_HAND_RADIUS 52
 // #define MINUTE_HAND_STROKE 4
