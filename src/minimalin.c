@@ -7,6 +7,7 @@
 #include "bluetooth_layer.h"
 #include "background_layer.h"
 #include "time_utils.h"
+#include "config.h"
 
 static Window *s_main_window;
 
@@ -35,6 +36,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
 }
 
 static void init() {
+  init_config();
   s_main_window = window_create();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
     .load = main_window_load,

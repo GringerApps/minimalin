@@ -3,6 +3,7 @@
 #include "time_utils.h"
 #include "geo.h"
 #include "macros.h"
+#include "config.h"
 
 static Layer * s_hand_layer;
 
@@ -22,7 +23,7 @@ static void hand_layer_update_callback(Layer *layer, GContext *ctx) {
   translate(hour_angle, HOUR_HAND_RADIUS, &hour_hand_end);
   SAA(ctx, true);
   SSW(ctx, MINUTE_HAND_STROKE);
-  SSC(ctx, MINUTE_HAND_COLOR);
+  SSC(ctx, config_get_minute_hand_color());
   DL(ctx, screen_center, minute_hand_end);
   SSC(ctx, HOUR_HAND_COLOR);
   DL(ctx, screen_center, hour_hand_end);

@@ -1,7 +1,11 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "KEY_MINUTE_HAND_COLOR_BLUE": 2,
+        "KEY_MINUTE_HAND_COLOR_GREEN": 1,
+        "KEY_MINUTE_HAND_COLOR_RED": 0
+    },
     "capabilities": [
-        ""
+        "configurable"
     ],
     "companyName": "yohan.robert@outlook.fr",
     "longName": "minimalin",
@@ -9,14 +13,14 @@
     "resources": {
         "media": [
             {
-                "file": "images/icn_bt_black.png",
-                "name": "ICN_BT_BLACK",
-                "type": "png"
-            },
-            {
                 "file": "images/img_menu.png",
                 "menuIcon": true,
                 "name": "MENU_IMAGE",
+                "type": "png"
+            },
+            {
+                "file": "images/icn_bt_black.png",
+                "name": "ICN_BT_BLACK",
                 "type": "png"
             },
             {
