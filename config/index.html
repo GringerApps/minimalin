@@ -24,12 +24,19 @@
 
   <body>
     <h1 class='title'>Minimalin Configuration</h1>
-
     <div class='item-container'>
       <div class='item-container-content'>
         <label class='item'>
           Minute hand color
           <input id='minute_hand_color_picker' type='text' class='item-color item-color-normal' value='#ffffff'>
+        </label>
+      </div>
+    </div>
+    <div class='item-container'>
+      <div class='item-container-content'>
+        <label class='item'>
+          Hour hand color
+          <input id='hour_hand_color_picker' type='text' class='item-color item-color-normal' value='#ff0000'>
         </label>
       </div>
     </div>
@@ -44,11 +51,14 @@
   </body>
   <script type="text/javascript">
   function getConfigData() {
-	  var minuteHandColorPicker = document.getElementById('minute_hand_color_picker');
-	  var options = {
+    var minuteHandColorPicker = document.getElementById('minute_hand_color_picker');
+    var hourHandColorPicker = document.getElementById('hour_hand_color_picker');
+    var options = {
       'minute_hand_color': minuteHandColorPicker.value,
+      'hour_hand_color': hourHandColorPicker.value,
     };
     localStorage['minute_hand_color'] = options['minute_hand_color'];
+    localStorage['hour_hand_color'] = options['hour_hand_color'];
     return options;
   }
 
@@ -63,7 +73,7 @@
     }
     return defaultValue || false;
   }
- 
+
   var submitButton = document.getElementById('submit_button');
   submitButton.addEventListener('click', function() {
     var return_to = getQueryParam('return_to', 'pebblejs://close#');
@@ -71,18 +81,20 @@
   });
 
   function getParameterByName(name) {
-	  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-	  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-		results = regex.exec(location.search);
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+    results = regex.exec(location.search);
     if(results === null){
       return null;
     }
-		return decodeURIComponent(results[1].replace(/\+/g, " "));
-	}
-  
+    return decodeURIComponent(results[1].replace(/\+/g, " "));
+  }
+ 
   (function() {
     var minuteHandColorPicker = document.getElementById('minute_hand_color_picker');
     minuteHandColorPicker.value = getParameterByName('minute_hand_color') || localStorage['minute_hand_color'];
+    var hourHandColorPicker = document.getElementById('hour_hand_color_picker');
+    hourHandColorPicker.value = getParameterByName('hour_hand_color') || localStorage['hour_hand_color'];
   })();
   </script>
 </html>
