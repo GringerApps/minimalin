@@ -25,9 +25,9 @@ static void hand_layer_update_callback(Layer *layer, GContext *ctx) {
   SSW(ctx, MINUTE_HAND_STROKE);
   SSC(ctx, config_get_minute_hand_color());
   DL(ctx, screen_center, minute_hand_end);
-  SSC(ctx, HOUR_HAND_COLOR);
+  SSC(ctx, config_get_hour_hand_color());
   DL(ctx, screen_center, hour_hand_end);
-  SFC(ctx, HOUR_HAND_COLOR);
+  SFC(ctx, config_get_hour_hand_color());
   FC(ctx, screen_center, HOUR_CIRCLE_RADIUS);
 }
 
