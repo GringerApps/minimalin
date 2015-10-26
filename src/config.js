@@ -3,7 +3,7 @@ Pebble.addEventListener('ready', function() {
 });
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'https://cdn.rawgit.com/groyoh/minimalin/12c25f3704144531f96c9116ab88d98418fa3f56/config/index.html';
+  var url = 'https://cdn.rawgit.com/groyoh/minimalin/739d433b129f2ce5965460d161f8c08bcc16f077/config/index.html';
   console.log('Showing configuration page: ' + url);
 
   Pebble.openURL(url);
@@ -18,10 +18,9 @@ var setColorToDict = function(dict, attr, color){
 Pebble.addEventListener('webviewclosed', function(e) {
   var configData = JSON.parse(decodeURIComponent(e.response));
   console.log('Configuration page returned: ' + JSON.stringify(configData));
-
-  var minuteHandColor = configData.minute_hand_color;
   var dict = {};
-  setColorToDict(dict, 'MINUTE_HAND', minuteHandColor);
+  setColorToDict(dict, 'MINUTE_HAND', configData.minute_hand_color);
+  setColorToDict(dict, 'HOUR_HAND', configData.hour_hand_color);
   Pebble.sendAppMessage(dict, function() {
     console.log('Send successful: ' + JSON.stringify(dict));
   }, function() {

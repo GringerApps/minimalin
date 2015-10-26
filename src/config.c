@@ -7,6 +7,7 @@
 
 static Config s_config;
 static int s_minute_hand_color_keys[] = { KEY_MINUTE_HAND_COLOR_RED, KEY_MINUTE_HAND_COLOR_GREEN, KEY_MINUTE_HAND_COLOR_BLUE };
+static int s_hour_hand_color_keys[] = { KEY_HOUR_HAND_COLOR_RED, KEY_HOUR_HAND_COLOR_GREEN, KEY_HOUR_HAND_COLOR_BLUE };
 
 // Utils
 
@@ -38,6 +39,11 @@ static void set_minute_hand_color(const int color[3]){
   s_config.minute_hand_color = GColorFromRGB(color[0], color[1], color[2]);
 }
 
+static void set_hour_hand_color(const int color[3]){
+  write_color(s_hour_hand_color_keys, color);
+  s_config.hour_hand_color = GColorFromRGB(color[0], color[1], color[2]);
+}
+
 // Defaults loading
 
 static void fetch_config_or_default_color(const int keys[3], int default_color[3]){
@@ -53,6 +59,12 @@ static void fetch_minute_hand_config_or_default(){
   int colors[3] = {0xff,0xff,0xff};
   fetch_config_or_default_color(s_minute_hand_color_keys, colors);
   set_minute_hand_color(colors);
+}
+
+static void fetch_hour_hand_config_or_default(){
+  int colors[3] = {0xff,0x00,0x00};
+  fetch_config_or_default_color(s_hour_hand_color_keys, colors);
+  set_hour_hand_color(colors);
 }
 
 // Config change
@@ -84,8 +96,18 @@ static void save_minute_hand_config(const DictionaryIterator *iter){
   }
 }
 
+static void save_hour_hand_config(const DictionaryIterator *iter){
+  int color[3]; 
+  if(parse_color_config(iter, s_hour_hand_color_keys, color)){
+    log_color_change("Hour hand", color);
+    set_hour_hand_color(color);
+    mark_dirty_hand_layer();
+  }
+}
+
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   save_minute_hand_config(iter);
+  save_hour_hand_config(iter);
 }
 
 // API
@@ -93,9 +115,14 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 GColor config_get_minute_hand_color(){
   return s_config.minute_hand_color;
 }
+
+GColor config_get_hour_hand_color(){
+  return s_config.hour_hand_color;
+}
     
 void init_config() {
   app_message_register_inbox_received(inbox_received_handler);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   fetch_minute_hand_config_or_default();
+  fetch_hour_hand_config_or_default();
 }
