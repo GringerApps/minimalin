@@ -2,8 +2,8 @@
 <html>
   <head>
   <title>Slate Example Configuration</title>
-  <link rel='stylesheet' type='text/css' href='css/slate.min.css'>
-  <script src='js/slate.min.js'></script>
+  <link rel='stylesheet' type='text/css' href='css/slate.css'>
+  <script src='js/slate.js'></script>
   <style>
   .title {
     padding: 15px 10px;
@@ -28,7 +28,7 @@
       <div class='item-container-content'>
         <label class='item'>
           Minute hand color
-          <input id='minute_hand_color_picker' type='text' class='item-color item-color-normal' value='#ffffff'>
+          <input id='minute_hand_color_picker' type='text' class='item-color item-color-normal' value='0xffffff'>
         </label>
       </div>
     </div>
@@ -36,7 +36,7 @@
       <div class='item-container-content'>
         <label class='item'>
           Hour hand color
-          <input id='hour_hand_color_picker' type='text' class='item-color item-color-normal' value='#ff0000'>
+          <input id='hour_hand_color_picker' type='text' class='item-color item-color-normal' value='0xff0000'>
         </label>
       </div>
     </div>
@@ -92,9 +92,9 @@
  
   (function() {
     var minuteHandColorPicker = document.getElementById('minute_hand_color_picker');
-    minuteHandColorPicker.value = getParameterByName('minute_hand_color') || localStorage['minute_hand_color'];
+    minuteHandColorPicker.value = getParameterByName('minute_hand_color') || minuteHandColorPicker.value;
     var hourHandColorPicker = document.getElementById('hour_hand_color_picker');
-    hourHandColorPicker.value = getParameterByName('hour_hand_color') || localStorage['hour_hand_color'];
+    hourHandColorPicker.value = getParameterByName('hour_hand_color') || hourHandColorPicker.value;
   })();
   </script>
 </html>
