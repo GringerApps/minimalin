@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-  <title>Slate Example Configuration</title>
+  <title>Minimalin Configuration</title>
   <link rel='stylesheet' type='text/css' href='css/slate.css'>
   <script src='js/slate.js'></script>
   <style>
@@ -28,7 +28,7 @@
       <div class='item-container-content'>
         <label class='item'>
           Minute hand color
-          <input id='minute_hand_color_picker' type='text' class='item-color item-color-normal' value='0xffffff'>
+        <input id='minute_hand_color_picker' type='text' class='item-color item-color-normal' value='0xffffff'>
         </label>
       </div>
     </div>
@@ -40,8 +40,15 @@
         </label>
       </div>
     </div>
+    <div class="item-container">
+      <div class="item-container-content">
+        <label class="item">
+          Display date
+          <input id="display_date_checkbox" type="checkbox" class="item-toggle" checked>
+        </label>
+      </div>
     <div class="donation">
-      Minimalin is free software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
+      Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
     </div>
     <div class='item-container'>
       <div class='button-container'>
@@ -53,12 +60,12 @@
   function getConfigData() {
     var minuteHandColorPicker = document.getElementById('minute_hand_color_picker');
     var hourHandColorPicker = document.getElementById('hour_hand_color_picker');
+    var displayDateCheckbox = document.getElementById('display_date_checkbox');
     var options = {
       'minute_hand_color': minuteHandColorPicker.value,
       'hour_hand_color': hourHandColorPicker.value,
+      'date_displayed': displayDateCheckbox.checked
     };
-    localStorage['minute_hand_color'] = options['minute_hand_color'];
-    localStorage['hour_hand_color'] = options['hour_hand_color'];
     return options;
   }
 
@@ -89,12 +96,28 @@
     }
     return decodeURIComponent(results[1].replace(/\+/g, " "));
   }
- 
+
+  function getBooleanParamByName(name){
+    switch(getParameterByName(name).toLowerCase()){
+      case "true":
+        return true
+      case "false":
+        return false;
+      default:
+        return null;
+    }
+  }
+
   (function() {
     var minuteHandColorPicker = document.getElementById('minute_hand_color_picker');
     minuteHandColorPicker.value = getParameterByName('minute_hand_color') || minuteHandColorPicker.value;
     var hourHandColorPicker = document.getElementById('hour_hand_color_picker');
     hourHandColorPicker.value = getParameterByName('hour_hand_color') || hourHandColorPicker.value;
+    var displayDateCheckbox = document.getElementById('display_date_checkbox');
+    var display_date_param = getBooleanParamByName('display_date');
+    if(display_date_param !== null){
+      displayDateCheckbox.checked = display_date_param;
+    }
   })();
   </script>
 </html>
