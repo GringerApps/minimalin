@@ -2,6 +2,7 @@
 #include "time_layer.h"
 #include "geo.h"
 #include "macros.h"
+#include "config.h"
 
 #define CHAR_HEIGHT 23
 #define CHAR_WIDTH 23
@@ -139,7 +140,9 @@ static void time_layer_update_callback(Layer * layer, GContext *ctx){
     display_normal_time(ctx, &screen_bounds, NoLeading, current_time.hours, current_time.hours);
     display_normal_time(ctx, &screen_bounds, LeadingZero, current_time.minutes / 5, current_time.minutes);
   }
-  display_date(ctx, &screen_bounds, current_time.day);
+  if(config_is_date_displayed()){
+    display_date(ctx, &screen_bounds, current_time.day);
+  }
 }
 
 void init_time_layer(Layer * root_layer){

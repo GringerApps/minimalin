@@ -3,12 +3,13 @@
 #include <pebble.h>
 
 // Message Keys
-#define KEY_MINUTE_HAND_COLOR_RED     0
-#define KEY_MINUTE_HAND_COLOR_GREEN   1
-#define KEY_MINUTE_HAND_COLOR_BLUE    2
+#define KEY_MINUTE_HAND_COLOR_RED   0
+#define KEY_MINUTE_HAND_COLOR_GREEN 1
+#define KEY_MINUTE_HAND_COLOR_BLUE  2
 #define KEY_HOUR_HAND_COLOR_RED     3
 #define KEY_HOUR_HAND_COLOR_GREEN   4
 #define KEY_HOUR_HAND_COLOR_BLUE    5
+#define KEY_DATE_DISPLAYED          6
 
 #define BACKGROUND_COLOR GColorBlack
 

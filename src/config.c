@@ -2,6 +2,7 @@
 #include "config.h"
 #include "macros.h"
 #include "hand_layer.h"
+#include "time_layer.h"
 
 #define up_to(i, n) for(int i = 0; i < n; ++i)
 
@@ -44,6 +45,11 @@ static void set_hour_hand_color(const int color[3]){
   s_config.hour_hand_color = GColorFromRGB(color[0], color[1], color[2]);
 }
 
+static void set_date_displayed(const bool displayed){
+  persist_write_bool(KEY_DATE_DISPLAYED, displayed);
+  s_config.date_displayed = displayed;
+}
+
 // Defaults loading
 
 static void fetch_config_or_default_color(const int keys[3], int default_color[3]){
@@ -65,6 +71,14 @@ static void fetch_hour_hand_config_or_default(){
   int colors[3] = {0xff,0x00,0x00};
   fetch_config_or_default_color(s_hour_hand_color_keys, colors);
   set_hour_hand_color(colors);
+}
+
+static void fetch_date_display_config_or_default(){
+  bool is_date_displayed = true;
+  if(persist_exists(KEY_DATE_DISPLAYED)){
+    is_date_displayed = persist_read_bool(KEY_DATE_DISPLAYED);
+  }
+  set_date_displayed(is_date_displayed);
 }
 
 // Config change
@@ -105,9 +119,18 @@ static void save_hour_hand_config(const DictionaryIterator *iter){
   }
 }
 
+static void save_date_displayed_config(const DictionaryIterator *iter){
+  Tuple * new_value = dict_find(iter, KEY_DATE_DISPLAYED);
+  if(new_value){
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "%d",(int) new_value->value->int8);
+    set_date_displayed(new_value->value->int8);
+    mark_dirty_time_layer();
+  }
+}
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   save_minute_hand_config(iter);
   save_hour_hand_config(iter);
+  save_date_displayed_config(iter);
 }
 
 // API
@@ -119,10 +142,15 @@ GColor config_get_minute_hand_color(){
 GColor config_get_hour_hand_color(){
   return s_config.hour_hand_color;
 }
+
+bool config_is_date_displayed(){
+  return s_config.date_displayed;
+}
     
 void init_config() {
   app_message_register_inbox_received(inbox_received_handler);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   fetch_minute_hand_config_or_default();
   fetch_hour_hand_config_or_default();
+  fetch_date_display_config_or_default();
 }
