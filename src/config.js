@@ -19,11 +19,12 @@ Pebble.addEventListener('showConfiguration', function() {
   var getSavedBool = function(attr){
     return localStorage.getItem(attr + '_bool');
   };
-	var url = 'https://cdn.rawgit.com/groyoh/minimalin/2898852f65e871eeed9fd77cb3ce879581f3172a/config/index.html?';
+	var url = 'https://cdn.rawgit.com/groyoh/minimalin/6a7b11f4096126e7c37f067ae6688f51d45177d9/config/index.html?';
   var params = {
     minute_hand_color: getSavedColor('minute_hand'),
     hour_hand_color: getSavedColor('hour_hand'),
-    display_date: getSavedBool('date_displayed')
+    display_date: getSavedBool('date_displayed'),
+    display_bluetooth: getSavedBool('bluetooth_displayed')
   };
   url += toQueryString(params);
   console.log('Showing configuration page: ' + url);
@@ -51,7 +52,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   };
   var saveBool = function(dict, attr, bool){
     localStorage.setItem(attr + '_bool', bool);
-    dict.KEY_DATE_DISPLAYED = bool;
+    dict['KEY_' + attr.toUpperCase()] = bool;
   };
   var configData = JSON.parse(decodeURIComponent(e.response));
   console.log('Configuration page returned: ' + JSON.stringify(configData));
@@ -59,6 +60,9 @@ Pebble.addEventListener('webviewclosed', function(e) {
   saveColor(dict, 'minute_hand', configData.minute_hand_color);
   saveColor(dict, 'hour_hand', configData.hour_hand_color);
   saveBool(dict, 'date_displayed', configData.date_displayed);
+  saveBool(dict, 'bluetooth_displayed', configData.bluetooth_displayed);
+  console.log('js');
+
   Pebble.sendAppMessage(dict, function() {
     console.log('Send successful: ' + JSON.stringify(dict));
   }, function() {

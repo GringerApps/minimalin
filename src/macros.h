@@ -10,6 +10,8 @@
 #define KEY_HOUR_HAND_COLOR_GREEN   4
 #define KEY_HOUR_HAND_COLOR_BLUE    5
 #define KEY_DATE_DISPLAYED          6
+#define KEY_BLUETOOTH_DISPLAYED     7
+
 
 #define BACKGROUND_COLOR GColorBlack
 
