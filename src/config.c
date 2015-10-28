@@ -3,25 +3,15 @@
 #include "macros.h"
 #include "hand_layer.h"
 #include "time_layer.h"
+#include "bluetooth_layer.h"
 
 #define up_to(i, n) for(int i = 0; i < n; ++i)
 
 static Config s_config;
-static int s_minute_hand_color_keys[] = { KEY_MINUTE_HAND_COLOR_RED, KEY_MINUTE_HAND_COLOR_GREEN, KEY_MINUTE_HAND_COLOR_BLUE };
-static int s_hour_hand_color_keys[] = { KEY_HOUR_HAND_COLOR_RED, KEY_HOUR_HAND_COLOR_GREEN, KEY_HOUR_HAND_COLOR_BLUE };
+static const int s_minute_hand_color_keys[] = { KEY_MINUTE_HAND_COLOR_RED, KEY_MINUTE_HAND_COLOR_GREEN, KEY_MINUTE_HAND_COLOR_BLUE };
+static const int s_hour_hand_color_keys[] = { KEY_HOUR_HAND_COLOR_RED, KEY_HOUR_HAND_COLOR_GREEN, KEY_HOUR_HAND_COLOR_BLUE };
 
 // Utils
-
-static void log_color_change(const char config_name[],const int new_values[]){
-  APP_LOG(
-    APP_LOG_LEVEL_INFO,
-    "%s color changed changed to 0x%x%x%x",
-    config_name,
-    new_values[0],
-    new_values[1],
-    new_values[2]
-  );
-}
 
 static void write_color(const int keys[3], const int color[3]){
   up_to(i, 3){
@@ -29,56 +19,65 @@ static void write_color(const int keys[3], const int color[3]){
   }
 }
 
-static void read_color(const int keys[3], int color[3]){
+static bool read_color(const int keys[3], int color[3]){
+  up_to(i, 3){
+    if(!persist_exists(keys[i])){
+      return false;
+    }
+  }
   up_to(i, 3){
     color[i] = persist_read_int(keys[i]);
   }
+  return true;
 }
 
-static void set_minute_hand_color(const int color[3]){
-  write_color(s_minute_hand_color_keys, color);
-  s_config.minute_hand_color = GColorFromRGB(color[0], color[1], color[2]);
+static void set_color(const int keys[3], const int color[3]){
+  write_color(keys, color);
+  GColor g_color = GColorFromRGB(color[0], color[1], color[2]);
+  switch(keys[0]){
+  case KEY_MINUTE_HAND_COLOR_RED:
+    s_config.minute_hand_color = g_color;
+    return;
+  default:
+    s_config.hour_hand_color = g_color;
+  }
 }
 
-static void set_hour_hand_color(const int color[3]){
-  write_color(s_hour_hand_color_keys, color);
-  s_config.hour_hand_color = GColorFromRGB(color[0], color[1], color[2]);
-}
-
-static void set_date_displayed(const bool displayed){
-  persist_write_bool(KEY_DATE_DISPLAYED, displayed);
-  s_config.date_displayed = displayed;
+static void set_bool(const int key, const bool value){
+  persist_write_bool(key, value);
+  switch(key){
+  case KEY_DATE_DISPLAYED:
+    s_config.date_displayed = value;
+    return;
+  default:
+    s_config.bluetooth_displayed = value;
+  }
 }
 
 // Defaults loading
 
-static void fetch_config_or_default_color(const int keys[3], int default_color[3]){
-  up_to(i, 3){
-    if(!persist_exists(keys[i])){
-      return;
-    }
+static void fetch_color_config_or_default(const int keys[3], const int default_color[3]){
+  int color[3];
+  memcpy(color, default_color, 3 * sizeof(int));
+  read_color(keys, color);
+  set_color(keys, color);
+}
+
+static void fetch_bool_config_or_default(const int key, const int default_value){
+  int value = default_value;
+  if(persist_exists(key)){
+    value = persist_read_bool(key);
   }
-  read_color(keys, default_color);  
+  set_bool(key, value);
 }
 
-static void fetch_minute_hand_config_or_default(){
-  int colors[3] = {0xff,0xff,0xff};
-  fetch_config_or_default_color(s_minute_hand_color_keys, colors);
-  set_minute_hand_color(colors);
-}
-
-static void fetch_hour_hand_config_or_default(){
-  int colors[3] = {0xff,0x00,0x00};
-  fetch_config_or_default_color(s_hour_hand_color_keys, colors);
-  set_hour_hand_color(colors);
-}
-
-static void fetch_date_display_config_or_default(){
-  bool is_date_displayed = true;
-  if(persist_exists(KEY_DATE_DISPLAYED)){
-    is_date_displayed = persist_read_bool(KEY_DATE_DISPLAYED);
-  }
-  set_date_displayed(is_date_displayed);
+static void fetch_config_or_default(){
+  const int default_minute_hand_color[3] = {0xff,0xff,0xff};
+  fetch_color_config_or_default(s_minute_hand_color_keys, default_minute_hand_color);
+  const int default_hour_hand_color[3] = {0xff,0x00, 0x00};
+  fetch_color_config_or_default(s_hour_hand_color_keys, default_hour_hand_color);
+  fetch_bool_config_or_default(KEY_DATE_DISPLAYED, true);
+  fetch_bool_config_or_default(KEY_BLUETOOTH_DISPLAYED, true);
 }
 
 // Config change
@@ -92,20 +91,21 @@ static bool parse_color_config(const DictionaryIterator *iter, const int keys[3]
     new_color[i] = new_value->value->int32;
   }
   int existing_values[3];
-  read_color(keys, existing_values);
-  up_to(i, 3){
-    if(new_color[i] != existing_values[i]){
-      return true;
+  if(read_color(keys, existing_values)){
+    up_to(i, 3){
+      if(new_color[i] != existing_values[i]){
+        return true;
+      }
     }
+    return false;
   }
-  return false;
+  return true;
 }
 
 static void save_minute_hand_config(const DictionaryIterator *iter){
   int color[3]; 
   if(parse_color_config(iter, s_minute_hand_color_keys, color)){
-    log_color_change("Minute hand", color);
-    set_minute_hand_color(color);
+    set_color(s_minute_hand_color_keys, color);
     mark_dirty_hand_layer();
   }
 }
@@ -113,8 +113,7 @@ static void save_minute_hand_config(const DictionaryIterator *iter){
 static void save_hour_hand_config(const DictionaryIterator *iter){
   int color[3]; 
   if(parse_color_config(iter, s_hour_hand_color_keys, color)){
-    log_color_change("Hour hand", color);
-    set_hour_hand_color(color);
+    set_color(s_hour_hand_color_keys, color);
     mark_dirty_hand_layer();
   }
 }
@@ -122,15 +121,25 @@ static void save_hour_hand_config(const DictionaryIterator *iter){
 static void save_date_displayed_config(const DictionaryIterator *iter){
   Tuple * new_value = dict_find(iter, KEY_DATE_DISPLAYED);
   if(new_value){
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "%d",(int) new_value->value->int8);
-    set_date_displayed(new_value->value->int8);
+    set_bool(KEY_DATE_DISPLAYED, new_value->value->int8);
     mark_dirty_time_layer();
   }
 }
+
+static void save_bluetooth_displayed_config(const DictionaryIterator *iter){
+  Tuple * new_value = dict_find(iter, KEY_BLUETOOTH_DISPLAYED);
+  if(new_value){
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "save");
+    set_bool(KEY_BLUETOOTH_DISPLAYED, new_value->value->int8);
+    mark_dirty_bluetooth_layer();
+  }
+}
+
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   save_minute_hand_config(iter);
   save_hour_hand_config(iter);
   save_date_displayed_config(iter);
+  save_bluetooth_displayed_config(iter);
 }
 
 // API
@@ -146,11 +155,13 @@ GColor config_get_hour_hand_color(){
 bool config_is_date_displayed(){
   return s_config.date_displayed;
 }
+
+bool config_is_bluetooth_displayed(){
+  return s_config.bluetooth_displayed;
+}
     
 void init_config() {
   app_message_register_inbox_received(inbox_received_handler);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
-  fetch_minute_hand_config_or_default();
-  fetch_hour_hand_config_or_default();
-  fetch_date_display_config_or_default();
+  fetch_config_or_default();
 }

@@ -28,7 +28,7 @@
       <div class='item-container-content'>
         <label class='item'>
           Minute hand color
-        <input id='minute_hand_color_picker' type='text' class='item-color item-color-normal' value='0xffffff'>
+          <input id='minute_hand_color_picker' type='text' class='item-color item-color-normal' value='0xffffff'>
         </label>
       </div>
     </div>
@@ -43,10 +43,19 @@
     <div class="item-container">
       <div class="item-container-content">
         <label class="item">
-          Display date
+          Show date
           <input id="display_date_checkbox" type="checkbox" class="item-toggle" checked>
         </label>
       </div>
+    </div>
+    <div class="item-container">
+      <div class="item-container-content">
+        <label class="item">
+          Show Bluetooth disconnected icon
+          <input id="display_bluetooth_checkbox" type="checkbox" class="item-toggle" checked>
+        </label>
+      </div>
+    </div>
     <div class="donation">
       Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
     </div>
@@ -61,10 +70,12 @@
     var minuteHandColorPicker = document.getElementById('minute_hand_color_picker');
     var hourHandColorPicker = document.getElementById('hour_hand_color_picker');
     var displayDateCheckbox = document.getElementById('display_date_checkbox');
+    var displayBluetoothCheckbox = document.getElementById('display_bluetooth_checkbox');
     var options = {
       'minute_hand_color': minuteHandColorPicker.value,
       'hour_hand_color': hourHandColorPicker.value,
-      'date_displayed': displayDateCheckbox.checked
+      'date_displayed': displayDateCheckbox.checked,
+      'bluetooth_displayed': displayBluetoothCheckbox.checked
     };
     return options;
   }
@@ -114,9 +125,14 @@
     var hourHandColorPicker = document.getElementById('hour_hand_color_picker');
     hourHandColorPicker.value = getParameterByName('hour_hand_color') || hourHandColorPicker.value;
     var displayDateCheckbox = document.getElementById('display_date_checkbox');
-    var display_date_param = getBooleanParamByName('display_date');
-    if(display_date_param !== null){
-      displayDateCheckbox.checked = display_date_param;
+    var displayDateParam = getBooleanParamByName('display_date');
+    if(displayDateParam !== null){
+      displayDateCheckbox.checked = displayDateParam;
+    }
+    var displayBluetoothCheckbox = document.getElementById('display_bluetooth_checkbox');
+    var displayBluetoothParam = getBooleanParamByName('display_bluetooth');
+    if(displayBluetoothParam !== null){
+      displayBluetoothCheckbox.checked = displayBluetoothParam;
     }
   })();
   </script>
