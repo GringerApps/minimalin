@@ -208,11 +208,16 @@ var Zepto=function(){function L(t){return null==t?String(t):j[S.call(t)]||"objec
           $item.find('.color-box-wrap').toggleClass('show');
         });
 
+        $color.on('change', function(ev){
+          var value = $(this).val();
+          $valueDisplay.css('background-color', value.replace(/^0x/, '#'));
+        });
+
         $item.find('.color-box.selectable').on('click', function(ev) {
           ev.preventDefault();
 
           var value = $(this).data('value');
-          $color.val(value);
+          $color.val(value).change();
           $valueDisplay.css('background-color', value.replace(/^0x/, '#'));
           $item.find('.color-box-wrap').removeClass('show');
         })

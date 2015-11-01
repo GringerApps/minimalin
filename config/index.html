@@ -2,8 +2,8 @@
 <html>
   <head>
   <title>Minimalin Configuration</title>
-  <link rel='stylesheet' type='text/css' href='css/slate.css'>
-  <script src='js/slate.js'></script>
+  <link rel='stylesheet' type='text/css' href='css/slate.min.css'>
+  <script src='js/slate.min.js'></script>
   <style>
   .title {
     padding: 15px 10px;
@@ -19,11 +19,19 @@
     padding: 3px 10px;
     font-size: 0.7em;
   }
+
+  #preview {
+    display:      block;
+    margin-left:  auto;
+    margin-right: auto;
+    width:        40%;
+  }
   </style>
   </head>
 
   <body>
     <h1 class='title'>Minimalin Configuration</h1>
+    <object id="preview" type="image/svg+xml" data="img/minimalin.svg"></object>
     <div class='item-container'>
       <div class='item-container-content'>
         <label class='item'>
@@ -67,17 +75,12 @@
   </body>
   <script type="text/javascript">
   function getConfigData() {
-    var minuteHandColorPicker = document.getElementById('minute_hand_color_picker');
-    var hourHandColorPicker = document.getElementById('hour_hand_color_picker');
-    var displayDateCheckbox = document.getElementById('display_date_checkbox');
-    var displayBluetoothCheckbox = document.getElementById('display_bluetooth_checkbox');
-    var options = {
-      'minute_hand_color': minuteHandColorPicker.value,
-      'hour_hand_color': hourHandColorPicker.value,
-      'date_displayed': displayDateCheckbox.checked,
-      'bluetooth_displayed': displayBluetoothCheckbox.checked
+    return {
+      minute_hand_color: $('#minute_hand_color_picker').val(),
+      hour_hand_color: $('#hour_hand_color_picker').val(),
+      date_displayed: $('#display_date_checkbox').attr('checked'),
+      bluetooth_displayed: $('#display_bluetooth_checkbox').attr('checked'),
     };
-    return options;
   }
 
   function getQueryParam(variable, defaultValue) {
@@ -89,11 +92,10 @@
         return decodeURIComponent(pair[1]);
       }
     }
-    return defaultValue || false;
+    return defaultValue || null;
   }
 
-  var submitButton = document.getElementById('submit_button');
-  submitButton.addEventListener('click', function() {
+  $('#submit_button').on('click', function() {
     var return_to = getQueryParam('return_to', 'pebblejs://close#');
     document.location = return_to + encodeURIComponent(JSON.stringify(getConfigData()));
   });
@@ -109,7 +111,7 @@
   }
 
   function getBooleanParamByName(name){
-    switch(getParameterByName(name).toLowerCase()){
+    switch((getParameterByName(name) || "").toLowerCase()){
       case "true":
         return true
       case "false":
@@ -119,21 +121,50 @@
     }
   }
 
-  (function() {
-    var minuteHandColorPicker = document.getElementById('minute_hand_color_picker');
-    minuteHandColorPicker.value = getParameterByName('minute_hand_color') || minuteHandColorPicker.value;
-    var hourHandColorPicker = document.getElementById('hour_hand_color_picker');
-    hourHandColorPicker.value = getParameterByName('hour_hand_color') || hourHandColorPicker.value;
-    var displayDateCheckbox = document.getElementById('display_date_checkbox');
+  var to_svg_color = function(color){
+    return color.replace(/^0x/, '#');
+  }
+  var svg =function(){
+    return $($('#preview').get(0).contentDocument);
+  }
+  $('#minute_hand_color_picker').on('change', function(ev) {
+    svg().find('.minute_hand').attr('fill', to_svg_color($(this).val()));
+  });
+
+  $('#hour_hand_color_picker').on('change', function(ev) {
+    svg().find('.hour_hand').attr('fill', to_svg_color($(this).val()));
+  });
+
+  $('#display_date_checkbox').on('change', function(ev) {
+    svg().find('.date').attr('visibility', $(this).attr('checked') ? 'displayed' : 'hidden');
+  });
+
+  $('#display_bluetooth_checkbox').on('change', function(ev) {
+    svg().find('.bluetooth').attr('visibility', $(this).attr('checked') ? 'displayed' : 'hidden');
+  });
+
+  $(function(){
+    var minuteHandColorPicker = $('#minute_hand_color_picker');
+    minuteHandColorPicker.val(getParameterByName('minute_hand_color') || minuteHandColorPicker.val()).change();
+    var hourHandColorPicker = $('#hour_hand_color_picker');
+    hourHandColorPicker.val(getParameterByName('hour_hand_color') || hourHandColorPicker.val()).change();
+    var displayDateCheckbox = $('#display_date_checkbox');
     var displayDateParam = getBooleanParamByName('display_date');
     if(displayDateParam !== null){
-      displayDateCheckbox.checked = displayDateParam;
+      displayDateCheckbox.prop('checked', displayDateParam);
     }
-    var displayBluetoothCheckbox = document.getElementById('display_bluetooth_checkbox');
+    var displayBluetoothCheckbox = $('#display_bluetooth_checkbox');
     var displayBluetoothParam = getBooleanParamByName('display_bluetooth');
     if(displayBluetoothParam !== null){
-      displayBluetoothCheckbox.checked = displayBluetoothParam;
+      displayBluetoothCheckbox.prop('checked', displayBluetoothParam);
     }
-  })();
+  });
+
+  window.addEventListener('load', function() {
+    $('#minute_hand_color_picker').change();
+    $('#hour_hand_color_picker').change();
+    $('#display_date_checkbox').change();
+    $('#display_bluetooth_checkbox').change();
+  });
   </script>
 </html>
