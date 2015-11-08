@@ -3,7 +3,7 @@
 #include "macros.h"
 #include "hands.h"
 #include "time_layer.h"
-#include "bluetooth_layer.h"
+#include "bluetooth.h"
 
 #define up_to(i, n) for(int i = 0; i < n; ++i)
 

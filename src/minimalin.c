@@ -4,7 +4,7 @@
 #include "time_layer.h"
 #include "tick_layer.h"
 #include "hands.h"
-#include "bluetooth_layer.h"
+#include "bluetooth.h"
 #include "background_layer.h"
 #include "time_utils.h"
 #include "config.h"
