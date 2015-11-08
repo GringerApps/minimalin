@@ -110,7 +110,7 @@ static void save_minute_hand_config(const DictionaryIterator *iter){
   int color[3]; 
   if(parse_color_config(iter, s_minute_hand_color_keys, color)){
     set_color(s_minute_hand_color_keys, color);
-    mark_dirty_minute_hand_layer();
+    hands_update_minute_hand_config_changed();
   }
 }
 
@@ -118,7 +118,7 @@ static void save_hour_hand_config(const DictionaryIterator *iter){
   int color[3]; 
   if(parse_color_config(iter, s_hour_hand_color_keys, color)){
     set_color(s_hour_hand_color_keys, color);
-    mark_dirty_hour_hand_layer();
+    hands_update_hour_hand_config_changed();
   }
 }
 
@@ -142,7 +142,7 @@ static void save_rainbow_mode_config(const DictionaryIterator *iter){
   Tuple * new_value = dict_find(iter, KEY_RAINBOW_MODE);
   if(new_value){
     set_bool(KEY_RAINBOW_MODE, new_value->value->int8);
-    mark_dirty_minute_hand_layer();
+    hands_update_rainbow_mode_config_changed();
   }
 }
 

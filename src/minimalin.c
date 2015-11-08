@@ -9,7 +9,7 @@
 #include "time_utils.h"
 #include "config.h"
 
-static Window *s_main_window;
+static Window * s_main_window;
 
 static void main_window_load(Window *window) {
   Layer * root_layer = window_get_root_layer(window);  
@@ -17,11 +17,11 @@ static void main_window_load(Window *window) {
   init_bluetooth_layer(root_layer);
   init_time_layer(root_layer);
   init_tick_layer(root_layer);
-  init_hand_layer(root_layer);
+  init_hands(root_layer);
 }
 
 static void main_window_unload(Window *window) {
-  deinit_hand_layer();
+  deinit_hands();
   deinit_time_layer();
   deinit_tick_layer();
   deinit_bluetooth_layer();
@@ -32,8 +32,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   update_current_time();
   mark_dirty_time_layer();
   mark_dirty_tick_layer();
-  mark_dirty_hour_hand_layer();
-  mark_dirty_minute_hand_layer();
+  hands_update_time_changed();
 }
 
 static void init() {
@@ -48,6 +47,7 @@ static void init() {
 }
 
 static void deinit() {
+  tick_timer_service_unsubscribe();
   window_destroy(s_main_window);
 }
 

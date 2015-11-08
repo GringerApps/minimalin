@@ -41,6 +41,12 @@ int radius_to_border(float angle, const GSize * size){
 }
 
 float angle(int time, int max){
+  if(time == 0){
+    return 0;
+  }
+  if(time == max){
+    return TRIG_MAX_ANGLE; 
+  }
   return TRIG_MAX_ANGLE * time / max;
 }
 
