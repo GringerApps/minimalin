@@ -1,7 +1,7 @@
 #include <pebble.h>
 #include "config.h"
 #include "hands.h"
-#include "time_layer.h"
+#include "times.h"
 #include "bluetooth.h"
 
 #define KEY_MINUTE_HAND_COLOR_RED   0

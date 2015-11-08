@@ -1,5 +1,5 @@
 #include <pebble.h>
-#include "time_layer.h"
+#include "times.h"
 #include "geo.h"
 #include "config.h"
 #include "common.h"

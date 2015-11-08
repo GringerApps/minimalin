@@ -1,6 +1,6 @@
 #include <pebble.h>
 #include "geo.h"
-#include "time_layer.h"
+#include "times.h"
 #include "ticks.h"
 #include "hands.h"
 #include "bluetooth.h"
