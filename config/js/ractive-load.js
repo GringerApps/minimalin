@@ -1,3 +1,4 @@
+/* Ractive load - v0.5.2 - Richard Harris - MIT License */
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('ractive')) :
   typeof define === 'function' && define.amd ? define(['ractive'], factory) :
