@@ -3,7 +3,7 @@
 #include "macros.h"  
 #include "time_layer.h"
 #include "tick_layer.h"
-#include "hand_layer.h"
+#include "hands.h"
 #include "bluetooth_layer.h"
 #include "background_layer.h"
 #include "time_utils.h"

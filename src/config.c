@@ -1,7 +1,7 @@
 #include <pebble.h>
 #include "config.h"
 #include "macros.h"
-#include "hand_layer.h"
+#include "hands.h"
 #include "time_layer.h"
 #include "bluetooth_layer.h"
 

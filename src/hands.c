@@ -1,5 +1,5 @@
 #include <pebble.h>
-#include "hand_layer.h"
+#include "hands.h"
 #include "time_utils.h"
 #include "geo.h"
 #include "macros.h"
