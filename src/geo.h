@@ -19,5 +19,4 @@ int dx(float angle, int radius);
 int dy(float angle, int radius);
 int x_plus_dx(const int x, const float angle, const int radius);
 int y_plus_dy(const int y, const float angle, const int radius);
-void translate(const float angle, const int radius, GPoint * point);
 int use_cos(float angle);

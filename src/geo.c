@@ -18,11 +18,6 @@ int dy(float angle, int radius){
   return (float) -cos_lookup(angle) * radius / TRIG_MAX_RATIO + 0.5;
 }
 
-void translate(const float angle, const int radius, GPoint * point){
-  point->x = x_plus_dx(point->x, angle, radius);
-  point->y = y_plus_dy(point->y, angle, radius);
-}
-
 int use_cos(float angle){
   return angle < _45_DEGREES || (angle > _135_DEGREES && angle < _225_DEGREES) || angle > _315_DEGREES;
 }
