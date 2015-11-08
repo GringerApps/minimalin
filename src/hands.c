@@ -1,9 +1,15 @@
 #include <pebble.h>
 #include "hands.h"
-#include "time_utils.h"
+#include "common.h"
 #include "geo.h"
-#include "macros.h"
 #include "config.h"
+
+#define HOUR_HAND_COLOR GColorRed
+#define HOUR_CIRCLE_RADIUS 5
+#define HOUR_HAND_STROKE 6
+#define HOUR_HAND_RADIUS 39
+#define MINUTE_HAND_STROKE 6
+#define MINUTE_HAND_RADIUS 52
 
 static GPoint s_center;
 static GRect s_bounds;
@@ -20,9 +26,9 @@ static void update_minute_hand_layer(Layer *layer, GContext * ctx){
   }else{
     GPoint minute_hand_end = s_center;
     translate(minute_angle, MINUTE_HAND_RADIUS, &minute_hand_end);
-    SSW(ctx, MINUTE_HAND_STROKE);
-    SSC(ctx, config_get_minute_hand_color());
-    DL(ctx, s_center, minute_hand_end);
+    set_stroke_width(ctx, MINUTE_HAND_STROKE);
+    set_stroke_color(ctx, config_get_minute_hand_color());
+    draw_line(ctx, s_center, minute_hand_end);
   }
 }
 
@@ -33,9 +39,9 @@ static void update_hour_hand_layer(Layer * layer, GContext * ctx){
   hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
   GPoint hour_hand_end = s_center;
   translate(hour_angle, HOUR_HAND_RADIUS, &hour_hand_end);
-  SSW(ctx, HOUR_HAND_STROKE);
-  SSC(ctx, config_get_hour_hand_color());
-  DL(ctx, s_center, hour_hand_end);
+  set_stroke_width(ctx, HOUR_HAND_STROKE);
+  set_stroke_color(ctx, config_get_hour_hand_color());
+  draw_line(ctx, s_center, hour_hand_end);
 }
 
 static void update_center_circle_layer(Layer * layer, GContext * ctx){

@@ -1,6 +1,6 @@
 #include <pebble.h>
 #include "geo.h"
-#include "macros.h"
+#include "common.h"
   
 int x_plus_dx(const int x, const float angle, const int radius){
   return x + dx(angle, radius);
@@ -23,7 +23,7 @@ void translate(const float angle, const int radius, GPoint * point){
   point->y = y_plus_dy(point->y, angle, radius);
 }
 
-static int use_cos(float angle){
+int use_cos(float angle){
   return angle < _45_DEGREES || (angle > _135_DEGREES && angle < _225_DEGREES) || angle > _315_DEGREES;
 }
 
@@ -48,25 +48,4 @@ float angle(int time, int max){
     return TRIG_MAX_ANGLE; 
   }
   return TRIG_MAX_ANGLE * time / max;
-}
-
-Vector tick_vector(float angle, const GRect * screen_bounds){
-  GPoint center      = grect_center_point(screen_bounds);
-  const GSize * size = &screen_bounds->size; 
-  GPoint ext;
-  int32_t radius_tick_end = radius_to_border(angle, size);
-  if(use_cos(angle)){
-    ext.x = x_plus_dx(center.x, angle, radius_tick_end),
-    ext.y = angle < _45_DEGREES || angle > _315_DEGREES ? 0 : size->h;
-  }else{
-    ext.y = y_plus_dy(center.y, angle, radius_tick_end),
-    ext.x = angle > _135_DEGREES ? 0 : size->w;      
-  }
-  int32_t radius_tick_start = radius_tick_end - TICK_LENGTH;
-  GPoint ori = center;
-  translate(angle, radius_tick_start, &ori);
-  return (Vector){
-    .ori = ori,
-    .ext = ext
-  };
 }

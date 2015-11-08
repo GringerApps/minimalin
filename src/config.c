@@ -1,10 +1,18 @@
 #include <pebble.h>
 #include "config.h"
-#include "macros.h"
 #include "hands.h"
 #include "time_layer.h"
 #include "bluetooth.h"
 
+#define KEY_MINUTE_HAND_COLOR_RED   0
+#define KEY_MINUTE_HAND_COLOR_GREEN 1
+#define KEY_MINUTE_HAND_COLOR_BLUE  2
+#define KEY_HOUR_HAND_COLOR_RED     3
+#define KEY_HOUR_HAND_COLOR_GREEN   4
+#define KEY_HOUR_HAND_COLOR_BLUE    5
+#define KEY_DATE_DISPLAYED          6
+#define KEY_BLUETOOTH_DISPLAYED     7
+#define KEY_RAINBOW_MODE            8
 #define up_to(i, n) for(int i = 0; i < n; ++i)
 
 static Config s_config;

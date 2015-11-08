@@ -1,18 +1,18 @@
 #include <pebble.h>
 #include "geo.h"
-#include "macros.h"  
 #include "time_layer.h"
 #include "ticks.h"
 #include "hands.h"
 #include "bluetooth.h"
 #include "background_layer.h"
-#include "time_utils.h"
+#include "common.h"
 #include "config.h"
 
 static Window * s_main_window;
 
 static void main_window_load(Window *window) {
-  Layer * root_layer = window_get_root_layer(window);  
+  Layer * root_layer = window_get_root_layer(window);
+  init_font();
   init_background_layer(root_layer);
   init_bluetooth_layer(root_layer);
   init_time_layer(root_layer);
@@ -26,6 +26,7 @@ static void main_window_unload(Window *window) {
   deinit_tick_layer();
   deinit_bluetooth_layer();
   deinit_background_layer();
+  deinit_font();
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){ 
