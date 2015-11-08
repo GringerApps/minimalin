@@ -14,9 +14,8 @@ static Layer * s_center_circle_layer;
 static void minute_hand_layer_update_callback(Layer *layer, GContext * ctx){
   GRect screen_bounds = layer_get_bounds(layer);
   GPoint center = grect_center_point(&screen_bounds);
-  Time current_time;
-  set_current_time(&current_time);
-  float minute_angle = angle(current_time.minutes, 60);
+  Time current_time = get_current_time();
+  float minute_angle = angle(current_time.minute, 60);
   if(config_is_rainbow_mode()){
     graphics_draw_rotated_bitmap(ctx, s_rainbow_bitmap, GPoint(5, 55), minute_angle, center);
   }else{
@@ -31,10 +30,9 @@ static void minute_hand_layer_update_callback(Layer *layer, GContext * ctx){
 static void hour_hand_layer_update_callback(Layer * layer, GContext * ctx){
   GRect screen_bounds = layer_get_bounds(layer);
   GPoint screen_center = grect_center_point(&screen_bounds);
-  Time current_time;
-  set_current_time(&current_time);
-  float hour_angle = angle(current_time.hours, 12);
-  float minute_angle = angle(current_time.minutes, 60);
+  Time current_time = get_current_time();
+  float hour_angle = angle(current_time.hour, 12);
+  float minute_angle = angle(current_time.minute, 60);
   hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
   GPoint hour_hand_end = screen_center;
   translate(hour_angle, HOUR_HAND_RADIUS, &hour_hand_end);

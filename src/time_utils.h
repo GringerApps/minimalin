@@ -3,10 +3,10 @@
 #include <pebble.h>
 
 typedef struct {
-  int hours;
-  int minutes;
+  int hour;
+  int minute;
   int day;
 } Time;
 
-void set_current_time(Time * current_time);
+Time get_current_time();
 void update_current_time();

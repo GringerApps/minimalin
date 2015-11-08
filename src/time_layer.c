@@ -82,7 +82,7 @@ static void display_time(GContext * ctx, const GRect * rect, const TimeFormat ti
  * Displays the given time vertically.
  */
 static void display_vertical_time(GContext * ctx, const GRect * screen_bounds, const Time * current_time){
-  int hour         = current_time->hours;
+  int hour         = current_time->hour;
   float time_angle = angle(hour, 12);
   GRect rect;
   set_display_box(time_angle, LeadingZero, screen_bounds, &rect);
@@ -90,18 +90,18 @@ static void display_vertical_time(GContext * ctx, const GRect * screen_bounds, c
   display_time(ctx, &rect, NoLeading, hour);
   set_display_box(time_angle, LeadingZero, screen_bounds, &rect);
   rect.origin.y += rect.size.h / 2 + VERTICAL_BOTTOM_DIGITS_OFFSET;
-  display_time(ctx, &rect, LeadingZero, current_time->minutes);
+  display_time(ctx, &rect, LeadingZero, current_time->minute);
 }
 
 /**
  * Displays the given time horizontally.
  */
 static void display_horizontal_time(GContext * ctx, const GRect * screen_bounds, const Time * current_time){
-  int hour         = current_time->hours;
+  int hour         = current_time->hour;
   float time_angle = angle(hour, 12);
   GRect rect;
   set_display_box(time_angle, Analog, screen_bounds, &rect);
-  display_time(ctx, &rect, Analog, hour * 100 + current_time->minutes);
+  display_time(ctx, &rect, Analog, hour * 100 + current_time->minute);
 }
 
 /**
@@ -126,19 +126,18 @@ static void display_date(GContext * ctx, const GRect * screen_bounds, const int 
 
 static void time_layer_update_callback(Layer * layer, GContext *ctx){
   GRect screen_bounds = layer_get_bounds(layer);
-  Time current_time;
-  set_current_time(&current_time);
+  Time current_time = get_current_time();
   graphics_context_set_text_color(ctx, TIME_COLOR);
-  int hour = current_time.hours;
-  if(conflicting_times(hour, current_time.minutes)){
+  int hour = current_time.hour;
+  if(conflicting_times(hour, current_time.minute)){
     if (display_vertical(hour)){
       display_vertical_time(ctx, &screen_bounds, &current_time);
     }else{
       display_horizontal_time(ctx, &screen_bounds, &current_time);
     }
   }else{
-    display_normal_time(ctx, &screen_bounds, NoLeading, current_time.hours, current_time.hours);
-    display_normal_time(ctx, &screen_bounds, LeadingZero, current_time.minutes / 5, current_time.minutes);
+    display_normal_time(ctx, &screen_bounds, NoLeading, current_time.hour, current_time.hour);
+    display_normal_time(ctx, &screen_bounds, LeadingZero, current_time.minute / 5, current_time.minute);
   }
   if(config_is_date_displayed()){
     display_date(ctx, &screen_bounds, current_time.day);

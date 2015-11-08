@@ -7,15 +7,14 @@
 static Layer * s_tick_layer;
 
 static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
-  Time current_time;
-  set_current_time(&current_time);
+  Time current_time = get_current_time();
   GRect screen_bounds = layer_get_bounds(layer);
-  float hour_tick_angle = angle(current_time.hours, 12);
+  float hour_tick_angle = angle(current_time.hour, 12);
   Vector vector = tick_vector(hour_tick_angle, &screen_bounds);
   SSC(ctx, TICK_COLOR);
   SSW(ctx, TICK_STROKE);
   DL(ctx, vector.ori, vector.ext);
-  float minute_tick_angle = angle(current_time.minutes / 5, 12);
+  float minute_tick_angle = angle(current_time.minute / 5, 12);
   if(minute_tick_angle == hour_tick_angle){
     return;
   }
