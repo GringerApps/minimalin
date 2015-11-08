@@ -16,6 +16,8 @@
 
 typedef enum { NoLeading = 1, LeadingZero = 2, Analog = 5 } TimeFormat;
 
+static GRect s_bounds;
+static GPoint s_center;
 static Layer * s_time_layer;
 
 static bool conflicting_times(const int hour, const int minute){
@@ -39,18 +41,16 @@ static int box_origin_y(const int y, const GSize * box_size){
   return y - box_size->h / 2 + LETTER_OFFSET;
 }
 
-static void set_display_box(const float angle, const TimeFormat format, const GRect * screen_bounds, GRect * display_box){
-  const GSize * screen_size = &screen_bounds->size;
-  GPoint center             = grect_center_point(screen_bounds);
+static void set_display_box(const float angle, const TimeFormat format, GRect * display_box){
   GSize * size              = &display_box->size;
   set_size_for_format(format, size);
   int display_margin = radius_to_border(angle, size);
   if((int)angle % _90_DEGREES != 0){
     display_margin += 2;
   }
-  int radius         = radius_to_border(angle, screen_size) - MARGIN - display_margin;
-  display_box->origin.x = box_origin_x(x_plus_dx(center.x, angle, radius), size);
-  display_box->origin.y = box_origin_y(y_plus_dy(center.y, angle, radius), size);
+  int radius         = radius_to_border(angle, &s_bounds.size) - MARGIN - display_margin;
+  display_box->origin.x = box_origin_x(x_plus_dx(s_center.x, angle, radius), size);
+  display_box->origin.y = box_origin_y(y_plus_dy(s_center.y, angle, radius), size);
 }
 
 static void display_time(GContext * ctx, const GRect * rect, const TimeFormat time_format, const int time)
@@ -66,71 +66,70 @@ static void display_time(GContext * ctx, const GRect * rect, const TimeFormat ti
   draw_text(ctx, buffer, get_font(), *rect);
 }
 
-static void display_vertical_time(GContext * ctx, const GRect * screen_bounds, const Time * current_time){
+static void display_vertical_time(GContext * ctx, const Time * current_time){
   int hour         = current_time->hour;
   float time_angle = angle(hour, 12);
   GRect rect;
-  set_display_box(time_angle, LeadingZero, screen_bounds, &rect);
+  set_display_box(time_angle, LeadingZero, &rect);
   rect.origin.y -= rect.size.h / 2 + VERTICAL_TOP_DIGITS_OFFSET;
   display_time(ctx, &rect, NoLeading, hour);
-  set_display_box(time_angle, LeadingZero, screen_bounds, &rect);
+  set_display_box(time_angle, LeadingZero, &rect);
   rect.origin.y += rect.size.h / 2 + VERTICAL_BOTTOM_DIGITS_OFFSET;
   display_time(ctx, &rect, LeadingZero, current_time->minute);
 }
 
-static void display_horizontal_time(GContext * ctx, const GRect * screen_bounds, const Time * current_time){
+static void display_horizontal_time(GContext * ctx, const Time * current_time){
   int hour         = current_time->hour;
   float time_angle = angle(hour, 12);
   GRect rect;
-  set_display_box(time_angle, Analog, screen_bounds, &rect);
+  set_display_box(time_angle, Analog, &rect);
   display_time(ctx, &rect, Analog, hour * 100 + current_time->minute);
 }
 
-static void display_normal_time(GContext * ctx, const GRect * screen_bounds, const TimeFormat format, const int tick_number, const int time){
+static void display_normal_time(GContext * ctx, const TimeFormat format, const int tick_number, const int time){
   float time_angle  = angle(tick_number, 12);
   GRect rect;
-  set_display_box(time_angle, format, screen_bounds, &rect);
+  set_display_box(time_angle, format, &rect);
   display_time(ctx, &rect, format, time);
 }
 
-static void display_date(GContext * ctx, const GRect * screen_bounds, const int day){
-  graphics_context_set_text_color(ctx, DATE_COLOR);
+static void display_date(GContext * ctx, const int day){
+  set_text_color(ctx, DATE_COLOR);
   GRect rect;
-  GPoint center = grect_center_point(screen_bounds);
   set_size_for_format(NoLeading, &rect.size);
-  rect.origin.x = box_origin_x(center.x, &rect.size);
-  rect.origin.y = box_origin_y(center.y + DATE_RADIUS, &rect.size);
+  rect.origin.x = box_origin_x(s_center.x, &rect.size);
+  rect.origin.y = box_origin_y(s_center.y + DATE_RADIUS, &rect.size);
   display_time(ctx, &rect, NoLeading, day);
 }
 
 static void time_layer_update_callback(Layer * layer, GContext *ctx){
-  GRect screen_bounds = layer_get_bounds(layer);
   Time current_time = get_current_time();
   graphics_context_set_text_color(ctx, TIME_COLOR);
   int hour = current_time.hour;
   if(conflicting_times(hour, current_time.minute)){
     if (display_vertical(hour)){
-      display_vertical_time(ctx, &screen_bounds, &current_time);
+      display_vertical_time(ctx, &current_time);
     }else{
-      display_horizontal_time(ctx, &screen_bounds, &current_time);
+      display_horizontal_time(ctx, &current_time);
     }
   }else{
-    display_normal_time(ctx, &screen_bounds, NoLeading, current_time.hour, current_time.hour);
-    display_normal_time(ctx, &screen_bounds, LeadingZero, current_time.minute / 5, current_time.minute);
+    display_normal_time(ctx, NoLeading, current_time.hour, current_time.hour);
+    display_normal_time(ctx, LeadingZero, current_time.minute / 5, current_time.minute);
   }
   if(config_is_date_displayed()){
-    display_date(ctx, &screen_bounds, current_time.day);
+    display_date(ctx, current_time.day);
   }
 }
 
-void init_time_layer(Layer * root_layer){
-  GRect screen_bounds = layer_get_bounds(root_layer);
-  s_time_layer = layer_create(screen_bounds);
+void init_times(Layer * root_layer){
+  s_bounds = layer_get_bounds(root_layer);
+  s_center = grect_center_point(&s_bounds);
+  s_time_layer = layer_create(s_bounds);
   layer_set_update_proc(s_time_layer, time_layer_update_callback);
   layer_add_child(root_layer, s_time_layer);
 }
 
-void deinit_time_layer(){
+void deinit_times(){
   layer_destroy(s_time_layer); 
 }
 

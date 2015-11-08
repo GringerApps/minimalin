@@ -15,14 +15,14 @@ static void main_window_load(Window *window) {
   init_font();
   init_background_layer(root_layer);
   init_bluetooth_layer(root_layer);
-  init_time_layer(root_layer);
+  init_times(root_layer);
   init_tick_layer(root_layer);
   init_hands(root_layer);
 }
 
 static void main_window_unload(Window *window) {
   deinit_hands();
-  deinit_time_layer();
+  deinit_times();
   deinit_tick_layer();
   deinit_bluetooth_layer();
   deinit_background_layer();
