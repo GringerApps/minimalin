@@ -19,29 +19,25 @@ static Layer * s_hour_hand_layer;
 static Layer * s_center_circle_layer;
 
 static void update_minute_hand_layer(Layer *layer, GContext * ctx){
-  Time current_time = get_current_time();
-  float minute_angle = angle(current_time.minute, 60);
+  const Time current_time = get_current_time();
+  const float hand_angle = angle(current_time.minute, 60);
   if(config_is_rainbow_mode()){
-    graphics_draw_rotated_bitmap(ctx, s_rainbow_bitmap, GPoint(5, 55), minute_angle, s_center);
+    graphics_draw_rotated_bitmap(ctx, s_rainbow_bitmap, GPoint(5, 55), hand_angle, s_center);
   }else{
-    GPoint minute_hand_end = s_center;
-    translate(minute_angle, MINUTE_HAND_RADIUS, &minute_hand_end);
+    const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
     set_stroke_width(ctx, MINUTE_HAND_STROKE);
     set_stroke_color(ctx, config_get_minute_hand_color());
-    draw_line(ctx, s_center, minute_hand_end);
+    draw_line(ctx, s_center, hand_end);
   }
 }
 
 static void update_hour_hand_layer(Layer * layer, GContext * ctx){
-  Time current_time = get_current_time();
-  float hour_angle = angle(current_time.hour, 12);
-  float minute_angle = angle(current_time.minute, 60);
-  hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
-  GPoint hour_hand_end = s_center;
-  translate(hour_angle, HOUR_HAND_RADIUS, &hour_hand_end);
+  const Time current_time = get_current_time();
+  const float hand_angle = angle(current_time.hour * 50 + current_time.minute * 50 / 60, 600);
+  const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
   set_stroke_width(ctx, HOUR_HAND_STROKE);
   set_stroke_color(ctx, config_get_hour_hand_color());
-  draw_line(ctx, s_center, hour_hand_end);
+  draw_line(ctx, s_center, hand_end);
 }
 
 static void update_center_circle_layer(Layer * layer, GContext * ctx){
@@ -56,7 +52,9 @@ static void update_center_circle_layer(Layer * layer, GContext * ctx){
 void init_hands(Layer * root_layer){
   s_bounds = layer_get_bounds(root_layer);
   s_center = grect_center_point(&s_bounds);
-  
+
+  s_rainbow_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMG_RAINBOW_HAND);
+    
   s_minute_hand_layer   = layer_create(s_bounds);
   s_hour_hand_layer     = layer_create(s_bounds);
   s_center_circle_layer = layer_create(s_bounds);
@@ -68,8 +66,6 @@ void init_hands(Layer * root_layer){
   layer_add_child(root_layer, s_minute_hand_layer);
   layer_add_child(root_layer, s_hour_hand_layer);
   layer_add_child(root_layer, s_center_circle_layer);
-
-  s_rainbow_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMG_RAINBOW_HAND);
 }
 
 void deinit_hands(){

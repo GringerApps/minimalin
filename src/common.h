@@ -16,6 +16,7 @@ typedef struct {
 #define fill_circle(ctx, center, radius)  graphics_fill_circle(ctx, center, radius)
 #define draw_text(ctx, text, font, rect) graphics_draw_text(ctx, text, font, rect, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL)
 
+GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius);
 Time get_current_time();
 void update_current_time();
 void init_font();
