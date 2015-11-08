@@ -1,7 +1,3 @@
-Pebble.addEventListener('ready', function() {
-  console.log('PebbleKit JS ready!');
-});
-
 Pebble.addEventListener('showConfiguration', function() {
   var toQueryString = function(obj){
     var parts = [];
@@ -17,14 +13,15 @@ Pebble.addEventListener('showConfiguration', function() {
     return localStorage.getItem(attr + '_color');
   };
   var getSavedBool = function(attr){
-    return localStorage.getItem(attr + '_bool');
+    return localStorage.getItem(attr + '_bool').toLowerCase();
   };
-	var url = 'https://cdn.rawgit.com/groyoh/minimalin/cc3359de5094d83aff4218d7c94ab08b55bbf4bf/config/index.html?';
+  var url = 'https://cdn.rawgit.com/groyoh/minimalin/9d77ad3f1485ddac632ab1ccefc74e694a550fa4/config/index.html?';
   var params = {
     minute_hand_color: getSavedColor('minute_hand'),
     hour_hand_color: getSavedColor('hour_hand'),
-    display_date: getSavedBool('date_displayed'),
-    display_bluetooth: getSavedBool('bluetooth_displayed')
+    date_displayed: getSavedBool('date_displayed'),
+    bluetooth_displayed: getSavedBool('bluetooth_displayed'),
+    rainbow_mode: getSavedBool('rainbow_mode')
   };
   url += toQueryString(params);
   console.log('Showing configuration page: ' + url);
@@ -40,9 +37,10 @@ Pebble.addEventListener('webviewclosed', function(e) {
   var saveColor = function(dict, attr, color){
   	localStorage.setItem(attr + '_color', color);
     attr = attr.toUpperCase();
-    var red   = parseInt(color.substring(2, 4), 16);
-    var green = parseInt(color.substring(4, 6), 16);
-    var blue  = parseInt(color.substring(6), 16);
+    color = color.replace("#","").replace("0x",'');
+    var red   = parseInt(color.substring(0, 2), 16);
+    var green = parseInt(color.substring(2, 4), 16);
+    var blue  = parseInt(color.substring(4), 16);
     var redKey   = colorKey(attr, 'red');
     var greenKey = colorKey(attr, 'green');
     var blueKey  = colorKey(attr, 'blue');
@@ -61,8 +59,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   saveColor(dict, 'hour_hand', configData.hour_hand_color);
   saveBool(dict, 'date_displayed', configData.date_displayed);
   saveBool(dict, 'bluetooth_displayed', configData.bluetooth_displayed);
-  console.log('js');
-
+  saveBool(dict, 'rainbow_mode', configData.rainbow_mode);
   Pebble.sendAppMessage(dict, function() {
     console.log('Send successful: ' + JSON.stringify(dict));
   }, function() {
