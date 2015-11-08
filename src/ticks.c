@@ -1,5 +1,5 @@
 #include <pebble.h>
-#include "tick_layer.h"
+#include "ticks.h"
 #include "time_utils.h"
 #include "geo.h"
 #include "macros.h"

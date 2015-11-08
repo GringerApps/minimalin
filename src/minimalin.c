@@ -2,7 +2,7 @@
 #include "geo.h"
 #include "macros.h"  
 #include "time_layer.h"
-#include "tick_layer.h"
+#include "ticks.h"
 #include "hands.h"
 #include "bluetooth.h"
 #include "background_layer.h"
