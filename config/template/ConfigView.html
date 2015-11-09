@@ -40,7 +40,7 @@
   </div>
 </div>
 <div class="item-container">
-  <div class="item-container-content" on-tap="minute_color_selection">
+  <div class="item-container-content">
     <label class="item {{ rainbow_mode ? 'disabled' : ''}}">
       Minute hand color
       <input id="minute_hand_color_picker" type="text" class="item-color item-color-normal" value="{{minute_hand_color}}">
@@ -168,11 +168,11 @@
        var return_to = query('return_to', 'pebblejs://close#');
        document.location = return_to + encodeURIComponent(JSON.stringify(this.get()));
      });
-     this.on('minute_color_selection', function(ev){
-       if(this.get('rainbow_mode')){
-         $(this.find('#rainbow_container label')).animate("buzz", { duration: 'slow', easing: 'ease'});
-       }else{
-         $(this.find('#minute_hand_color_picker')).click();
+     var ractive = this;
+     $('#minute_hand_color_picker').click(function(ev){
+       if(ractive.get('rainbow_mode')){
+         $('#rainbow_container label').animate("buzz", { duration: 'slow', easing: 'ease'});
+         ev.preventDefault();
        }
      });
    }
