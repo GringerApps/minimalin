@@ -169,6 +169,7 @@
      });
      var ractive = this;
      $('#minute_hand_color_picker').parent().click(function(ev){
+       console.log(ractive.get('rainbow_mode'));
        if(ractive.get('rainbow_mode')){
          $('#rainbow_container label').animate("buzz", { duration: 'slow', easing: 'ease'});
          ev.preventDefault();
