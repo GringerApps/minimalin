@@ -32,7 +32,8 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   update_current_time();
   mark_dirty_time_layer();
   mark_dirty_tick_layer();
-  mark_dirty_hand_layer();
+  mark_dirty_hour_hand_layer();
+  mark_dirty_minute_hand_layer();
 }
 
 static void init() {

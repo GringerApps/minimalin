@@ -11,7 +11,6 @@ static BitmapLayer * s_bluetooth_layer;
 static bool s_connected;
 
 static void bt_handler(bool connected){
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "handler");
   layer_set_hidden(bitmap_layer_get_layer(s_bluetooth_layer), connected || !config_is_bluetooth_displayed());
   s_connected = connected;
 }

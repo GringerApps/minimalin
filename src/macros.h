@@ -11,6 +11,7 @@
 #define KEY_HOUR_HAND_COLOR_BLUE    5
 #define KEY_DATE_DISPLAYED          6
 #define KEY_BLUETOOTH_DISPLAYED     7
+#define KEY_RAINBOW_MODE            8
 
 
 #define BACKGROUND_COLOR GColorBlack
@@ -20,14 +21,10 @@
 #define HOUR_CIRCLE_RADIUS 5
 #define HOUR_HAND_STROKE 6
 #define HOUR_HAND_RADIUS 39
-//#define HOUR_HAND_STROKE 4
-//#define HOUR_HAND_RADIUS 31
 
 // Minute hand constants
 #define MINUTE_HAND_STROKE 6
 #define MINUTE_HAND_RADIUS 52
-// #define MINUTE_HAND_STROKE 4
-// #define MINUTE_HAND_RADIUS 46
 
 // Date constants
 #define DATE_RADIUS 28

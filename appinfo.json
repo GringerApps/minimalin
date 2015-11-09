@@ -1,52 +1,58 @@
 {
-    "appKeys": {
-        "KEY_BLUETOOTH_DISPLAYED": 7,
-        "KEY_DATE_DISPLAYED": 6,
-        "KEY_HOUR_HAND_COLOR_BLUE": 5,
-        "KEY_HOUR_HAND_COLOR_GREEN": 4,
-        "KEY_HOUR_HAND_COLOR_RED": 3,
-        "KEY_MINUTE_HAND_COLOR_BLUE": 2,
-        "KEY_MINUTE_HAND_COLOR_GREEN": 1,
-        "KEY_MINUTE_HAND_COLOR_RED": 0
-    },
-    "capabilities": [
-        "configurable"
-    ],
-    "companyName": "yohan.robert@outlook.fr",
-    "longName": "minimalin",
-    "projectType": "native",
-    "resources": {
-        "media": [
-            {
-                "file": "images/img_menu.png",
-                "menuIcon": true,
-                "name": "MENU_IMAGE",
-                "type": "png"
-            },
-            {
-                "file": "images/icn_bt_black.png",
-                "name": "ICN_BT_BLACK",
-                "type": "png"
-            },
-            {
-                "characterRegex": "[0-9:]",
-                "file": "fonts/nupe.tff",
-                "name": "FONT_NUPE_23",
-                "targetPlatforms": [
-                    "basalt"
-                ],
-                "type": "font"
-            }
-        ]
-    },
-    "sdkVersion": "3",
-    "shortName": "minimalin",
-    "targetPlatforms": [
-        "basalt"
-    ],
-    "uuid": "46e3f887-596e-4a67-b4a7-f277128e7de7",
-    "versionLabel": "0.9",
-    "watchapp": {
-        "watchface": true
-    }
+  "appKeys": {
+    "KEY_RAINBOW_MODE": 8,
+    "KEY_BLUETOOTH_DISPLAYED": 7,
+    "KEY_DATE_DISPLAYED": 6,
+    "KEY_HOUR_HAND_COLOR_BLUE": 5,
+    "KEY_HOUR_HAND_COLOR_GREEN": 4,
+    "KEY_HOUR_HAND_COLOR_RED": 3,
+    "KEY_MINUTE_HAND_COLOR_BLUE": 2,
+    "KEY_MINUTE_HAND_COLOR_GREEN": 1,
+    "KEY_MINUTE_HAND_COLOR_RED": 0
+  },
+  "capabilities": [
+    "configurable"
+  ],
+  "companyName": "yohan.robert@outlook.fr",
+  "longName": "minimalin",
+  "projectType": "native",
+  "resources": {
+    "media": [
+      {
+        "file": "images/img_menu.png",
+        "menuIcon": true,
+        "name": "MENU_IMAGE",
+        "type": "png"
+      },
+      {
+        "file": "images/icn_bt_black.png",
+        "name": "ICN_BT_BLACK",
+        "type": "png"
+      },
+      {
+        "file": "images/rainbow_hand.png",
+        "name": "IMG_RAINBOW_HAND",
+        "type": "png"
+      },
+      {
+        "characterRegex": "[0-9:]",
+        "file": "fonts/nupe.tff",
+        "name": "FONT_NUPE_23",
+        "targetPlatforms": [
+          "basalt"
+        ],
+        "type": "font"
+      }
+    ]
+  },
+  "sdkVersion": "3",
+  "shortName": "minimalin",
+  "targetPlatforms": [
+    "basalt"
+  ],
+  "uuid": "46e3f887-596e-4a67-b4a7-f277128e7de7",
+  "versionLabel": "0.9",
+  "watchapp": {
+    "watchface": true
+  }
 }

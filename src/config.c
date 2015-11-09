@@ -49,6 +49,9 @@ static void set_bool(const int key, const bool value){
   case KEY_DATE_DISPLAYED:
     s_config.date_displayed = value;
     return;
+  case KEY_RAINBOW_MODE:
+    s_config.rainbow_mode = value;
+    return;
   default:
     s_config.bluetooth_displayed = value;
   }
@@ -78,6 +81,7 @@ static void fetch_config_or_default(){
   fetch_color_config_or_default(s_hour_hand_color_keys, default_hour_hand_color);
   fetch_bool_config_or_default(KEY_DATE_DISPLAYED, true);
   fetch_bool_config_or_default(KEY_BLUETOOTH_DISPLAYED, true);
+  fetch_bool_config_or_default(KEY_RAINBOW_MODE, false);
 }
 
 // Config change
@@ -106,7 +110,7 @@ static void save_minute_hand_config(const DictionaryIterator *iter){
   int color[3]; 
   if(parse_color_config(iter, s_minute_hand_color_keys, color)){
     set_color(s_minute_hand_color_keys, color);
-    mark_dirty_hand_layer();
+    mark_dirty_minute_hand_layer();
   }
 }
 
@@ -114,7 +118,7 @@ static void save_hour_hand_config(const DictionaryIterator *iter){
   int color[3]; 
   if(parse_color_config(iter, s_hour_hand_color_keys, color)){
     set_color(s_hour_hand_color_keys, color);
-    mark_dirty_hand_layer();
+    mark_dirty_hour_hand_layer();
   }
 }
 
@@ -129,9 +133,16 @@ static void save_date_displayed_config(const DictionaryIterator *iter){
 static void save_bluetooth_displayed_config(const DictionaryIterator *iter){
   Tuple * new_value = dict_find(iter, KEY_BLUETOOTH_DISPLAYED);
   if(new_value){
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "save");
     set_bool(KEY_BLUETOOTH_DISPLAYED, new_value->value->int8);
     mark_dirty_bluetooth_layer();
+  }
+}
+
+static void save_rainbow_mode_config(const DictionaryIterator *iter){
+  Tuple * new_value = dict_find(iter, KEY_RAINBOW_MODE);
+  if(new_value){
+    set_bool(KEY_RAINBOW_MODE, new_value->value->int8);
+    mark_dirty_minute_hand_layer();
   }
 }
 
@@ -140,6 +151,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   save_hour_hand_config(iter);
   save_date_displayed_config(iter);
   save_bluetooth_displayed_config(iter);
+  save_rainbow_mode_config(iter);
 }
 
 // API
@@ -158,6 +170,10 @@ bool config_is_date_displayed(){
 
 bool config_is_bluetooth_displayed(){
   return s_config.bluetooth_displayed;
+}
+
+bool config_is_rainbow_mode(){
+  return s_config.rainbow_mode;
 }
     
 void init_config() {
