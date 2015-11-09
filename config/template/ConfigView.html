@@ -171,6 +171,8 @@
      this.on('minute_color_selection', function(ev){
        if(this.get('rainbow_mode')){
          $(this.find('#rainbow_container label')).animate("buzz", { duration: 'slow', easing: 'ease'});
+       }else{
+         $(this.find('#minute_hand_color_picker')).click();
        }
      });
    }
