@@ -1,39 +1,39 @@
 #include <pebble.h>
 #include "geo.h"
-#include "macros.h"  
-#include "time_layer.h"
-#include "tick_layer.h"
-#include "hand_layer.h"
-#include "bluetooth_layer.h"
+#include "times.h"
+#include "ticks.h"
+#include "hands.h"
+#include "bluetooth.h"
 #include "background_layer.h"
-#include "time_utils.h"
+#include "common.h"
 #include "config.h"
 
-static Window *s_main_window;
+static Window * s_main_window;
 
 static void main_window_load(Window *window) {
-  Layer * root_layer = window_get_root_layer(window);  
+  Layer * root_layer = window_get_root_layer(window);
+  init_font();
   init_background_layer(root_layer);
   init_bluetooth_layer(root_layer);
-  init_time_layer(root_layer);
+  init_times(root_layer);
   init_tick_layer(root_layer);
-  init_hand_layer(root_layer);
+  init_hands(root_layer);
 }
 
 static void main_window_unload(Window *window) {
-  deinit_hand_layer();
-  deinit_time_layer();
+  deinit_hands();
+  deinit_times();
   deinit_tick_layer();
   deinit_bluetooth_layer();
   deinit_background_layer();
+  deinit_font();
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){ 
   update_current_time();
   mark_dirty_time_layer();
   mark_dirty_tick_layer();
-  mark_dirty_hour_hand_layer();
-  mark_dirty_minute_hand_layer();
+  hands_update_time_changed();
 }
 
 static void init() {
@@ -48,6 +48,7 @@ static void init() {
 }
 
 static void deinit() {
+  tick_timer_service_unsubscribe();
   window_destroy(s_main_window);
 }
 

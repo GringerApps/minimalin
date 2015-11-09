@@ -1,6 +1,8 @@
 #include <pebble.h>
 #include "background_layer.h"
-#include "macros.h"
+#include "common.h"
+
+#define BACKGROUND_COLOR GColorBlack
 
 static Layer * s_background_layer;
 

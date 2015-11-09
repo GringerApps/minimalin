@@ -1,5 +1,5 @@
 #include <pebble.h>
-#include "bluetooth_layer.h"
+#include "bluetooth.h"
 #include "config.h"
 
 #define ICN_BT_HEIGHT 20

@@ -1,10 +1,18 @@
 #include <pebble.h>
 #include "config.h"
-#include "macros.h"
-#include "hand_layer.h"
-#include "time_layer.h"
-#include "bluetooth_layer.h"
+#include "hands.h"
+#include "times.h"
+#include "bluetooth.h"
 
+#define KEY_MINUTE_HAND_COLOR_RED   0
+#define KEY_MINUTE_HAND_COLOR_GREEN 1
+#define KEY_MINUTE_HAND_COLOR_BLUE  2
+#define KEY_HOUR_HAND_COLOR_RED     3
+#define KEY_HOUR_HAND_COLOR_GREEN   4
+#define KEY_HOUR_HAND_COLOR_BLUE    5
+#define KEY_DATE_DISPLAYED          6
+#define KEY_BLUETOOTH_DISPLAYED     7
+#define KEY_RAINBOW_MODE            8
 #define up_to(i, n) for(int i = 0; i < n; ++i)
 
 static Config s_config;
@@ -110,7 +118,7 @@ static void save_minute_hand_config(const DictionaryIterator *iter){
   int color[3]; 
   if(parse_color_config(iter, s_minute_hand_color_keys, color)){
     set_color(s_minute_hand_color_keys, color);
-    mark_dirty_minute_hand_layer();
+    hands_update_minute_hand_config_changed();
   }
 }
 
@@ -118,7 +126,7 @@ static void save_hour_hand_config(const DictionaryIterator *iter){
   int color[3]; 
   if(parse_color_config(iter, s_hour_hand_color_keys, color)){
     set_color(s_hour_hand_color_keys, color);
-    mark_dirty_hour_hand_layer();
+    hands_update_hour_hand_config_changed();
   }
 }
 
@@ -142,7 +150,7 @@ static void save_rainbow_mode_config(const DictionaryIterator *iter){
   Tuple * new_value = dict_find(iter, KEY_RAINBOW_MODE);
   if(new_value){
     set_bool(KEY_RAINBOW_MODE, new_value->value->int8);
-    mark_dirty_minute_hand_layer();
+    hands_update_rainbow_mode_config_changed();
   }
 }
 
