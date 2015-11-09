@@ -108,7 +108,6 @@
 
  .disabled {
    color: lightgray;
-   pointer-events: none;
  }
 
  .hidden {
@@ -169,7 +168,7 @@
        document.location = return_to + encodeURIComponent(JSON.stringify(this.get()));
      });
      var ractive = this;
-     $('#minute_hand_color_picker').click(function(ev){
+     $('#minute_hand_color_picker').parent().click(function(ev){
        if(ractive.get('rainbow_mode')){
          $('#rainbow_container label').animate("buzz", { duration: 'slow', easing: 'ease'});
          ev.preventDefault();
