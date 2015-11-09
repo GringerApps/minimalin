@@ -13,8 +13,13 @@ Pebble.addEventListener('showConfiguration', function() {
     return localStorage.getItem(attr + '_color');
   };
   var getSavedBool = function(attr){
-    return localStorage.getItem(attr + '_bool').toLowerCase();
+    var savedValue = localStorage.getItem(attr + '_bool');
+    if(savedValue){
+      return savedValue.toLowerCase();
+    }
+    return null;
   };
+
   var url = 'https://cdn.rawgit.com/groyoh/minimalin/9d77ad3f1485ddac632ab1ccefc74e694a550fa4/config/index.html?';
   var params = {
     minute_hand_color: getSavedColor('minute_hand'),
