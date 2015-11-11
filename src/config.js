@@ -8,7 +8,7 @@ Pebble.addEventListener('showConfiguration', function() {
     }
     return parts.join("&");
   };
-  
+
   var getSavedColor = function(attr){
     return localStorage.getItem(attr + '_color');
   };
@@ -35,23 +35,13 @@ Pebble.addEventListener('showConfiguration', function() {
 });
 
 Pebble.addEventListener('webviewclosed', function(e) {
-  var colorKey = function(attr, color){
-    return 'KEY_' + attr.toUpperCase() + '_COLOR_' + color.toUpperCase();
+  var colorKey = function(attr){
+    return 'KEY_' + attr.toUpperCase() + '_COLOR';
   };
-
   var saveColor = function(dict, attr, color){
-  	localStorage.setItem(attr + '_color', color);
-    attr = attr.toUpperCase();
-    color = color.replace("#","").replace("0x",'');
-    var red   = parseInt(color.substring(0, 2), 16);
-    var green = parseInt(color.substring(2, 4), 16);
-    var blue  = parseInt(color.substring(4), 16);
-    var redKey   = colorKey(attr, 'red');
-    var greenKey = colorKey(attr, 'green');
-    var blueKey  = colorKey(attr, 'blue');
-    dict[redKey]   = red;
-    dict[greenKey] = green;
-    dict[blueKey]  = blue;
+    color = parseInt(color.replace("#","0x"), 16);
+    localStorage.setItem(attr + '_color', color);
+    dict[colorKey(attr)] = color;
   };
   var saveBool = function(dict, attr, bool){
     localStorage.setItem(attr + '_bool', bool);
