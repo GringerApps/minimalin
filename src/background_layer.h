@@ -4,3 +4,4 @@
 
 void init_background_layer(Layer * root_layer);
 void deinit_background_layer();
+void background_config_changed();

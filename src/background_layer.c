@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "background_layer.h"
 #include "common.h"
+#include "config.h"
 
 #define BACKGROUND_COLOR GColorBlack
 
@@ -8,7 +9,7 @@ static Layer * s_background_layer;
 
 static void background_layer_update_callback(Layer *layer, GContext *ctx) {
   GRect rect = layer_get_bounds(layer);
-  graphics_context_set_fill_color(ctx, BACKGROUND_COLOR);
+  graphics_context_set_fill_color(ctx, config_get_background_color());
   graphics_fill_rect(ctx, rect, 0, GCornerNone); 
 }
 
@@ -23,4 +24,6 @@ void deinit_background_layer(){
   layer_destroy(s_background_layer);
 }
 
-
+void background_config_changed(){
+  layer_mark_dirty(s_background_layer);
+}

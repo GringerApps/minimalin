@@ -36,8 +36,6 @@ void deinit_bluetooth_layer(){
 }
 
 void mark_dirty_bluetooth_layer(){
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "dirty");
-
   bt_handler(s_connected);
 }
 
