@@ -7,6 +7,22 @@
 #define TICK_STROKE 2
 #define TICK_LENGTH 6
 
+#ifdef PBL_ROUND
+static GPoint ticks_points[12][2] = {
+  {{90, 0}  , {90, 6}  },
+  {{135,12} , {132,18}  },
+  {{168,45} , {162,48} },
+  {{180,90} , {174,90} },
+  {{168,135}, {162,132}},
+  {{135,168}, {132,162}},
+  {{90, 180}, {90, 174}},
+  {{45, 168}, {48, 162}},
+  {{12, 135}, {18, 132}},
+  {{0,  90} , {6,  90} },
+  {{12, 45} , {18, 48} },
+  {{45, 12} , {48, 18}  }
+};
+#else
 static GPoint ticks_points[12][2] = {
   {{72, 0}  , {72, 7}  },
   {{120,0}  , {117,7}  },
@@ -21,6 +37,7 @@ static GPoint ticks_points[12][2] = {
   {{0,  42} , {7,  46} },
   {{24, 0}  , {27, 7}  }
 };
+#endif
 
 static Layer * s_tick_layer;
 static GRect s_bounds;
@@ -34,7 +51,7 @@ static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
   const Time current_time = get_current_time();
   set_stroke_color(ctx, TICK_COLOR);
   set_stroke_width(ctx, TICK_STROKE);
-  const int hour_tick_index = current_time.hour;
+  const int hour_tick_index = current_time.hour % 12;
   draw_tick(ctx, hour_tick_index);
   const int minute_tick_index = current_time.minute / 5;
   if(hour_tick_index != minute_tick_index){
