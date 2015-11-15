@@ -1,35 +1,40 @@
 <h1 class="title">Minimalin Configuration</h1>
-<svg id="preview" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-     viewBox="0 0 288 336" enable-background="new 0 0 288 336" xml:space="preserve">
-  <rect fill="{{background_color}}" x="0" y="0" width="288" height="336"/>
-  <g class="{{ date_displayed ? '' : 'hidden'}}">
-    <path fill="#555555" d="M140.3,204.2v1.9h1.9v1.9v9.5h-1.9v3.8h1.9v11.4v1.9h-1.9v1.9h-9.5v-1.9h-1.9v-5.7h3.8v3.8h5.7v-11.4h-5.7
-                            v-3.8h5.7V208h-5.7v3.8h-3.8v-5.7h1.9v-1.9H140.3z"/>
-    <path fill="#555555" d="M147.7,204.2h7.6v32.2h-3.8V208h-3.8V204.2z"/>
+<svg version="1.1" id="preview" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+     viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
+  <g class="{{ platform == 'basalt' ? '' : 'hidden' }}">
+    <rect fill="{{background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
+    <path class="time" fill="#AAAAAA" d="M252.367,27.515v1.907h1.885v28.364h-1.885v1.885h-9.47v-1.885h-1.885V31.285v-1.863h1.885v-1.907H252.367z M250.482,55.879V31.307h-5.7v24.572H250.482z"/>
+    <path class="time" fill="#AAAAAA" d="M269.287,27.492v1.885h1.885v28.409h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7v-9.447h-7.585v-1.907h-1.885V29.377h1.885v-1.885H269.287z M261.702,42.639h5.7V31.285h-5.7V42.639z"/>
+    <path class="time" fill="#AAAAAA" d="M52.221,94.762h7.585v32.179h-3.792V98.555h-3.792V94.762z"/>
+    <path class="time" fill="#AAAAAA" d="M78.633,94.785v1.907h1.885v28.364h-1.885v1.885h-9.47v-1.885h-1.885V98.555v-1.863h1.885v-1.907H78.633z M76.748,123.149V98.577h-5.7v24.572H76.748z"/>
+    <path class="tick" fill="#AAAAAA" d="M45.882,100.255l-12.247-7.072v4.615l10.249,5.918c0.314,0.181,0.658,0.267,0.997,0.267c0.691,0,1.362-0.357,1.733-0.999C47.166,102.029,46.838,100.807,45.882,100.255z"/>
+    <path class="tick" fill="#AAAAAA" d="M271.737,11.156l-5.917,10.249c-0.552,0.956-0.224,2.178,0.732,2.73c0.314,0.181,0.658,0.267,0.997,0.267c0.691,0,1.362-0.359,1.733-0.999l7.07-12.247H271.737z"/>
   </g>
-  <path class="bluetooth {{ bluetooth_displayed ? '' : 'hidden' }}" fill="#FF0000" d="M156.7,99.1l-11.4-11.4h-2v15.2l-9.2-9.2l-2.8,2.8l11.2,11.2l-11.2,11.2l2.8,2.8l9.2-9.2v15.2h2l11.4-11.4
-                                                                                      l-8.6-8.6L156.7,99.1z M147.3,95.3l3.8,3.8l-3.8,3.8V95.3z M151,116.2l-3.8,3.8v-7.5L151,116.2z"/>
-  <path class="{{ rainbow_mode ? 'hidden' : ''}}" fill="{{ minute_hand_color }}" d="M144,173.5c-1.5,0-3.1-0.6-4.2-1.8c-2.3-2.3-2.3-6.1,0-8.5l73.5-73.5c2.3-2.3,6.1-2.3,8.5,0
-                                                                                    c2.3,2.3,2.3,6.1,0,8.5l-73.5,73.5C147.1,172.9,145.5,173.5,144,173.5z"/>
+  <g class="{{ platform == 'chalk' ? '' : 'hidden' }}">
+    <circle fill="{{background_color}}" cx="177.5" cy="177.5" r="177.5"/>
+    <path class="tick" fill="#AAAAAA" d="M246.757,41.333h-9.47v1.907h-1.885v1.863v26.501h1.885v1.885h9.47v-1.885h1.885    V43.241h-1.885V41.333z M244.872,69.697h-5.7V45.126h5.7V69.697z"/>
+    <path class="tick" fill="#AAAAAA" d="M263.677,41.311h-9.47v1.885h-1.885v15.147h1.885v1.907h7.585v9.447h-5.7v-3.792    h-3.77v5.7h1.885v1.885h9.47v-1.885h1.885V43.196h-1.885V41.311z M261.792,56.458h-5.7V45.103h5.7V56.458z"/>
+    <polygon class="tick" fill="#AAAAAA" points="42.752,93.06 46.544,93.06 46.544,121.446 50.336,121.446 50.336,89.267     42.752,89.267   "/>
+    <path class="tick" fill="#AAAAAA" d="M69.163,89.29h-9.47v1.907h-1.885v1.863v26.501h1.885v1.885h9.47v-1.885h1.885    V91.197h-1.885V89.29z M67.278,117.654h-5.7V93.082h5.7V117.654z"/>
+    <path class="tick" fill="#AAAAAA" d="M259.797,35.955c0.314,0.181,0.658,0.267,0.997,0.267    c0.691,0,1.362-0.359,1.733-0.999l5.885-10.193c-1.143-0.683-2.293-1.355-3.453-2.013l-5.893,10.208    C258.513,34.182,258.841,35.403,259.797,35.955z"/>
+    <path  class="tick" fill="#AAAAAA" d="M36.412,94.76l-12.087-6.979c-0.671,1.143-1.329,2.295-1.975,3.454l12.064,6.987    c0.314,0.181,0.658,0.267,0.997,0.267c0.691,0,1.362-0.357,1.733-0.999C37.696,96.534,37.368,95.312,36.412,94.76z"/>
+  </g>
+  <path class="bluetooth {{ bluetooth_displayed ? '' : 'hidden' }}" fill="#FF0000" d="M190.198,110.148l-11.409-11.409h-1.998v15.166l-9.171-9.171l-2.817,2.817l11.17,11.17l-11.17,11.17l2.817,2.817l9.171-9.171v15.166h1.998l11.409-11.409l-8.592-8.572L190.198,110.148z M180.787,106.391l3.756,3.756l-3.756,3.756V106.391z M184.543,127.291l-3.756,3.756v-7.513L184.543,127.291z"/>
+  <path fill="{{hour_hand_color}}" d="M182.885,175.407l-56.249-56.249c-2.34-2.342-6.137-2.342-8.476,0c-2.342,2.341-2.342,6.136,0,8.476l56.103,56.103C174.197,184.198,183.345,175.342,182.885,175.407z"/>
+  <path class="{{ rainbow_mode ? 'hidden' : ''}}" fill="{{minute_hand_color}}" d="M177.5,184.493c-1.534,0-3.068-0.585-4.238-1.756    c-2.342-2.341-2.342-6.136,0-8.476l73.47-73.47c2.34-2.342,6.137-2.342,8.476,0c2.342,2.341,2.342,6.136,0,8.476l-73.47,73.47    C180.568,183.908,179.034,184.493,177.5,184.493z"/>
   <g class="{{ rainbow_mode ? '' : 'hidden' }}">
-    <path style="fill:#FF0000;" d="M207.68,109.82c-1.535,0-3.071-0.586-4.242-1.758c-2.344-2.343-2.344-6.142,0-8.484l9.86-9.86
-                                   c2.342-2.344,6.143-2.344,8.484,0c2.344,2.343,2.344,6.142,0,8.484l-9.86,9.86C210.751,109.234,209.215,109.82,207.68,109.82z"/>
-    <rect x="194.587" y="100.91" transform="matrix(0.7071 0.7071 -0.7071 0.7071 137.1781 -109.3502)" style="fill:#FF5500;" width="11.999" height="20.008"/>
-    <rect x="180.327" y="114.993" transform="matrix(0.7071 0.7071 -0.7071 0.7071 143.0847 -95.0904)" style="fill:#FFAA00;" width="11.999" height="20.361"/>
-    <rect x="165.606" y="129.256" transform="matrix(0.7071 0.7071 -0.7071 0.7071 149.1824 -80.3692)" style="fill:#00AA00;" width="11.999" height="21.277"/>
-    <rect x="148.846" y="143.591" transform="matrix(0.7071 0.7071 -0.7071 0.7071 156.1248 -63.609)" style="fill:#0055FF;" width="11.999" height="26.128"/>
+    <path fill="#FF0000" d="M241.12,120.873c-1.534,0-3.068-0.585-4.238-1.756c-2.342-2.341-2.342-6.136,0-8.476l9.851-9.851c2.34-2.342,6.137-2.342,8.476,0c2.342,2.341,2.342,6.136,0,8.476l-9.851,9.851C244.188,120.288,242.654,120.873,241.12,120.873z"/>
+    <rect x="228.04" y="111.971" transform="matrix(0.7071 0.7071 -0.7071 0.7071 154.7896 -129.7636)" fill="#FF5500" width="11.987" height="19.989"/>
+    <rect x="213.793" y="126.041" transform="matrix(0.7071 0.7071 -0.7071 0.7071 160.6906 -115.5172)" fill="#FFAA00" width="11.987" height="20.342"/>
+    <rect x="199.086" y="140.291" transform="matrix(0.7071 0.7071 -0.7071 0.7071 166.7826 -100.8099)" fill="#00AA00" width="11.987" height="21.257"/>
+    <rect x="182.341" y="154.612" transform="matrix(0.7071 0.7071 -0.7071 0.7071 173.7184 -84.0653)" fill="#0055FF" width="11.987" height="26.104"/>
   </g>
-  <path class="hour_hand" fill="{{hour_hand_color}}" d="M144,157.5c-0.5,0-0.9,0-1.4,0.1l-49.5-49.5c-2.3-2.3-6.1-2.3-8.5,0c-2.3,2.3-2.3,6.1,0,8.5l49.5,49.5
-                                                        c-0.1,0.5-0.1,0.9-0.1,1.4c0,5.5,4.5,10,10,10s10-4.5,10-10C154,162,149.5,157.5,144,157.5z"/>
-  <circle fill="{{ rainbow_mode ? '#AA00FF' : hour_hand_color }}" cx="144" cy="167.5" r="10"/>
-  <path class="time" fill="#AAAAAA" d="M218.9,16.4v1.9h1.9v28.4h-1.9v1.9h-9.5v-1.9h-1.9V20.1v-1.9h1.9v-1.9H218.9z M217.1,44.8V20.2h-5.7v24.6
-                                       H217.1z"/>
-  <path class="time" fill="#AAAAAA" d="M235.9,16.4v1.9h1.9v28.4h-1.9v1.9h-9.5v-1.9h-1.9V41h3.8v3.8h5.7v-9.5h-7.6v-1.9h-1.9V18.2h1.9v-1.9
-                                       H235.9z M228.3,31.5h5.7V20.1h-5.7V31.5z"/>
-  <path class="time" fill="#AAAAAA" d="M18.6,83.7h7.6v32.2h-3.8V87.5h-3.8V83.7z"/>
-  <path class="time" fill="#AAAAAA" d="M45,83.7v1.9h1.9V114H45v1.9h-9.5V114h-1.9V87.5v-1.9h1.9v-1.9H45z M43.2,112.1V87.5h-5.7v24.6H43.2z"/>
-  <path class="tick" fill="#AAAAAA" d="M12.3,89.2L0,82.1v4.6l10.3,5.9c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.7-1C13.5,91,13.2,89.7,12.3,89.2z"/>
-  <path class="tick" fill="#AAAAAA" d="M238.3,0l-5.9,10.3c-0.6,1-0.2,2.2,0.7,2.7c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.7-1L242.9,0H238.3z"/>
+  <circle fill="{{ rainbow_mode ? '#AA00FF' : hour_hand_color }}" cx="177.5" cy="178.499" r="9.991"/>
+
+  <g class="{{ date_displayed ? '' : 'hidden'}}">
+    <path fill="#555555" d="M173.774,215.148v1.885h1.885v1.907v9.447h-1.885v3.792h1.885v11.355v1.907h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7V232.18h-5.7v-3.792h5.7v-9.447h-5.7v3.792h-3.77v-5.7h1.885v-1.885H173.774z"/>
+    <path fill="#555555"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
+  </g>
 </svg>
 <div class="item-container">
   <div class="item-container-content">
@@ -62,11 +67,10 @@
   <div class="item-container-content">
     <label class="item">
       Background color
-      <input id="backgroun_color_picker" type="text" class="item-color item-color-normal" value="{{background_color}}">
+      <input id="background_color_picker" type="text" class="item-color item-color-normal" value="{{background_color}}">
     </label>
   </div>
 </div>
-
 <div class="item-container">
   <div class="item-container-content">
     <label class="item">
@@ -113,8 +117,8 @@
    margin-left:  auto;
    margin-right: auto;
    width:        50%;
-   max-width:    288px;
-   max-height:   336px;
+   max-width:    355px;
+   max-height:   355px;
  }
 
  .disabled {
@@ -141,36 +145,59 @@
 </style>
 
 <script>
- function query(variable, defaultValue) {
+ var query = function(variable, defaultVariable) {
    var query = location.search.substring(1);
    var vars = query.split('&');
    for (var i = 0; i < vars.length; i++) {
      var pair = vars[i].split('=');
      if (pair[0] === variable) {
-       var val = decodeURIComponent(pair[1]);
-       if(val.toLowerCase() === 'true'){
-         val = true;
-       }else if(val.toLowerCase() === 'false'){         
-         val = false;
-       }
-       return val;
+       return decodeURIComponent(pair[1]);
      }
    }
-   return defaultValue || null;
+   return defaultVariable || null;
  }
 
+ var bool = function(name, defaultValue){
+   var val = (query(name) || '').toLowerCase();
+   switch(val){
+     case 'true':
+       return true;
+     case 'false':
+       return false;
+     default:
+       return defaultValue;
+   }
+ }
+
+ var color = function(name, defaultValue){
+   var val = query(name, defaultValue);
+   if(val.match(/(?:#|0x)[0-9a-fA-F]{6}/)){
+     return val;
+   }
+   return defaultValue;
+ }
+
+ var queryIn = function(name, authorizedValues, defaultValue){
+   var val = query(name, defaultValue);
+   if(authorizedValues.indexOf(val) > -1){
+     return val;
+   }
+   return defaultValue;
+ }
+ 
  var svg_color = function(color){
    return color.replace(/^0x/, '#');
  };
 
  component.exports = {
    data: {
-     minute_hand_color: query('minute_hand_color', '#FFFFFF'),
-     hour_hand_color:  query('hour_hand_color', '#FF0000'),
-     background_color:  query('background_color', '#000000'),
-     date_displayed:  query('date_displayed', true),
-     bluetooth_displayed: query('bluetooth_displayed', true),
-     rainbow_mode: query('rainbow_mode', false),
+     minute_hand_color: color('minute_hand_color', '#FFFFFF'),
+     hour_hand_color:  color('hour_hand_color', '#FF0000'),
+     date_displayed:  bool('date_displayed', true),
+     bluetooth_displayed: bool('bluetooth_displayed', true),
+     rainbow_mode: bool('rainbow_mode', false),
+     background_color: color('background_color', '#000000'),
+     platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
    },
    onrender: function(){
      $('.item-toggle').itemToggle();

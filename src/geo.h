@@ -5,7 +5,9 @@
 #define _45_DEGREES 0x2000
 #define _90_DEGREES 0x4000
 #define _135_DEGREES 0x6000
+#define _180_DEGREES 0x8000
 #define _225_DEGREES 0xA000
+#define _270_DEGREES 0xC000
 #define _315_DEGREES 0xE000 
 
 typedef struct {

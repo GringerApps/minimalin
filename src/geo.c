@@ -23,7 +23,17 @@ int use_cos(float angle){
 }
 
 int radius_to_border(float angle, const GSize * size){
+#ifdef PBL_ROUND
+  const float radius = size->h / 2;
+  return radius;
+#else
   float radius;
+  if(angle == 0 || angle == _180_DEGREES){
+    return size->h / 2;
+  }
+  if(angle == _90_DEGREES || angle == _270_DEGREES){
+    return size->w / 2;
+  }
   if(use_cos(angle)){
     radius = (float)TRIG_MAX_RATIO * size->h / cos_lookup(angle) / 2;
   }else{
@@ -33,6 +43,7 @@ int radius_to_border(float angle, const GSize * size){
     radius = -radius;
   }
   return radius + 0.5;
+#endif
 }
 
 float angle(int time, int max){
