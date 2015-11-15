@@ -90,6 +90,13 @@ void hands_update_time_changed(){
  if(s_minute_hand_layer){
    layer_mark_dirty(s_minute_hand_layer);
  }
+ if(s_rainbow_hand_layer){
+   const Time current_time = get_current_time();
+   const float hand_angle = angle(current_time.minute, 60);
+   const bool rainbow_mode = config_is_rainbow_mode();
+   rot_bitmap_layer_set_angle(s_rainbow_hand_layer, hand_angle);
+   layer_set_hidden((Layer*)s_rainbow_hand_layer, !rainbow_mode);
+ }
 }
 
 void hands_update_minute_hand_config_changed(){

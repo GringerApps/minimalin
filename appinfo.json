@@ -4,7 +4,7 @@
     "KEY_DATE_COLOR": 6,
     "KEY_BACKGROUND_COLOR": 5,
     "KEY_RAINBOW_MODE": 4,
-    "KEY_BLUETOOTH_DISPLAYED": 3,
+    "KEY_BLUETOOTH_ICON": 3,
     "KEY_DATE_DISPLAYED": 2,
     "KEY_HOUR_HAND_COLOR": 1,
     "KEY_MINUTE_HAND_COLOR": 0
@@ -26,6 +26,11 @@
       {
         "file": "images/bluetooth.png",
         "name": "ICN_BLUETOOTH",
+        "type": "png"
+      },
+      {
+        "file": "images/heart.png",
+        "name": "ICN_HEART",
         "type": "png"
       },
       {

@@ -9,7 +9,7 @@
 #define KEY_MINUTE_HAND_COLOR   0
 #define KEY_HOUR_HAND_COLOR     1
 #define KEY_DATE_DISPLAYED      2
-#define KEY_BLUETOOTH_DISPLAYED 3
+#define KEY_BLUETOOTH_ICON      3
 #define KEY_RAINBOW_MODE        4
 #define KEY_BACKGROUND_COLOR    5
 #define KEY_DATE_COLOR          6
@@ -42,17 +42,24 @@ static void persist_config_color(const int key, const int color){
   }
 }
 
+static void persist_config_int(const int key, const int value){
+  persist_write_int(key, value);
+  switch(key){
+  case KEY_BLUETOOTH_ICON:
+    s_config.bluetooth_icon = value;
+    return;
+  }
+}
+
 static void persist_config_bool(const int key, const bool value){
   persist_write_bool(key, value);
   switch(key){
   case KEY_DATE_DISPLAYED:
     s_config.date_displayed = value;
     return;
-  case KEY_RAINBOW_MODE:
+  default:
     s_config.rainbow_mode = value;
     return;
-  default:
-    s_config.bluetooth_displayed = value;
   }
 }
 
@@ -62,6 +69,10 @@ static void set_color(const int key, const Tuple * tuple){
 
 static void set_bool(const int key, const Tuple * tuple){
   persist_config_bool(key, tuple->value->int8);
+}
+
+static void set_int(const int key, const Tuple * tuple){
+  persist_config_int(key, tuple->value->int32);
 }
 
 // Defaults loading
@@ -82,6 +93,14 @@ static void fetch_bool_config_or_default(const int key, const int default_value)
   persist_config_bool(key, value);
 }
 
+static void fetch_int_config_or_default(const int key, const int default_value){
+  int value = default_value;
+  if(persist_exists(key)){
+    value = persist_read_int(key);
+  }
+  persist_config_int(key, value);
+}
+
 static void fetch_config_or_default(){
   fetch_color_config_or_default(KEY_MINUTE_HAND_COLOR, 0xffffff);
   fetch_color_config_or_default(KEY_HOUR_HAND_COLOR, 0xff0000);
@@ -89,7 +108,7 @@ static void fetch_config_or_default(){
   fetch_color_config_or_default(KEY_DATE_COLOR, 0x555555);
   fetch_color_config_or_default(KEY_TIME_COLOR, 0xAAAAAA);
   fetch_bool_config_or_default(KEY_DATE_DISPLAYED, true);
-  fetch_bool_config_or_default(KEY_BLUETOOTH_DISPLAYED, true);
+  fetch_int_config_or_default(KEY_BLUETOOTH_ICON, 1);
   fetch_bool_config_or_default(KEY_RAINBOW_MODE, false);
 }
 
@@ -111,7 +130,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   update_config(iter, KEY_TIME_COLOR, set_color, mark_dirty_time_layer);
   update_config(iter, KEY_TIME_COLOR, set_color, mark_dirty_tick_layer);
   update_config(iter, KEY_DATE_DISPLAYED, set_bool, mark_dirty_time_layer);
-  update_config(iter, KEY_BLUETOOTH_DISPLAYED, set_bool, mark_dirty_bluetooth_layer);
+  update_config(iter, KEY_BLUETOOTH_ICON, set_int, mark_dirty_bluetooth_layer);
   update_config(iter, KEY_RAINBOW_MODE, set_bool, hands_update_rainbow_mode_config_changed);
 }
 
@@ -141,8 +160,8 @@ bool config_is_date_displayed(){
   return s_config.date_displayed;
 }
 
-bool config_is_bluetooth_displayed(){
-  return s_config.bluetooth_displayed;
+int config_get_bluetooth_icon(){
+  return s_config.bluetooth_icon;
 }
 
 bool config_is_rainbow_mode(){
