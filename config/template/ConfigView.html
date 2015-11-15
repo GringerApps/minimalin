@@ -1,7 +1,7 @@
 <h1 class="title">Minimalin Configuration</h1>
-<svg version="1.1" id="preview" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+<svg id="preview" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
      viewBox="0 0 288 336" enable-background="new 0 0 288 336" xml:space="preserve">
-  <rect x="0" y="0" width="288" height="336"/>
+  <rect fill="{{background_color}}" x="0" y="0" width="288" height="336"/>
   <g class="{{ date_displayed ? '' : 'hidden'}}">
     <path fill="#555555" d="M140.3,204.2v1.9h1.9v1.9v9.5h-1.9v3.8h1.9v11.4v1.9h-1.9v1.9h-9.5v-1.9h-1.9v-5.7h3.8v3.8h5.7v-11.4h-5.7
                             v-3.8h5.7V208h-5.7v3.8h-3.8v-5.7h1.9v-1.9H140.3z"/>
@@ -61,6 +61,15 @@
 <div class="item-container">
   <div class="item-container-content">
     <label class="item">
+      Background color
+      <input id="backgroun_color_picker" type="text" class="item-color item-color-normal" value="{{background_color}}">
+    </label>
+  </div>
+</div>
+
+<div class="item-container">
+  <div class="item-container-content">
+    <label class="item">
       Show date
       <input id="display_date_checkbox" type="checkbox" class="item-toggle" checked="{{date_displayed}}">
     </label>
@@ -100,10 +109,12 @@
 
  #preview {
    display:      block;
+   margin:       0px;
    margin-left:  auto;
    margin-right: auto;
-   width:        40%;
-   max-width:    400px;
+   width:        50%;
+   max-width:    288px;
+   max-height:   336px;
  }
 
  .disabled {
@@ -156,6 +167,7 @@
    data: {
      minute_hand_color: query('minute_hand_color', '#FFFFFF'),
      hour_hand_color:  query('hour_hand_color', '#FF0000'),
+     background_color:  query('background_color', '#000000'),
      date_displayed:  query('date_displayed', true),
      bluetooth_displayed: query('bluetooth_displayed', true),
      rainbow_mode: query('rainbow_mode', false),

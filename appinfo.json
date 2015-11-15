@@ -1,14 +1,11 @@
 {
   "appKeys": {
-    "KEY_RAINBOW_MODE": 8,
-    "KEY_BLUETOOTH_DISPLAYED": 7,
-    "KEY_DATE_DISPLAYED": 6,
-    "KEY_HOUR_HAND_COLOR_BLUE": 5,
-    "KEY_HOUR_HAND_COLOR_GREEN": 4,
-    "KEY_HOUR_HAND_COLOR_RED": 3,
-    "KEY_MINUTE_HAND_COLOR_BLUE": 2,
-    "KEY_MINUTE_HAND_COLOR_GREEN": 1,
-    "KEY_MINUTE_HAND_COLOR_RED": 0
+    "KEY_BACKGROUND_COLOR": 5,
+    "KEY_RAINBOW_MODE": 4,
+    "KEY_BLUETOOTH_DISPLAYED": 3,
+    "KEY_DATE_DISPLAYED": 2,
+    "KEY_HOUR_HAND_COLOR": 1,
+    "KEY_MINUTE_HAND_COLOR": 0
   },
   "capabilities": [
     "configurable"
@@ -25,8 +22,8 @@
         "type": "png"
       },
       {
-        "file": "images/icn_bt_black.png",
-        "name": "ICN_BT_BLACK",
+        "file": "images/bluetooth.png",
+        "name": "ICN_BLUETOOTH",
         "type": "png"
       },
       {
