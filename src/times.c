@@ -6,7 +6,6 @@
 
 #define DATE_RADIUS 28
 #define TIME_COLOR GColorLightGray
-#define DATE_COLOR GColorDarkGray
 #define MARGIN 6
 #define CHAR_HEIGHT 23
 #define CHAR_WIDTH 23
@@ -94,7 +93,7 @@ static void display_normal_time(GContext * ctx, const TimeFormat format, const i
 }
 
 static void display_date(GContext * ctx, const int day){
-  set_text_color(ctx, DATE_COLOR);
+  set_text_color(ctx, config_get_date_color());
   GRect rect;
   set_size_for_format(NoLeading, &rect.size);
   rect.origin.x = box_origin_x(s_center.x, &rect.size);

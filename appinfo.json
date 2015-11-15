@@ -1,5 +1,6 @@
 {
   "appKeys": {
+    "KEY_DATE_COLOR": 6,
     "KEY_BACKGROUND_COLOR": 5,
     "KEY_RAINBOW_MODE": 4,
     "KEY_BLUETOOTH_DISPLAYED": 3,
