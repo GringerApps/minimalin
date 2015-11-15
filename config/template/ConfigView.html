@@ -32,15 +32,15 @@
   <circle fill="{{ rainbow_mode ? '#AA00FF' : hour_hand_color }}" cx="177.5" cy="178.499" r="9.991"/>
 
   <g class="{{ date_displayed ? '' : 'hidden'}}">
-    <path fill="#555555" d="M173.774,215.148v1.885h1.885v1.907v9.447h-1.885v3.792h1.885v11.355v1.907h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7V232.18h-5.7v-3.792h5.7v-9.447h-5.7v3.792h-3.77v-5.7h1.885v-1.885H173.774z"/>
-    <path fill="#555555"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
+    <path fill="{{date_color}}" d="M173.774,215.148v1.885h1.885v1.907v9.447h-1.885v3.792h1.885v11.355v1.907h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7V232.18h-5.7v-3.792h5.7v-9.447h-5.7v3.792h-3.77v-5.7h1.885v-1.885H173.774z"/>
+    <path fill="{{date_color}}"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
   </g>
 </svg>
 <div class="item-container">
   <div class="item-container-content">
     <label class="item">
       Hour hand color
-      <input id="hour_hand_color_picker" type="text" class="item-color item-color-normal" value="{{hour_hand_color}}">
+      <input type="text" class="item-color item-color-normal" value="{{hour_hand_color}}">
     </label>
   </div>
 </div>
@@ -56,7 +56,7 @@
   <div class="item-container-content">
     <label class="item">
       Use rainbow minute hand
-      <input id="rainbow_mode_checkbox" type="checkbox" class="item-toggle" checked="{{rainbow_mode}}">
+      <input type="checkbox" class="item-toggle" checked="{{rainbow_mode}}">
     </label>
   </div>
   <div class="item-container-footer">
@@ -67,15 +67,23 @@
   <div class="item-container-content">
     <label class="item">
       Background color
-      <input id="background_color_picker" type="text" class="item-color item-color-normal" value="{{background_color}}">
+      <input type="text" class="item-color item-color-normal" value="{{background_color}}">
+    </label>
+  </div>
+</div>
+<div id="date_displayed_container" class="item-container">
+  <div class="item-container-content">
+    <label class="item">
+      Show date
+      <input type="checkbox" class="item-toggle" checked="{{date_displayed}}">
     </label>
   </div>
 </div>
 <div class="item-container">
   <div class="item-container-content">
-    <label class="item">
-      Show date
-      <input id="display_date_checkbox" type="checkbox" class="item-toggle" checked="{{date_displayed}}">
+    <label class="item {{ date_displayed ? '' : 'disabled' }}">
+      Date color
+      <input id="date_color_picker" type="text" class="item-color item-color-normal" value="{{date_color}}">
     </label>
   </div>
 </div>
@@ -83,7 +91,7 @@
   <div class="item-container-content">
     <label class="item">
       Show Bluetooth disconnected icon
-      <input id="display_bluetooth_checkbox" type="checkbox" class="item-toggle" checked="{{bluetooth_displayed}}">
+      <input type="checkbox" class="item-toggle" checked="{{bluetooth_displayed}}">
     </label>
   </div>
 </div>
@@ -197,6 +205,7 @@
      bluetooth_displayed: bool('bluetooth_displayed', true),
      rainbow_mode: bool('rainbow_mode', false),
      background_color: color('background_color', '#000000'),
+     date_color: color('date_color', '#555555'),
      platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
    },
    onrender: function(){
@@ -208,9 +217,14 @@
      });
      var ractive = this;
      $('#minute_hand_color_picker').parent().click(function(ev){
-       console.log(ractive.get('rainbow_mode'));
        if(ractive.get('rainbow_mode')){
          $('#rainbow_container label').animate("buzz", { duration: 'slow', easing: 'ease'});
+         ev.preventDefault();
+       }
+     });
+     $('#date_color_picker').parent().click(function(ev){
+       if(!ractive.get('date_displayed')){
+         $('#date_displayed_container label').animate("buzz", { duration: 'slow', easing: 'ease'});
          ev.preventDefault();
        }
      });
