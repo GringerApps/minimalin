@@ -28,7 +28,7 @@ Pebble.addEventListener('showConfiguration', function() {
     date_displayed: getSavedBool('date_displayed'),
     bluetooth_displayed: getSavedBool('bluetooth_displayed'),
     rainbow_mode: getSavedBool('rainbow_mode'),
-    background_color: getSavedColor('background')
+    background_color: getSavedColor('background_color')
   };
   url += toQueryString(params);
   console.log('Showing configuration page: ' + url);

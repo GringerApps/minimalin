@@ -3,7 +3,6 @@
      viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
   <g class="{{ platform == 'basalt' ? '' : 'hidden' }}">
     <rect fill="{{background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
-    <rect x="33.635" y="11.156" width="287.73" height="335.685"/>
     <path class="time" fill="#AAAAAA" d="M252.367,27.515v1.907h1.885v28.364h-1.885v1.885h-9.47v-1.885h-1.885V31.285v-1.863h1.885v-1.907H252.367z M250.482,55.879V31.307h-5.7v24.572H250.482z"/>
     <path class="time" fill="#AAAAAA" d="M269.287,27.492v1.885h1.885v28.409h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7v-9.447h-7.585v-1.907h-1.885V29.377h1.885v-1.885H269.287z M261.702,42.639h5.7V31.285h-5.7V42.639z"/>
     <path class="time" fill="#AAAAAA" d="M52.221,94.762h7.585v32.179h-3.792V98.555h-3.792V94.762z"/>
@@ -198,6 +197,7 @@
      date_displayed:  bool('date_displayed', true),
      bluetooth_displayed: bool('bluetooth_displayed', true),
      rainbow_mode: bool('rainbow_mode', false),
+     background_color: color('background_color', '#000000'),
      platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
    },
    onrender: function(){
