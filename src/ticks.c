@@ -7,34 +7,40 @@
 #define TICK_STROKE 2
 #define TICK_LENGTH 6
 
+static GPoint ticks_points[12][2] = {
+  {{72, 0}  , {72, 7}  },
+  {{120,0}  , {117,7}  },
+  {{144,42} , {137,46} },
+  {{144,84} , {137,84} },
+  {{144,126}, {137,122}},
+  {{120,168}, {117,161}},
+  {{72, 168}, {72, 161}},
+  {{24, 168}, {27, 161}},
+  {{0,  126}, {7,  122}},
+  {{0,  84} , {7,  84} },
+  {{0,  42} , {7,  46} },
+  {{24, 0}  , {27, 7}  }
+};
+
 static Layer * s_tick_layer;
 static GRect s_bounds;
 static GPoint s_center;
 
-static Vector tick_vector(float angle){
-  const int radius_ext = radius_to_border(angle, &s_bounds.size);
-  const GPoint ext = gpoint_on_circle(s_center, angle, radius_ext);
-  const int radius_origin = radius_ext - TICK_LENGTH;
-  const GPoint ori = gpoint_on_circle(s_center, angle, radius_origin);
-  return (Vector){
-    .ori = ori,
-    .ext = ext
-  };
+static void draw_tick(GContext *ctx, const int index){
+  draw_line(ctx, ticks_points[index][0], ticks_points[index][1]);
 }
 
 static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
   const Time current_time = get_current_time();
-  const float hour_tick_angle = angle(current_time.hour, 12);
-  Vector vector = tick_vector(hour_tick_angle);
   set_stroke_color(ctx, TICK_COLOR);
   set_stroke_width(ctx, TICK_STROKE);
-  draw_line(ctx, vector.ori, vector.ext);
-  if(current_time.minute / 5 == current_time.hour){
-    return;
+  const int hour_tick_index = current_time.hour;
+  draw_tick(ctx, hour_tick_index);
+  const int minute_tick_index = current_time.minute / 5;
+  if(hour_tick_index != minute_tick_index){
+    draw_tick(ctx, minute_tick_index);
   }
-  const float minute_tick_angle = angle(current_time.minute / 5, 12);
-  vector = tick_vector(minute_tick_angle);
-  draw_line(ctx, vector.ori, vector.ext);
+
 }
 
 void init_tick_layer(Layer * root_layer){
