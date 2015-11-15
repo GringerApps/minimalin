@@ -2,8 +2,8 @@
 #include "ticks.h"
 #include "common.h"
 #include "geo.h"
+#include "config.h"
 
-#define TICK_COLOR GColorLightGray
 #define TICK_STROKE 2
 #define TICK_LENGTH 6
 
@@ -49,7 +49,7 @@ static void draw_tick(GContext *ctx, const int index){
 
 static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
   const Time current_time = get_current_time();
-  set_stroke_color(ctx, TICK_COLOR);
+  set_stroke_color(ctx, config_get_time_color());
   set_stroke_width(ctx, TICK_STROKE);
   const int hour_tick_index = current_time.hour % 12;
   draw_tick(ctx, hour_tick_index);
