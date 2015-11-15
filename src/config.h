@@ -9,7 +9,7 @@ typedef struct {
   GColor date_color;
   GColor time_color;
   bool date_displayed;
-  bool bluetooth_displayed;
+  int bluetooth_icon;
   bool rainbow_mode;
 } Config;
 
@@ -19,6 +19,6 @@ GColor config_get_background_color();
 GColor config_get_date_color();
 GColor config_get_time_color();
 bool config_is_date_displayed();
-bool config_is_bluetooth_displayed();
+int config_get_bluetooth_icon();
 bool config_is_rainbow_mode();
 void init_config();
