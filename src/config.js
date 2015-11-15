@@ -21,7 +21,7 @@ Pebble.addEventListener('showConfiguration', function() {
     return null;
   };
 
-  var url = 'https://cdn.rawgit.com/groyoh/minimalin/33d9bc61cda696b034843d656a6b6a0b239b82b5/config/index.html?';
+  var url = 'https://cdn.rawgit.com/groyoh/minimalin/be4ff526bb77e6acb1666eb51c920347575b7f7c/config/index.html?';
   var params = {
     minute_hand_color: getSavedColor('minute_hand'),
     hour_hand_color: getSavedColor('hour_hand'),
@@ -30,6 +30,7 @@ Pebble.addEventListener('showConfiguration', function() {
     rainbow_mode: getSavedBool('rainbow_mode'),
     background_color: getSavedColor('background'),
     date_color: getSavedColor('date'),
+    time_color: getSavedColor('time'),
     platform: Pebble.getActiveWatchInfo().platform
   };
   url += toQueryString(params);
@@ -57,6 +58,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   saveColor(dict, 'hour_hand', configData.hour_hand_color);
   saveColor(dict, 'background', configData.background_color);
   saveColor(dict, 'date', configData.date_color);
+  saveColor(dict, 'time', configData.time_color);
   saveBool(dict, 'date_displayed', configData.date_displayed);
   saveBool(dict, 'bluetooth_displayed', configData.bluetooth_displayed);
   saveBool(dict, 'rainbow_mode', configData.rainbow_mode);

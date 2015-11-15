@@ -2,6 +2,7 @@
 #include "config.h"
 #include "hands.h"
 #include "times.h"
+#include "ticks.h"
 #include "bluetooth.h"
 #include "background_layer.h"
 
@@ -11,7 +12,8 @@
 #define KEY_BLUETOOTH_DISPLAYED 3
 #define KEY_RAINBOW_MODE        4
 #define KEY_BACKGROUND_COLOR    5
-#define KEY_DATE_COLOR    6
+#define KEY_DATE_COLOR          6
+#define KEY_TIME_COLOR          7
 typedef void (*ConfigUpdateCallback)();
 typedef void (*ConfigSetter)(const int, const Tuple *);
 
@@ -31,6 +33,9 @@ static void persist_config_color(const int key, const int color){
     return;
   case KEY_DATE_COLOR:
     s_config.date_color = g_color;
+    return;
+  case KEY_TIME_COLOR:
+    s_config.time_color = g_color;
     return;
   default:
     s_config.background_color = g_color;
@@ -82,6 +87,7 @@ static void fetch_config_or_default(){
   fetch_color_config_or_default(KEY_HOUR_HAND_COLOR, 0xff0000);
   fetch_color_config_or_default(KEY_BACKGROUND_COLOR, 0x000000);
   fetch_color_config_or_default(KEY_DATE_COLOR, 0x555555);
+  fetch_color_config_or_default(KEY_TIME_COLOR, 0xAAAAAA);
   fetch_bool_config_or_default(KEY_DATE_DISPLAYED, true);
   fetch_bool_config_or_default(KEY_BLUETOOTH_DISPLAYED, true);
   fetch_bool_config_or_default(KEY_RAINBOW_MODE, false);
@@ -102,6 +108,8 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   update_config(iter, KEY_HOUR_HAND_COLOR, set_color, hands_update_hour_hand_config_changed);
   update_config(iter, KEY_BACKGROUND_COLOR, set_color, background_config_changed);
   update_config(iter, KEY_DATE_COLOR, set_color, mark_dirty_time_layer);
+  update_config(iter, KEY_TIME_COLOR, set_color, mark_dirty_time_layer);
+  update_config(iter, KEY_TIME_COLOR, set_color, mark_dirty_tick_layer);
   update_config(iter, KEY_DATE_DISPLAYED, set_bool, mark_dirty_time_layer);
   update_config(iter, KEY_BLUETOOTH_DISPLAYED, set_bool, mark_dirty_bluetooth_layer);
   update_config(iter, KEY_RAINBOW_MODE, set_bool, hands_update_rainbow_mode_config_changed);
@@ -123,6 +131,10 @@ GColor config_get_background_color(){
 
 GColor config_get_date_color(){
   return s_config.date_color;
+}
+
+GColor config_get_time_color(){
+  return s_config.time_color;
 }
 
 bool config_is_date_displayed(){

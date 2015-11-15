@@ -5,7 +5,6 @@
 #include "common.h"
 
 #define DATE_RADIUS 28
-#define TIME_COLOR GColorLightGray
 #define MARGIN 6
 #define CHAR_HEIGHT 23
 #define CHAR_WIDTH 23
@@ -103,7 +102,7 @@ static void display_date(GContext * ctx, const int day){
 
 static void time_layer_update_callback(Layer * layer, GContext *ctx){
   Time current_time = get_current_time();
-  graphics_context_set_text_color(ctx, TIME_COLOR);
+  graphics_context_set_text_color(ctx, config_get_time_color());
   int hour = current_time.hour;
   if(conflicting_times(hour, current_time.minute)){
     if (display_vertical(hour)){
