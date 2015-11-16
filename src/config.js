@@ -29,7 +29,7 @@ Pebble.addEventListener('showConfiguration', function() {
     minute_hand_color: getSavedColor('minute_hand'),
     hour_hand_color: getSavedColor('hour_hand'),
     date_displayed: getSavedBool('date_displayed'),
-    bluetooth_displayed: getSavedInt('bluetooth_icon'),
+    bluetooth_icon: getSavedInt('bluetooth_icon'),
     rainbow_mode: getSavedBool('rainbow_mode'),
     background_color: getSavedColor('background'),
     date_color: getSavedColor('date'),
