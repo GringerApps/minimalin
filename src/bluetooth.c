@@ -4,8 +4,6 @@
 
 #define ICN_BT_RADIUS 18
 
-typedef enum { NoIcon = 0, Bluetooth = 1, Heart = 2 } BluetoothIcon;
-
 static GBitmap * s_icn_bluetooth;
 static GBitmap * s_icn_heart;
 static BitmapLayer * s_bluetooth_layer;

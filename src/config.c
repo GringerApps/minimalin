@@ -1,174 +1,107 @@
 #include <pebble.h>
 #include "config.h"
-#include "hands.h"
-#include "times.h"
-#include "ticks.h"
-#include "bluetooth.h"
-#include "background_layer.h"
 
-#define KEY_MINUTE_HAND_COLOR   0
-#define KEY_HOUR_HAND_COLOR     1
-#define KEY_DATE_DISPLAYED      2
-#define KEY_BLUETOOTH_ICON      3
-#define KEY_RAINBOW_MODE        4
-#define KEY_BACKGROUND_COLOR    5
-#define KEY_DATE_COLOR          6
-#define KEY_TIME_COLOR          7
-typedef void (*ConfigUpdateCallback)();
-typedef void (*ConfigSetter)(const int, const Tuple *);
+#define MESSAGE_KEY_MINUTE_HAND_COLOR 0
+#define MESSAGE_KEY_HOUR_HAND_COLOR   1
+#define MESSAGE_KEY_DATE_DISPLAYED    2
+#define MESSAGE_KEY_BLUETOOTH_ICON    3
+#define MESSAGE_KEY_RAINBOW_MODE      4
+#define MESSAGE_KEY_BACKGROUND_COLOR  5
+#define MESSAGE_KEY_DATE_COLOR        6
+#define MESSAGE_KEY_TIME_COLOR        7
+#define PERSIST_KEY_CONFIG            0
+
+typedef struct {
+  int32_t minute_hand_color;
+  int32_t hour_hand_color;
+  int32_t background_color;
+  int32_t date_color;
+  int32_t time_color;
+  int8_t date_displayed;
+  int8_t bluetooth_icon;
+  int8_t rainbow_mode;
+} __attribute__((__packed__)) Config;
 
 static Config s_config;
+static ConfigUpdatedCallback s_config_updated_callback;
 
-// Utils
-
-static void persist_config_color(const int key, const int color){
-  persist_write_int(key, color);
-  GColor g_color = GColorFromHEX(color);
-  switch(key){
-  case KEY_MINUTE_HAND_COLOR:
-    s_config.minute_hand_color = g_color;
-    return;
-  case KEY_HOUR_HAND_COLOR:
-    s_config.hour_hand_color = g_color;
-    return;
-  case KEY_DATE_COLOR:
-    s_config.date_color = g_color;
-    return;
-  case KEY_TIME_COLOR:
-    s_config.time_color = g_color;
-    return;
-  default:
-    s_config.background_color = g_color;
+static void fetch_int32(const DictionaryIterator * iter, const int key, int32_t * config){
+  Tuple * tuple = dict_find(iter, key);
+  if(tuple){
+    *config = tuple->value->int32;
   }
 }
 
-static void persist_config_int(const int key, const int value){
-  persist_write_int(key, value);
-  switch(key){
-  case KEY_BLUETOOTH_ICON:
-    s_config.bluetooth_icon = value;
-    return;
+static void fetch_int8(const DictionaryIterator * iter, const int key, int8_t * config){
+  Tuple * tuple = dict_find(iter, key);
+  if(tuple){
+    *config = tuple->value->int8;
   }
-}
-
-static void persist_config_bool(const int key, const bool value){
-  persist_write_bool(key, value);
-  switch(key){
-  case KEY_DATE_DISPLAYED:
-    s_config.date_displayed = value;
-    return;
-  default:
-    s_config.rainbow_mode = value;
-    return;
-  }
-}
-
-static void set_color(const int key, const Tuple * tuple){
-  persist_config_color(key, tuple->value->int32);
-}
-
-static void set_bool(const int key, const Tuple * tuple){
-  persist_config_bool(key, tuple->value->int8);
-}
-
-static void set_int(const int key, const Tuple * tuple){
-  persist_config_int(key, tuple->value->int32);
-}
-
-// Defaults loading
-
-static void fetch_color_config_or_default(const int key, const int default_color){
-  int color = default_color;
-  if(persist_exists(key)){
-    color = persist_read_int(key);
-  }
-  persist_config_color(key, color);
-}
-
-static void fetch_bool_config_or_default(const int key, const int default_value){
-  int value = default_value;
-  if(persist_exists(key)){
-    value = persist_read_bool(key);
-  }
-  persist_config_bool(key, value);
-}
-
-static void fetch_int_config_or_default(const int key, const int default_value){
-  int value = default_value;
-  if(persist_exists(key)){
-    value = persist_read_int(key);
-  }
-  persist_config_int(key, value);
 }
 
 static void fetch_config_or_default(){
-  fetch_color_config_or_default(KEY_MINUTE_HAND_COLOR, 0xffffff);
-  fetch_color_config_or_default(KEY_HOUR_HAND_COLOR, 0xff0000);
-  fetch_color_config_or_default(KEY_BACKGROUND_COLOR, 0x000000);
-  fetch_color_config_or_default(KEY_DATE_COLOR, 0x555555);
-  fetch_color_config_or_default(KEY_TIME_COLOR, 0xAAAAAA);
-  fetch_bool_config_or_default(KEY_DATE_DISPLAYED, true);
-  fetch_int_config_or_default(KEY_BLUETOOTH_ICON, 1);
-  fetch_bool_config_or_default(KEY_RAINBOW_MODE, false);
-}
-
-// Config change
-
-static void update_config(const DictionaryIterator *iter, const int key, ConfigSetter setter, ConfigUpdateCallback callback){
-  Tuple * new_value = dict_find(iter, key);
-  if(new_value){
-    setter(key, new_value);
-    callback();
+  if(persist_exists(PERSIST_KEY_CONFIG)){
+    persist_read_data(PERSIST_KEY_CONFIG, &s_config, sizeof(Config));
+  }else{
+    s_config.minute_hand_color = 0xffffff;
+    s_config.hour_hand_color   = 0xff0000;
+    s_config.background_color  = 0x000000;
+    s_config.date_color        = 0x555555;
+    s_config.time_color        = 0xAAAAAA;
+    s_config.date_displayed    = true;
+    s_config.bluetooth_icon    = Bluetooth;
+    s_config.rainbow_mode      = false;
+    persist_write_data(PERSIST_KEY_CONFIG, &s_config, sizeof(s_config));
   }
 }
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
-  update_config(iter, KEY_MINUTE_HAND_COLOR, set_color, hands_update_minute_hand_config_changed);
-  update_config(iter, KEY_HOUR_HAND_COLOR, set_color, hands_update_hour_hand_config_changed);
-  update_config(iter, KEY_BACKGROUND_COLOR, set_color, background_config_changed);
-  update_config(iter, KEY_DATE_COLOR, set_color, mark_dirty_time_layer);
-  update_config(iter, KEY_TIME_COLOR, set_color, mark_dirty_time_layer);
-  update_config(iter, KEY_TIME_COLOR, set_color, mark_dirty_tick_layer);
-  update_config(iter, KEY_DATE_DISPLAYED, set_bool, mark_dirty_time_layer);
-  update_config(iter, KEY_BLUETOOTH_ICON, set_int, mark_dirty_bluetooth_layer);
-  update_config(iter, KEY_RAINBOW_MODE, set_bool, hands_update_rainbow_mode_config_changed);
+  fetch_int32(iter, MESSAGE_KEY_MINUTE_HAND_COLOR, &s_config.minute_hand_color);
+  fetch_int32(iter, MESSAGE_KEY_HOUR_HAND_COLOR, &s_config.hour_hand_color);
+  fetch_int32(iter, MESSAGE_KEY_BACKGROUND_COLOR, &s_config.background_color);
+  fetch_int32(iter, MESSAGE_KEY_DATE_COLOR, &s_config.date_color);
+  fetch_int32(iter, MESSAGE_KEY_TIME_COLOR, &s_config.time_color);
+  fetch_int8(iter, MESSAGE_KEY_DATE_DISPLAYED, &s_config.date_displayed);
+  fetch_int8(iter, MESSAGE_KEY_BLUETOOTH_ICON, &s_config.bluetooth_icon);
+  fetch_int8(iter, MESSAGE_KEY_RAINBOW_MODE, &s_config.rainbow_mode);
+  persist_write_data(PERSIST_KEY_CONFIG, &s_config, sizeof(s_config));
+  s_config_updated_callback();
 }
 
-// API
-
 GColor config_get_minute_hand_color(){
-  return s_config.minute_hand_color;
+  return GColorFromHEX(s_config.minute_hand_color);
 }
 
 GColor config_get_hour_hand_color(){
-  return s_config.hour_hand_color;
+  return GColorFromHEX(s_config.hour_hand_color);
 }
 
 GColor config_get_background_color(){
-  return s_config.background_color;
+  return GColorFromHEX(s_config.background_color);
 }
 
 GColor config_get_date_color(){
-  return s_config.date_color;
+  return GColorFromHEX(s_config.date_color);
 }
 
 GColor config_get_time_color(){
-  return s_config.time_color;
+  return GColorFromHEX(s_config.time_color);
 }
 
 bool config_is_date_displayed(){
   return s_config.date_displayed;
 }
 
-int config_get_bluetooth_icon(){
+BluetoothIcon config_get_bluetooth_icon(){
   return s_config.bluetooth_icon;
 }
 
 bool config_is_rainbow_mode(){
   return s_config.rainbow_mode;
 }
-    
-void init_config() {
+
+void init_config(ConfigUpdatedCallback callback){
+  s_config_updated_callback = callback;
   app_message_register_inbox_received(inbox_received_handler);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   fetch_config_or_default();

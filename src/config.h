@@ -2,16 +2,8 @@
 
 #include <pebble.h>
 
-typedef struct {
-  GColor minute_hand_color;
-  GColor hour_hand_color;
-  GColor background_color;
-  GColor date_color;
-  GColor time_color;
-  bool date_displayed;
-  int bluetooth_icon;
-  bool rainbow_mode;
-} Config;
+typedef void (*ConfigUpdatedCallback)();
+typedef enum { NoIcon = 0, Bluetooth = 1, Heart = 2 } BluetoothIcon;
 
 GColor config_get_minute_hand_color();
 GColor config_get_hour_hand_color();
@@ -19,6 +11,6 @@ GColor config_get_background_color();
 GColor config_get_date_color();
 GColor config_get_time_color();
 bool config_is_date_displayed();
-int config_get_bluetooth_icon();
+BluetoothIcon config_get_bluetooth_icon();
 bool config_is_rainbow_mode();
-void init_config();
+void init_config(ConfigUpdatedCallback);
