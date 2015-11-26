@@ -48,6 +48,7 @@ void init_bluetooth_layer(Layer * root_layer){
   setup_bitmap(&s_icn_bt, &s_bt_layer, RESOURCE_ID_ICN_BLUETOOTH);
   setup_bitmap(&s_icn_heart, &s_heart_layer, RESOURCE_ID_ICN_HEART);
   bluetooth_connection_service_subscribe(bt_handler);
+  bt_handler(connection_service_peek_pebble_app_connection());
 }
 
 void deinit_bluetooth_layer(){
