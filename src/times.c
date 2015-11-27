@@ -1,6 +1,5 @@
 #include <pebble.h>
 #include "times.h"
-#include "geo.h"
 #include "config.h"
 #include "common.h"
 

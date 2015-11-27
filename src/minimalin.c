@@ -1,5 +1,4 @@
 #include <pebble.h>
-#include "geo.h"
 #include "times.h"
 #include "ticks.h"
 #include "hands.h"

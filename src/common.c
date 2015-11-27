@@ -39,6 +39,13 @@ GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius){
   return gpoint_from_polar(grect_for_polar, GOvalScaleModeFitCircle, angle);
 }
 
+float angle(int time, int max){
+  if(time == 0 || time == max){
+    return 0;
+  }
+  return TRIG_MAX_ANGLE * time / max;
+}
+
 void init_font(){
   s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_NUPE_23));
 }
