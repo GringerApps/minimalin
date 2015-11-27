@@ -66,13 +66,6 @@ static GRect get_display_box(const GPoint box_center, const char * time){
   return box;
 }
 
-static GRect grect_translated(const GRect rect, const int x, const int y){
-  return (GRect) {
-    .origin = GPoint(rect.origin.x + x, rect.origin.y + y),
-    .size   = rect.size
-  };
-}
-
 static GPoint get_time_point(const int time, const TimeType type){
   if(type == Minute){
     return time_points[time / 5];
