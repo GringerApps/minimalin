@@ -1,114 +1,121 @@
-<h1 class="title">Minimalin Configuration</h1>
-<svg version="1.1" id="preview" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-     viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
-  <g class="{{ platform == 'basalt' ? '' : 'hidden' }}">
-    <rect fill="{{background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
-    <path class="time" fill="{{time_color}}" d="M252.367,27.515v1.907h1.885v28.364h-1.885v1.885h-9.47v-1.885h-1.885V31.285v-1.863h1.885v-1.907H252.367z M250.482,55.879V31.307h-5.7v24.572H250.482z"/>
-    <path class="time" fill="{{time_color}}" d="M269.287,27.492v1.885h1.885v28.409h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7v-9.447h-7.585v-1.907h-1.885V29.377h1.885v-1.885H269.287z M261.702,42.639h5.7V31.285h-5.7V42.639z"/>
-    <path class="time" fill="{{time_color}}" d="M52.221,94.762h7.585v32.179h-3.792V98.555h-3.792V94.762z"/>
-    <path class="time" fill="{{time_color}}" d="M78.633,94.785v1.907h1.885v28.364h-1.885v1.885h-9.47v-1.885h-1.885V98.555v-1.863h1.885v-1.907H78.633z M76.748,123.149V98.577h-5.7v24.572H76.748z"/>
-    <path class="tick" fill="{{time_color}}" d="M45.882,100.255l-12.247-7.072v4.615l10.249,5.918c0.314,0.181,0.658,0.267,0.997,0.267c0.691,0,1.362-0.357,1.733-0.999C47.166,102.029,46.838,100.807,45.882,100.255z"/>
-    <path class="tick" fill="{{time_color}}" d="M271.737,11.156l-5.917,10.249c-0.552,0.956-0.224,2.178,0.732,2.73c0.314,0.181,0.658,0.267,0.997,0.267c0.691,0,1.362-0.359,1.733-0.999l7.07-12.247H271.737z"/>
-  </g>
-  <g class="{{ platform == 'chalk' ? '' : 'hidden' }}">
-    <circle fill="{{background_color}}" cx="177.5" cy="177.5" r="177.5"/>
-    <path class="tick" fill="{{time_color}}" d="M246.757,41.333h-9.47v1.907h-1.885v1.863v26.501h1.885v1.885h9.47v-1.885h1.885    V43.241h-1.885V41.333z M244.872,69.697h-5.7V45.126h5.7V69.697z"/>
-    <path class="tick" fill="{{time_color}}" d="M263.677,41.311h-9.47v1.885h-1.885v15.147h1.885v1.907h7.585v9.447h-5.7v-3.792    h-3.77v5.7h1.885v1.885h9.47v-1.885h1.885V43.196h-1.885V41.311z M261.792,56.458h-5.7V45.103h5.7V56.458z"/>
-    <polygon class="tick" fill="{{time_color}}" points="42.752,93.06 46.544,93.06 46.544,121.446 50.336,121.446 50.336,89.267     42.752,89.267   "/>
-    <path class="tick" fill="{{time_color}}" d="M69.163,89.29h-9.47v1.907h-1.885v1.863v26.501h1.885v1.885h9.47v-1.885h1.885    V91.197h-1.885V89.29z M67.278,117.654h-5.7V93.082h5.7V117.654z"/>
-    <path class="tick" fill="{{time_color}}" d="M259.797,35.955c0.314,0.181,0.658,0.267,0.997,0.267    c0.691,0,1.362-0.359,1.733-0.999l5.885-10.193c-1.143-0.683-2.293-1.355-3.453-2.013l-5.893,10.208    C258.513,34.182,258.841,35.403,259.797,35.955z"/>
-    <path  class="tick" fill="{{time_color}}" d="M36.412,94.76l-12.087-6.979c-0.671,1.143-1.329,2.295-1.975,3.454l12.064,6.987    c0.314,0.181,0.658,0.267,0.997,0.267c0.691,0,1.362-0.357,1.733-0.999C37.696,96.534,37.368,95.312,36.412,94.76z"/>
-  </g>
-  <path class="{{ bluetooth_icon == 1 ? '' : 'hidden' }}" fill="#FF0000" d="M190.198,110.148l-11.409-11.409h-1.998v15.166l-9.171-9.171l-2.817,2.817l11.17,11.17l-11.17,11.17l2.817,2.817l9.171-9.171v15.166h1.998l11.409-11.409l-8.592-8.572L190.198,110.148z M180.787,106.391l3.756,3.756l-3.756,3.756V106.391z M184.543,127.291l-3.756,3.756v-7.513L184.543,127.291z"/>
-  <path class="{{ bluetooth_icon == 2 ? '' : 'hidden' }}" fill="#FF0000" d="M186.5,102.001c-2.482,0-4.885,0.835-6.854,2.237l-5.692,10.054l7.676,8.481   l0.955,1.055l-0.75,0.813l-5.771,6.255l2.737-6.643l-9.012-8.144l-1.071-0.968l0.666-1.524l4.495-10.28   c-1.645-0.847-3.487-1.339-5.377-1.339c-6.16,0-11,4.84-11,11c0,7.56,6.8,13.72,17.1,23.06l2.9,2.64l2.9-2.62   c10.3-9.36,17.1-15.52,17.1-23.08C197.5,106.841,192.66,102.001,186.5,102.001z"/>
+<div id="content">
+  <h1 class="title">Minimalin Configuration</h1>
+  <svg version="1.1" id="preview" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+       viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
+    <g class="{{ platform == 'basalt' ? '' : 'hidden' }}">
+      <rect fill="{{background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
+      <path class="time" fill="{{time_color}}" d="M252.367,27.515v1.907h1.885v28.364h-1.885v1.885h-9.47v-1.885h-1.885V31.285v-1.863h1.885v-1.907H252.367z M250.482,55.879V31.307h-5.7v24.572H250.482z"/>
+      <path class="time" fill="{{time_color}}" d="M269.287,27.492v1.885h1.885v28.409h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7v-9.447h-7.585v-1.907h-1.885V29.377h1.885v-1.885H269.287z M261.702,42.639h5.7V31.285h-5.7V42.639z"/>
+      <path class="time" fill="{{time_color}}" d="M52.221,94.762h7.585v32.179h-3.792V98.555h-3.792V94.762z"/>
+      <path class="time" fill="{{time_color}}" d="M78.633,94.785v1.907h1.885v28.364h-1.885v1.885h-9.47v-1.885h-1.885V98.555v-1.863h1.885v-1.907H78.633z M76.748,123.149V98.577h-5.7v24.572H76.748z"/>
+      <path class="tick" fill="{{time_color}}" d="M45.882,100.255l-12.247-7.072v4.615l10.249,5.918c0.314,0.181,0.658,0.267,0.997,0.267c0.691,0,1.362-0.357,1.733-0.999C47.166,102.029,46.838,100.807,45.882,100.255z"/>
+      <path class="tick" fill="{{time_color}}" d="M271.737,11.156l-5.917,10.249c-0.552,0.956-0.224,2.178,0.732,2.73c0.314,0.181,0.658,0.267,0.997,0.267c0.691,0,1.362-0.359,1.733-0.999l7.07-12.247H271.737z"/>
+    </g>
+    <g class="{{ platform == 'chalk' ? '' : 'hidden' }}">
+      <circle fill="{{background_color}}" cx="177.5" cy="177.5" r="177.5"/>
+      <path class="tick" fill="{{time_color}}" d="M246.757,41.333h-9.47v1.907h-1.885v1.863v26.501h1.885v1.885h9.47v-1.885h1.885    V43.241h-1.885V41.333z M244.872,69.697h-5.7V45.126h5.7V69.697z"/>
+      <path class="tick" fill="{{time_color}}" d="M263.677,41.311h-9.47v1.885h-1.885v15.147h1.885v1.907h7.585v9.447h-5.7v-3.792    h-3.77v5.7h1.885v1.885h9.47v-1.885h1.885V43.196h-1.885V41.311z M261.792,56.458h-5.7V45.103h5.7V56.458z"/>
+      <polygon class="tick" fill="{{time_color}}" points="42.752,93.06 46.544,93.06 46.544,121.446 50.336,121.446 50.336,89.267     42.752,89.267   "/>
+      <path class="tick" fill="{{time_color}}" d="M69.163,89.29h-9.47v1.907h-1.885v1.863v26.501h1.885v1.885h9.47v-1.885h1.885    V91.197h-1.885V89.29z M67.278,117.654h-5.7V93.082h5.7V117.654z"/>
+      <path class="tick" fill="{{time_color}}" d="M259.797,35.955c0.314,0.181,0.658,0.267,0.997,0.267    c0.691,0,1.362-0.359,1.733-0.999l5.885-10.193c-1.143-0.683-2.293-1.355-3.453-2.013l-5.893,10.208    C258.513,34.182,258.841,35.403,259.797,35.955z"/>
+      <path  class="tick" fill="{{time_color}}" d="M36.412,94.76l-12.087-6.979c-0.671,1.143-1.329,2.295-1.975,3.454l12.064,6.987    c0.314,0.181,0.658,0.267,0.997,0.267c0.691,0,1.362-0.357,1.733-0.999C37.696,96.534,37.368,95.312,36.412,94.76z"/>
+    </g>
+    <path class="{{ bluetooth_icon == 1 ? '' : 'hidden' }}" fill="#FF0000" d="M190.198,110.148l-11.409-11.409h-1.998v15.166l-9.171-9.171l-2.817,2.817l11.17,11.17l-11.17,11.17l2.817,2.817l9.171-9.171v15.166h1.998l11.409-11.409l-8.592-8.572L190.198,110.148z M180.787,106.391l3.756,3.756l-3.756,3.756V106.391z M184.543,127.291l-3.756,3.756v-7.513L184.543,127.291z"/>
+    <path class="{{ bluetooth_icon == 2 ? '' : 'hidden' }}" fill="#FF0000" d="M186.5,102.001c-2.482,0-4.885,0.835-6.854,2.237l-5.692,10.054l7.676,8.481   l0.955,1.055l-0.75,0.813l-5.771,6.255l2.737-6.643l-9.012-8.144l-1.071-0.968l0.666-1.524l4.495-10.28   c-1.645-0.847-3.487-1.339-5.377-1.339c-6.16,0-11,4.84-11,11c0,7.56,6.8,13.72,17.1,23.06l2.9,2.64l2.9-2.62   c10.3-9.36,17.1-15.52,17.1-23.08C197.5,106.841,192.66,102.001,186.5,102.001z"/>
 
-  <path fill="{{hour_hand_color}}" d="M182.885,175.407l-56.249-56.249c-2.34-2.342-6.137-2.342-8.476,0c-2.342,2.341-2.342,6.136,0,8.476l56.103,56.103C174.197,184.198,183.345,175.342,182.885,175.407z"/>
-  <path class="{{ rainbow_mode ? 'hidden' : ''}}" fill="{{minute_hand_color}}" d="M177.5,184.493c-1.534,0-3.068-0.585-4.238-1.756    c-2.342-2.341-2.342-6.136,0-8.476l73.47-73.47c2.34-2.342,6.137-2.342,8.476,0c2.342,2.341,2.342,6.136,0,8.476l-73.47,73.47    C180.568,183.908,179.034,184.493,177.5,184.493z"/>
-  <g class="{{ rainbow_mode ? '' : 'hidden' }}">
-    <path fill="#FF0000" d="M241.12,120.873c-1.534,0-3.068-0.585-4.238-1.756c-2.342-2.341-2.342-6.136,0-8.476l9.851-9.851c2.34-2.342,6.137-2.342,8.476,0c2.342,2.341,2.342,6.136,0,8.476l-9.851,9.851C244.188,120.288,242.654,120.873,241.12,120.873z"/>
-    <rect x="228.04" y="111.971" transform="matrix(0.7071 0.7071 -0.7071 0.7071 154.7896 -129.7636)" fill="#FF5500" width="11.987" height="19.989"/>
-    <rect x="213.793" y="126.041" transform="matrix(0.7071 0.7071 -0.7071 0.7071 160.6906 -115.5172)" fill="#FFAA00" width="11.987" height="20.342"/>
-    <rect x="199.086" y="140.291" transform="matrix(0.7071 0.7071 -0.7071 0.7071 166.7826 -100.8099)" fill="#00AA00" width="11.987" height="21.257"/>
-    <rect x="182.341" y="154.612" transform="matrix(0.7071 0.7071 -0.7071 0.7071 173.7184 -84.0653)" fill="#0055FF" width="11.987" height="26.104"/>
-  </g>
-  <circle fill="{{ rainbow_mode ? '#AA00FF' : hour_hand_color }}" cx="177.5" cy="178.499" r="9.991"/>
+    <path fill="{{hour_hand_color}}" d="M182.885,175.407l-56.249-56.249c-2.34-2.342-6.137-2.342-8.476,0c-2.342,2.341-2.342,6.136,0,8.476l56.103,56.103C174.197,184.198,183.345,175.342,182.885,175.407z"/>
+    <path class="{{ rainbow_mode ? 'hidden' : ''}}" fill="{{minute_hand_color}}" d="M177.5,184.493c-1.534,0-3.068-0.585-4.238-1.756    c-2.342-2.341-2.342-6.136,0-8.476l73.47-73.47c2.34-2.342,6.137-2.342,8.476,0c2.342,2.341,2.342,6.136,0,8.476l-73.47,73.47    C180.568,183.908,179.034,184.493,177.5,184.493z"/>
+    <g class="{{ rainbow_mode ? '' : 'hidden' }}">
+      <path fill="#FF0000" d="M241.12,120.873c-1.534,0-3.068-0.585-4.238-1.756c-2.342-2.341-2.342-6.136,0-8.476l9.851-9.851c2.34-2.342,6.137-2.342,8.476,0c2.342,2.341,2.342,6.136,0,8.476l-9.851,9.851C244.188,120.288,242.654,120.873,241.12,120.873z"/>
+      <rect x="228.04" y="111.971" transform="matrix(0.7071 0.7071 -0.7071 0.7071 154.7896 -129.7636)" fill="#FF5500" width="11.987" height="19.989"/>
+      <rect x="213.793" y="126.041" transform="matrix(0.7071 0.7071 -0.7071 0.7071 160.6906 -115.5172)" fill="#FFAA00" width="11.987" height="20.342"/>
+      <rect x="199.086" y="140.291" transform="matrix(0.7071 0.7071 -0.7071 0.7071 166.7826 -100.8099)" fill="#00AA00" width="11.987" height="21.257"/>
+      <rect x="182.341" y="154.612" transform="matrix(0.7071 0.7071 -0.7071 0.7071 173.7184 -84.0653)" fill="#0055FF" width="11.987" height="26.104"/>
+    </g>
+    <circle fill="{{ rainbow_mode ? '#AA00FF' : hour_hand_color }}" cx="177.5" cy="178.499" r="9.991"/>
 
-  <g class="{{ date_displayed ? '' : 'hidden'}}">
-    <path fill="{{date_color}}" d="M173.774,215.148v1.885h1.885v1.907v9.447h-1.885v3.792h1.885v11.355v1.907h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7V232.18h-5.7v-3.792h5.7v-9.447h-5.7v3.792h-3.77v-5.7h1.885v-1.885H173.774z"/>
-    <path fill="{{date_color}}"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
-  </g>
-</svg>
-<div class="item-container">
-  <div class="item-container-content">
-    <label class="item">
-      Hour hand color
-      <input type="text" class="item-color item-color-normal" value="{{hour_hand_color}}">
-    </label>
-  </div>
-</div>
-<div class="item-container">
-  <div class="item-container-content">
-    <label class="item {{ rainbow_mode ? 'disabled' : ''}}">
-      Minute hand color
-      <input id="minute_hand_color_picker" type="text" class="item-color item-color-normal" value="{{minute_hand_color}}">
-    </label>
-  </div>
-</div>
-<div class="item-container" id="rainbow_container">
-  <div class="item-container-content">
-    <label class="item">
-      Use rainbow minute hand
-      <input type="checkbox" class="item-toggle" checked="{{rainbow_mode}}">
-    </label>
-  </div>
-  <div class="item-container-footer">
-    Overrides color selection for the minute hand
-  </div>
-</div>
-<div class="item-container">
-  <div class="item-container-content">
-    <label class="item">
-      Background color
-      <input type="text" class="item-color item-color-normal" value="{{background_color}}">
-    </label>
-  </div>
-</div>
-<div id="date_displayed_container" class="item-container">
-  <div class="item-container-content">
-    <label class="item">
-      Show date
-      <input type="checkbox" class="item-toggle" checked="{{date_displayed}}">
-    </label>
-  </div>
-</div>
-<div class="item-container">
-  <div class="item-container-content">
-    <label class="item {{ date_displayed ? '' : 'disabled' }}">
-      Date color
-      <input id="date_color_picker" type="text" class="item-color item-color-normal" value="{{date_color}}">
-    </label>
-  </div>
-</div>
-<div class="item-container">
-  <div class="item-container-content">
-    <label class="item">
-      Numbers and ticks color
-      <input type="text" class="item-color item-color-normal" value="{{time_color}}">
-    </label>
-  </div>
-</div>
-<div class="item-container">
-  <div class="item-container-header">When bluetooth is disconnected, show:</div>
-  <div class="item-container-content">
-    <div class="item tab-buttons">
-      <a name="tab-bt" class="tab-button bt-icon" data-icon="0">No icon</a>
-      <a name="tab-bt" class="tab-button bt-icon" data-icon="1">Bluetooth</a>
-      <a name="tab-bt" class="tab-button bt-icon" data-icon="2">Broken heart</a>
+    <g class="{{ date_displayed ? '' : 'hidden'}}">
+      <path fill="{{date_color}}" d="M173.774,215.148v1.885h1.885v1.907v9.447h-1.885v3.792h1.885v11.355v1.907h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7V232.18h-5.7v-3.792h5.7v-9.447h-5.7v3.792h-3.77v-5.7h1.885v-1.885H173.774z"/>
+      <path fill="{{date_color}}"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
+    </g>
+  </svg>
+  <div class="item-container">
+    <div class="item-container-content">
+      <label class="item">
+        Hour hand color
+        <input type="text" class="item-color item-color-normal" value="{{hour_hand_color}}">
+      </label>
     </div>
   </div>
-</div>
-<div class="donation">
-  Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
+  <div class="item-container">
+    <div class="item-container-content">
+      <label class="item {{ rainbow_mode ? 'disabled' : ''}}">
+        Minute hand color
+        <input id="minute_hand_color_picker" type="text" class="item-color item-color-normal" value="{{minute_hand_color}}">
+      </label>
+    </div>
+  </div>
+  <div class="item-container" id="rainbow_container">
+    <div class="item-container-content">
+      <label class="item">
+        Use rainbow minute hand
+        <input type="checkbox" class="item-toggle" checked="{{rainbow_mode}}">
+      </label>
+    </div>
+    <div class="item-container-footer">
+      Overrides color selection for the minute hand
+    </div>
+  </div>
+  <div class="item-container">
+    <div class="item-container-content">
+      <label class="item">
+        Background color
+        <input type="text" class="item-color item-color-normal" value="{{background_color}}">
+      </label>
+    </div>
+  </div>
+  <div id="date_displayed_container" class="item-container">
+    <div class="item-container-content">
+      <label class="item">
+        Show date
+        <input type="checkbox" class="item-toggle" checked="{{date_displayed}}">
+      </label>
+    </div>
+  </div>
+  <div class="item-container">
+    <div class="item-container-content">
+      <label class="item {{ date_displayed ? '' : 'disabled' }}">
+        Date color
+        <input id="date_color_picker" type="text" class="item-color item-color-normal" value="{{date_color}}">
+      </label>
+    </div>
+  </div>
+  <div class="item-container">
+    <div class="item-container-content">
+      <label class="item">
+        Numbers and ticks color
+        <input type="text" class="item-color item-color-normal" value="{{time_color}}">
+      </label>
+    </div>
+  </div>
+  <div class="item-container">
+    <div class="item-container-header">When bluetooth is disconnected, show:</div>
+    <div class="item-container-content">
+      <div class="item tab-buttons">
+        <a name="tab-bt" class="tab-button bt-icon" data-icon="0">No icon</a>
+        <a name="tab-bt" class="tab-button bt-icon" data-icon="1">Bluetooth</a>
+        <a name="tab-bt" class="tab-button bt-icon" data-icon="2">Broken heart</a>
+      </div>
+    </div>
+  </div>
+  <div class="donation">
+    Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
+  </div>
+  <div class="item-container">
+    <div id="reset_button_container" class="button-container">
+      <input id="reset_button" type="button" class="item-button" value="RESET DEFAULTS" on-tap="reset-defaults">
+    </div>
+  </div>
 </div>
 <div id="footer" class="item-container">
   <div class="button-container">
@@ -116,18 +123,36 @@
   </div>
 </div>
 <style>
+  * {
+    font-family: sans-serif;
+  }
+  
  .title {
    padding: 15px 10px;
-   font-family: sans-serif;
    font-size: 1.2em;
    font-weight: 500;
    color: #888888;
    text-align: center;
  }
 
+ #content {
+   padding-bottom: 40px;
+ }
+ 
  .donation {
-   padding: 10px 10px 40px 10px;
+   padding: 10px 10px 0px 10px;
    font-size: 0.7em;
+ }
+
+ #reset_button_container {
+   padding: 10px;
+ }
+ 
+ #reset_button {
+   width: 100%;
+   color: black;
+   background-color: #c1c1c1;
+   height: 40px;
  }
 
  #preview {
@@ -230,16 +255,27 @@
    return color.replace(/^0x/, '#');
  };
 
+ var defaults = {
+   minute_hand_color: '#FFFFFF',
+   hour_hand_color:  '#FF0000',
+   date_displayed:  true,
+   bluetooth_icon: 1,
+   rainbow_mode: false,
+   background_color: '#000000',
+   date_color: '#555555',
+   time_color: '#AAAAAA'
+ }
+ 
  component.exports = {
    data: {
-     minute_hand_color: color('minute_hand_color', '#FFFFFF'),
-     hour_hand_color:  color('hour_hand_color', '#FF0000'),
-     date_displayed:  bool('date_displayed', true),
-     bluetooth_icon: queryIn('bluetooth_icon', ["0","1","2"], 1),
-     rainbow_mode: bool('rainbow_mode', false),
-     background_color: color('background_color', '#000000'),
-     date_color: color('date_color', '#555555'),
-     time_color: color('time_color', '#AAAAAA'),
+     minute_hand_color: color('minute_hand_color', defaults.minute_hand_color),
+     hour_hand_color:  color('hour_hand_color', defaults.hour_hand_color),
+     date_displayed:  bool('date_displayed', defaults.date_displayed),
+     bluetooth_icon: queryIn('bluetooth_icon', ["0","1","2"], defaults.bluetooth_icon),
+     rainbow_mode: bool('rainbow_mode', defaults.rainbow_mode),
+     background_color: color('background_color', defaults.background_color),
+     date_color: color('date_color', defaults.date_color),
+     time_color: color('time_color', defaults.time_color),
      platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
    },
    onrender: function(){
@@ -249,6 +285,11 @@
      this.on('save', function() {
        var return_to = query('return_to', 'pebblejs://close#');
        document.location = return_to + encodeURIComponent(JSON.stringify(this.get()));
+     });
+     this.on('reset-defaults', function() {
+       this.set(defaults);
+       $('.item-color').change();
+       $('.bt-icon[data-icon="' + ractive.get('bluetooth_icon') + '"]').click();
      });
      var ractive = this;
      $('.bt-icon').click(function(icon){
