@@ -1,0 +1,105 @@
+<div class="item-container">
+  <div class="item-container-content">
+    <label class="item">
+      {{ label }}
+      <input type="text" class="item-color item-color-normal" value="{{ color }}" on-click="toggle('show')"/>
+      <div class="item-styled-color">
+        <span class="value" style="background:{{ css_color }}"></span>
+        <div style="padding-bottom:{{ boxHeight }}%" class="color-box-wrap {{ show ? 'show' : '' }}">
+          <div class="color-box-container">
+            {{#each layout}}
+              {{#each line}}
+                <i class="color-box {{ selectable }} {{ roundedTL }} {{ roundedTR }} {{ roundedBL }} {{ roundedBR }}"
+                   style="width:{{ itemWidth }}%;height:{{ itemHeight }}%;background:{{ color }};" on-click="set('color', color)">
+                </i>
+              {{/each}}
+            {{/each}}
+          </div>
+        </div>
+      </div>
+    </label>
+  </div>
+</div>
+
+<script>
+ var ENUMS = {
+   COLOR : {
+     EMPTY: 'transparent'
+   }
+ }
+ var LAYOUT = [
+   [false    , false    , '#55FF00', '#AAFF55', false    , '#FFFF55', '#FFFFAA', false    , false    ],
+   [false    , '#AAFFAA', '#55FF55', '#00FF00', '#AAFF00', '#FFFF00', '#FFAA55', '#FFAAAA', false    ],
+   ['#55FFAA', '#00FF55', '#00AA00', '#55AA00', '#AAAA55', '#AAAA00', '#FFAA00', '#FF5500', '#FF5555'],
+   ['#AAFFFF', '#00FFAA', '#00AA55', '#55AA55', '#005500', '#555500', '#AA5500', '#FF0000', '#FF0055'],
+   [false    , '#55AAAA', '#00AAAA', '#005555', '#FFFFFF', '#000000', '#AA5555', '#AA0000', false    ],
+   ['#55FFFF', '#00FFFF', '#00AAFF', '#0055AA', '#AAAAAA', '#555555', '#550000', '#AA0055', '#FF55AA'],
+   ['#55AAFF', '#0055FF', '#0000FF', '#0000AA', '#000055', '#550055', '#AA00AA', '#FF00AA', '#FFAAFF'],
+   [false    , '#5555AA', '#5555FF', '#5500FF', '#5500AA', '#AA00FF', '#FF00FF', '#FF55FF', false    ],
+   [false    , false    , false    , '#AAAAFF', '#AA55FF', '#AA55AA', false    , false    , false    ],
+ ];
+ var ITEM_WIDTH = 100 / LAYOUT[0].length;
+ var ITEM_HEIGHT = 100 / LAYOUT.length;
+ var BOX_HEIGHT = ITEM_WIDTH * LAYOUT.length;
+ 
+ var layout_color = function(i, j){
+   var color = layout[i][j] || ENUMS.COLOR.EMPTY;
+   if(this.get('sunny')){
+     color = '#' + mappingSunny[color.replace('#', '').toLowerCase()];
+   }
+   return color;
+ };
+ var selectable = function(color){
+   return color !== ENUMS.COLOR.EMPTY ? ' selectable' : '';
+ };
+ var roundedTL = function(i, j){
+   return ( i === 0 && j === 0) || i === 0 && !LAYOUT[i][j - 1]  || !LAYOUT[i][j - 1] && !LAYOUT[i -1][j] ? 'rounded-tl' : '';
+ };
+ var roundedTR = function(i, j){
+   return ( i === 0 && !LAYOUT[i][j + 1] || !LAYOUT[i][j + 1] && !LAYOUT[i -1][j]) ? 'rounded-tr ' : '';
+ };
+ var roundedBL = function(i, j){
+   return (i === LAYOUT.length - 1 && j === 0) || i === LAYOUT.length - 1 && !LAYOUT[i][j - 1] || !LAYOUT[i][j - 1] && !LAYOUT[i + 1][j] ? ' rounded-bl' : '';
+ };
+ var roundedBR = function(i, j){
+   return i === LAYOUT.length - 1 && !LAYOUT[i][j + 1] || !LAYOUT[i][j + 1] && !LAYOUT[i + 1][j] ? ' rounded-br' : '';
+ };
+ component.exports = {
+   data: function(){
+     return {
+       sunny: false,
+       show: false,
+       itemWidth: ITEM_WIDTH,
+       itemHeight: ITEM_HEIGHT,
+       boxHeight: BOX_HEIGHT,
+       layout: function(){
+         var layout = [];
+         for(var line = 0; line < LAYOUT.length; line++){
+           layout[line] = { line: [] };
+           for(var col = 0; col < LAYOUT[line].length; col++){
+             var color = LAYOUT[line][col];
+             console.log(color);
+             layout[line].line[col] = {
+               color: color,
+               selectable: selectable(color),
+               roundedTL: roundedTL(line, col),
+               roundedTR: roundedTR(line, col),
+               roundedBL: roundedBL(line, col),
+               roundedBR: roundedBR(line, col),
+             };
+           }         
+         }
+         return layout;
+       }()
+     };
+   },
+   show: function(){
+     this.toggle("show");
+   },
+   computed: {
+     css_color: function(){
+       return this.get('color').replace(/^0x/, '#');
+     }
+   },
+ };
+</script>

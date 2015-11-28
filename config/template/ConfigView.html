@@ -1,3 +1,4 @@
+<link rel='ractive' href='./ItemColor.html'>
 <div id="content">
   <h1 class="title">Minimalin Configuration</h1>
   <svg version="1.1" id="preview" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -39,72 +40,67 @@
       <path fill="{{date_color}}"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
     </g>
   </svg>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item">
-        Hour hand color
-        <input type="text" class="item-color item-color-normal" value="{{hour_hand_color}}">
-      </label>
+  <ItemColor color="{{ hour_hand_color }}"  label="Hour hand color"/>
+  <div id="non_ractive_components">
+    <div class="item-container">
+      <div class="item-container-content">
+        <label class="item {{ rainbow_mode ? 'disabled' : ''}}">
+          Minute hand color
+          <input id="minute_hand_color_picker" type="text" class="item-color item-color-normal" value="{{minute_hand_color}}">
+        </label>
+      </div>
     </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item {{ rainbow_mode ? 'disabled' : ''}}">
-        Minute hand color
-        <input id="minute_hand_color_picker" type="text" class="item-color item-color-normal" value="{{minute_hand_color}}">
-      </label>
+    <div class="item-container" id="rainbow_container">
+      <div class="item-container-content">
+        <label class="item">
+          Use rainbow minute hand
+          <input type="checkbox" class="item-toggle" checked="{{rainbow_mode}}">
+        </label>
+      </div>
+      <div class="item-container-footer">
+        Overrides color selection for the minute hand
+      </div>
     </div>
-  </div>
-  <div class="item-container" id="rainbow_container">
-    <div class="item-container-content">
-      <label class="item">
-        Use rainbow minute hand
-        <input type="checkbox" class="item-toggle" checked="{{rainbow_mode}}">
-      </label>
+    <div class="item-container">
+      <div class="item-container-content">
+        <label class="item">
+          Background color
+          <input type="text" class="item-color item-color-normal" value="{{background_color}}">
+        </label>
+      </div>
     </div>
-    <div class="item-container-footer">
-      Overrides color selection for the minute hand
+    <div id="date_displayed_container" class="item-container">
+      <div class="item-container-content">
+        <label class="item">
+          Show date
+          <input type="checkbox" class="item-toggle" checked="{{date_displayed}}">
+        </label>
+      </div>
     </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item">
-        Background color
-        <input type="text" class="item-color item-color-normal" value="{{background_color}}">
-      </label>
+    <div class="item-container">
+      <div class="item-container-content">
+        <label class="item {{ date_displayed ? '' : 'disabled' }}">
+          Date color
+          <input id="date_color_picker" type="text" class="item-color item-color-normal" value="{{date_color}}">
+        </label>
+      </div>
     </div>
-  </div>
-  <div id="date_displayed_container" class="item-container">
-    <div class="item-container-content">
-      <label class="item">
-        Show date
-        <input type="checkbox" class="item-toggle" checked="{{date_displayed}}">
-      </label>
+    <div class="item-container">
+      <div class="item-container-content">
+        <label class="item">
+          Numbers and ticks color
+          <input type="text" class="item-color item-color-normal" value="{{time_color}}">
+        </label>
+      </div>
     </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item {{ date_displayed ? '' : 'disabled' }}">
-        Date color
-        <input id="date_color_picker" type="text" class="item-color item-color-normal" value="{{date_color}}">
-      </label>
-    </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item">
-        Numbers and ticks color
-        <input type="text" class="item-color item-color-normal" value="{{time_color}}">
-      </label>
-    </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-header">When bluetooth is disconnected, show:</div>
-    <div class="item-container-content">
-      <div class="item tab-buttons">
-        <a name="tab-bt" class="tab-button bt-icon" data-icon="0">No icon</a>
-        <a name="tab-bt" class="tab-button bt-icon" data-icon="1">Bluetooth</a>
-        <a name="tab-bt" class="tab-button bt-icon" data-icon="2">Broken heart</a>
+    <div class="item-container">
+      <div class="item-container-header">When bluetooth is disconnected, show:</div>
+      <div class="item-container-content">
+        <div class="item tab-buttons">
+          <a name="tab-bt" class="tab-button bt-icon" data-icon="0">No icon</a>
+          <a name="tab-bt" class="tab-button bt-icon" data-icon="1">Bluetooth</a>
+          <a name="tab-bt" class="tab-button bt-icon" data-icon="2">Broken heart</a>
+        </div>
       </div>
     </div>
   </div>
@@ -123,10 +119,10 @@
   </div>
 </div>
 <style>
-  * {
-    font-family: sans-serif;
-  }
-  
+ * {
+   font-family: sans-serif;
+ }
+
  .title {
    padding: 15px 10px;
    font-size: 1.2em;
@@ -138,7 +134,7 @@
  #content {
    padding-bottom: 40px;
  }
- 
+
  .donation {
    padding: 10px 10px 0px 10px;
    font-size: 0.7em;
@@ -147,7 +143,7 @@
  #reset_button_container {
    padding: 10px;
  }
- 
+
  #reset_button {
    width: 100%;
    color: black;
@@ -265,7 +261,7 @@
    date_color: '#555555',
    time_color: '#AAAAAA'
  }
- 
+
  component.exports = {
    data: {
      minute_hand_color: color('minute_hand_color', defaults.minute_hand_color),
@@ -280,7 +276,7 @@
    },
    onrender: function(){
      $('.item-toggle').itemToggle();
-     $('.item-color-normal').itemColor({sunny: false});
+     $('#non_ractive_components .item-color-normal').itemColor({sunny: false});
      $('.tab-button').tab();
      this.on('save', function() {
        var return_to = query('return_to', 'pebblejs://close#');
