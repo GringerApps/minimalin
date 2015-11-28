@@ -1,119 +1,123 @@
 #include <pebble.h>
 #include "times.h"
-#include "geo.h"
 #include "config.h"
 #include "common.h"
 
-#define DATE_RADIUS 28
-#define MARGIN 6
-#define CHAR_HEIGHT 23
-#define CHAR_WIDTH 23
-#define VERTICAL_TOP_DIGITS_OFFSET 2
-#define VERTICAL_BOTTOM_DIGITS_OFFSET 1
-#define LETTER_OFFSET -3
+#define DATE_Y_OFFSET 28
 
-typedef enum { NoLeading = 1, LeadingZero = 2, Analog = 5 } TimeFormat;
+typedef enum { Hour, Minute } TimeType;
 
+#ifdef PBL_ROUND
+static GPoint time_points[12] = {
+  {90,  21} ,
+  {124, 30} ,
+  {150, 56} ,
+  {159, 90} ,
+  {150, 124},
+  {124, 150},
+  {90,  159},
+  {56,  150},
+  {30,  124},
+  {21,  90} ,
+  {30,  56} ,
+  {56,  30} ,
+};
+#else
+static GPoint time_points[12] = {
+  {72,  16} ,
+  {112, 16} ,
+  {127, 50} ,
+  {127, 84},
+  {127, 118},
+  {112, 146} ,
+  {72,  146},
+  {32,  146},
+  {17,  118},
+  {17,  84} ,
+  {17,  50} ,
+  {32,  16} ,
+};
+#endif
 static GRect s_bounds;
 static GPoint s_center;
 static Layer * s_time_layer;
 
-static bool conflicting_times(const int hour, const int minute){
+static bool times_overlap(const int hour, const int minute){
   return (hour == 12 && minute < 5) || hour == minute / 5;
 }
 
-static bool display_vertical(const int hour){
-  return (hour > 1 && hour < 5) || (hour > 7 && hour < 11);
+static bool time_displayed_horizontally(const int hour, const int minute){
+  return times_overlap(hour, minute) && (hour <= 1 || hour >= 11 || (hour <= 7 && hour >= 5));
 }
 
-static void set_size_for_format(const TimeFormat format, GSize * size){
-  size->w = (format + 1)/ 2 * CHAR_WIDTH;
-  size->h = CHAR_HEIGHT;
+static bool time_displayed_vertically(const int hour, const int minute){
+  return times_overlap(hour, minute) && ((hour > 1 && hour < 5) || (hour > 7 && hour < 11));
 }
 
-static int box_origin_x(const int x, const GSize * box_size){
-  return x - box_size->w / 2;
+static GSize get_display_box_size(const char * text){
+  return graphics_text_layout_get_content_size(text, get_font(), s_bounds, GTextOverflowModeWordWrap, GTextAlignmentCenter);
 }
 
-static int box_origin_y(const int y, const GSize * box_size){
-  return y - box_size->h / 2 + LETTER_OFFSET;
+static GRect get_display_box(const GPoint box_center, const char * time){
+  const GSize box_size    = get_display_box_size(time);
+  const GPoint box_origin = GPoint(box_center.x - box_size.w / 2, box_center.y - box_size.h / 2);
+  const GRect box         = (GRect) { .origin = box_origin, .size = box_size };
+  return box;
 }
 
-static void set_display_box(const float angle, const TimeFormat format, GRect * display_box){
-  GSize * size              = &display_box->size;
-  set_size_for_format(format, size);
-  int display_margin = radius_to_border(angle, size);
-  if((int)angle % _90_DEGREES != 0){
-    display_margin += 2;
+static GPoint get_time_point(const int time, const TimeType type){
+  if(type == Minute){
+    return time_points[time / 5];
   }
-  int radius         = radius_to_border(angle, &s_bounds.size) - MARGIN - display_margin;
-  display_box->origin.x = box_origin_x(x_plus_dx(s_center.x, angle, radius), size);
-  display_box->origin.y = box_origin_y(y_plus_dy(s_center.y, angle, radius), size);
+  return time_points[time % 12];
 }
 
-static void display_time(GContext * ctx, const GRect * rect, const TimeFormat time_format, const int time)
-{
-  char buffer[] = "00:00";
-  if(time_format == NoLeading){
-    snprintf(buffer, sizeof(buffer), "%d", time);
-  }else if(time_format == LeadingZero){
-    snprintf(buffer, sizeof(buffer), "%02d", time);
+static void display_number(GContext * ctx, const GRect box, const int number, const bool leading_zero){
+  char buffer[] = "00";
+  if(leading_zero){
+    snprintf(buffer, sizeof(buffer), "%02d", number);
   }else{
-    snprintf(buffer, sizeof(buffer), "%02d:%02d", time / 100, time % 100);
+    snprintf(buffer, sizeof(buffer), "%d", number);
   }
-  draw_text(ctx, buffer, get_font(), *rect);
+  draw_text(ctx, buffer, get_font(), box);  
 }
 
-static void display_vertical_time(GContext * ctx, const Time * current_time){
-  int hour         = current_time->hour;
-  float time_angle = angle(hour, 12);
-  GRect rect;
-  set_display_box(time_angle, LeadingZero, &rect);
-  rect.origin.y -= rect.size.h / 2 + VERTICAL_TOP_DIGITS_OFFSET;
-  display_time(ctx, &rect, NoLeading, hour);
-  set_display_box(time_angle, LeadingZero, &rect);
-  rect.origin.y += rect.size.h / 2 + VERTICAL_BOTTOM_DIGITS_OFFSET;
-  display_time(ctx, &rect, LeadingZero, current_time->minute);
-}
-
-static void display_horizontal_time(GContext * ctx, const Time * current_time){
-  int hour         = current_time->hour;
-  float time_angle = angle(hour, 12);
-  GRect rect;
-  set_display_box(time_angle, Analog, &rect);
-  display_time(ctx, &rect, Analog, hour * 100 + current_time->minute);
-}
-
-static void display_normal_time(GContext * ctx, const TimeFormat format, const int tick_number, const int time){
-  float time_angle  = angle(tick_number, 12);
-  GRect rect;
-  set_display_box(time_angle, format, &rect);
-  display_time(ctx, &rect, format, time);
+static void display_time(GContext * ctx, const int hour, const int minute){
+  graphics_context_set_text_color(ctx, config_get_time_color());
+  char buffer[] = "00:00";
+  if(time_displayed_horizontally(hour, minute)){
+    snprintf(buffer, sizeof(buffer), "%02d:%02d", hour, minute);
+    const GPoint box_center = get_time_point(hour, Hour);
+    const GRect box         = get_display_box(box_center, "00:00");
+    draw_text(ctx, buffer, get_font(), box);
+  }else{
+    GRect hour_box;
+    GRect minute_box;
+    if(time_displayed_vertically(hour, minute)){
+      const GPoint box_center = get_time_point(hour, Hour);
+      const GRect box         = get_display_box(box_center, "00");
+      hour_box                = grect_translated(box, 0, - box.size.h / 2 - 4);
+      minute_box              = grect_translated(box, 0, box.size.h / 2 - 2);
+    }else{
+      const GPoint hour_box_center   = get_time_point(hour, Hour);
+      hour_box                       = get_display_box(hour_box_center, "00");
+      const GPoint minute_box_center = get_time_point(minute, Minute);
+      minute_box                     = get_display_box(minute_box_center, "00");
+    }
+    display_number(ctx, hour_box, hour, false);
+    display_number(ctx, minute_box, minute, true);
+  }
 }
 
 static void display_date(GContext * ctx, const int day){
   set_text_color(ctx, config_get_date_color());
-  GRect rect;
-  set_size_for_format(NoLeading, &rect.size);
-  rect.origin.x = box_origin_x(s_center.x, &rect.size);
-  rect.origin.y = box_origin_y(s_center.y + DATE_RADIUS, &rect.size);
-  display_time(ctx, &rect, NoLeading, day);
+  const GRect box = get_display_box(s_center, "00");
+  display_number(ctx, grect_translated(box, 0, DATE_Y_OFFSET), day, false);
 }
 
 static void time_layer_update_callback(Layer * layer, GContext *ctx){
   Time current_time = get_current_time();
-  graphics_context_set_text_color(ctx, config_get_time_color());
-  int hour = current_time.hour;
-  if(conflicting_times(hour, current_time.minute)){
-    if (display_vertical(hour)){
-      display_vertical_time(ctx, &current_time);
-    }else{
-      display_horizontal_time(ctx, &current_time);
-    }
-  }else{
-    display_normal_time(ctx, NoLeading, current_time.hour, current_time.hour);
-    display_normal_time(ctx, LeadingZero, current_time.minute / 5, current_time.minute);
-  }
+  display_time(ctx, current_time.hour, current_time.minute);
   if(config_is_date_displayed()){
     display_date(ctx, current_time.day);
   }

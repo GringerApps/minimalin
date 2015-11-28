@@ -1,7 +1,6 @@
 #include <pebble.h>
 #include "ticks.h"
 #include "common.h"
-#include "geo.h"
 #include "config.h"
 
 #define TICK_STROKE 2

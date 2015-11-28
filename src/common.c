@@ -26,10 +26,24 @@ Time get_current_time(Time * current_time){
   return s_current_time;
 }
 
+GRect grect_translated(const GRect rect, const int x, const int y){
+  return (GRect) {
+    .origin = GPoint(rect.origin.x + x, rect.origin.y + y),
+    .size   = rect.size
+  };
+}
+
 GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius){
   const int diameter = radius * 2;
   const GRect grect_for_polar = GRect(center.x - radius, center.y - radius, diameter, diameter);
   return gpoint_from_polar(grect_for_polar, GOvalScaleModeFitCircle, angle);
+}
+
+float angle(int time, int max){
+  if(time == 0 || time == max){
+    return 0;
+  }
+  return TRIG_MAX_ANGLE * time / max;
 }
 
 void init_font(){

@@ -1,7 +1,6 @@
 #include <pebble.h>
 #include "hands.h"
 #include "common.h"
-#include "geo.h"
 #include "config.h"
 
 #define HOUR_HAND_COLOR GColorRed
