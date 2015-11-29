@@ -44,24 +44,9 @@
   <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
   <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand"/>
   <ItemColor color="{{ background_color }}" label="Background color"/>
+  <ToggleWithItemColor toggleLabel="Show date" toggleValue="{{ date_displayed }}" colorItemValue="{{ date_color }}" colorItemLabel="Date color" inverted/>
+  <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
   <div id="non_ractive_components">
-    <div id="date_displayed_container" class="item-container">
-      <div class="item-container-content">
-        <label class="item">
-          Show date
-          <input type="checkbox" class="item-toggle" checked="{{date_displayed}}">
-        </label>
-      </div>
-    </div>
-    <div class="item-container">
-      <div class="item-container-content">
-        <label class="item {{ date_displayed ? '' : 'disabled' }}">
-          Date color
-          <input id="date_color_picker" type="text" class="item-color item-color-normal" value="{{date_color}}">
-        </label>
-      </div>
-    </div>
-    <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
     <div class="item-container">
       <div class="item-container-header">When bluetooth is disconnected, show:</div>
       <div class="item-container-content">
@@ -230,7 +215,6 @@
      platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
    },
    onrender: function(){
-     $('#non_ractive_components .item-toggle').itemToggle();
      $('.tab-button').tab();
      this.on('save', function() {
        var return_to = query('return_to', 'pebblejs://close#');
@@ -238,7 +222,6 @@
      });
      this.on('reset-defaults', function() {
        this.set(defaults);
-       $('.item-color').change();
        $('.bt-icon[data-icon="' + ractive.get('bluetooth_icon') + '"]').click();
      });
      var ractive = this;
@@ -246,18 +229,6 @@
        ractive.set('bluetooth_icon', $(this).data("icon"));
      });
      $('.bt-icon[data-icon="' + ractive.get('bluetooth_icon') + '"]').addClass('active');
-     $('#minute_hand_color_picker').parent().click(function(ev){
-       if(ractive.get('rainbow_mode')){
-         $('#rainbow_container label').animate("buzz", { duration: 'slow', easing: 'ease'});
-         ev.preventDefault();
-       }
-     });
-     $('#date_color_picker').parent().click(function(ev){
-       if(!ractive.get('date_displayed')){
-         $('#date_displayed_container label').animate("buzz", { duration: 'slow', easing: 'ease'});
-         ev.preventDefault();
-       }
-     });
    }
  }
 </script>

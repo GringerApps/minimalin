@@ -1,5 +1,5 @@
 <link rel="ractive" href="./ItemColor.html">
-<ItemColor color="{{ colorItemValue }}" label="{{ colorItemLabel }}" on-show="buzz" disabled="{{ toggleValue }}"/>
+<ItemColor color="{{ colorItemValue }}" label="{{ colorItemLabel }}" on-show="buzz" disabled="{{ colorItemDisabled }}"/>
 <div class="item-container" id="rainbow_container">
   <div class="item-container-content">
     <label class="item {{ buzzing ? 'buzzing' : '' }}">
@@ -47,12 +47,18 @@
  component.exports = {
    data: function(){
      return {
+       inverted: false,
        buzzing: false
      };
    },
+   computed: {
+     colorItemDisabled: function(){
+       return this.get('inverted') ? !this.get('toggleValue') : this.get('toggleValue');
+     }
+   },
    oninit: function(){
      this.on('buzz', function () {
-       if(this.get('toggleValue')){
+       if(this.get('colorItemDisabled')){
          if(!this.get('buzzing')){
            this.set('buzzing', true);
            var ractive = this;
