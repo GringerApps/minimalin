@@ -1,6 +1,9 @@
-<div id="content">
-  <h1 class="title">Minimalin Configuration</h1>
-  <svg version="1.1" id="preview" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+<link rel="ractive" href="./ItemColor.html">
+<link rel="ractive" href="./ToggleWithItemColor.html">
+<link rel="ractive" href="./Tabs.html">
+
+<div id="preview">
+  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
        viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
     <g class="{{ platform == 'basalt' ? '' : 'hidden' }}">
       <rect fill="{{background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
@@ -39,94 +42,35 @@
       <path fill="{{date_color}}"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
     </g>
   </svg>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item">
-        Hour hand color
-        <input type="text" class="item-color item-color-normal" value="{{hour_hand_color}}">
-      </label>
-    </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item {{ rainbow_mode ? 'disabled' : ''}}">
-        Minute hand color
-        <input id="minute_hand_color_picker" type="text" class="item-color item-color-normal" value="{{minute_hand_color}}">
-      </label>
-    </div>
-  </div>
-  <div class="item-container" id="rainbow_container">
-    <div class="item-container-content">
-      <label class="item">
-        Use rainbow minute hand
-        <input type="checkbox" class="item-toggle" checked="{{rainbow_mode}}">
-      </label>
-    </div>
-    <div class="item-container-footer">
-      Overrides color selection for the minute hand
-    </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item">
-        Background color
-        <input type="text" class="item-color item-color-normal" value="{{background_color}}">
-      </label>
-    </div>
-  </div>
-  <div id="date_displayed_container" class="item-container">
-    <div class="item-container-content">
-      <label class="item">
-        Show date
-        <input type="checkbox" class="item-toggle" checked="{{date_displayed}}">
-      </label>
-    </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item {{ date_displayed ? '' : 'disabled' }}">
-        Date color
-        <input id="date_color_picker" type="text" class="item-color item-color-normal" value="{{date_color}}">
-      </label>
-    </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-content">
-      <label class="item">
-        Numbers and ticks color
-        <input type="text" class="item-color item-color-normal" value="{{time_color}}">
-      </label>
-    </div>
-  </div>
-  <div class="item-container">
-    <div class="item-container-header">When bluetooth is disconnected, show:</div>
-    <div class="item-container-content">
-      <div class="item tab-buttons">
-        <a name="tab-bt" class="tab-button bt-icon" data-icon="0">No icon</a>
-        <a name="tab-bt" class="tab-button bt-icon" data-icon="1">Bluetooth</a>
-        <a name="tab-bt" class="tab-button bt-icon" data-icon="2">Broken heart</a>
-      </div>
-    </div>
-  </div>
+</div>
+<div id="preview_spacer"></div>
+<div id="content">
+  <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
+  <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand"/>
+  <ItemColor color="{{ background_color }}" label="Background color"/>
+  <ToggleWithItemColor toggleLabel="Show date" toggleValue="{{ date_displayed }}" colorItemValue="{{ date_color }}" colorItemLabel="Date color" inverted/>
+  <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
+  <Tabs source="{{ bluetooth_source }}" active_tab="{{ bluetooth_icon }}"/>
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
   </div>
+
   <div class="item-container">
     <div id="reset_button_container" class="button-container">
-      <input id="reset_button" type="button" class="item-button" value="RESET DEFAULTS" on-tap="reset-defaults">
+      <input id="reset_button" type="button" class="item-button" value="RESET DEFAULTS" on-click="reset-defaults">
     </div>
   </div>
 </div>
 <div id="footer" class="item-container">
   <div class="button-container">
-    <input id="submit_button" type="button" class="item-button" value="SAVE" on-tap="save">
+    <input id="submit_button" type="button" class="item-button" value="SAVE" on-click="save">
   </div>
 </div>
 <style>
-  * {
-    font-family: sans-serif;
-  }
-  
+ * {
+   font-family: sans-serif;
+ }
+
  .title {
    padding: 15px 10px;
    font-size: 1.2em;
@@ -136,7 +80,12 @@
  }
 
  #content {
+   margin-top: 10px;
    padding-bottom: 40px;
+ }
+
+ .hidden {
+   visibility: hidden;
  }
  
  .donation {
@@ -147,7 +96,7 @@
  #reset_button_container {
    padding: 10px;
  }
- 
+
  #reset_button {
    width: 100%;
    color: black;
@@ -156,6 +105,18 @@
  }
 
  #preview {
+   position: fixed;
+   z-index: 999;
+   top:      0;
+   left:     0;
+   width:    100%;
+   background-color: rgb(234, 234, 234);
+   border-bottom: 1px solid #dedede;
+   box-shadow: 0px 5px 5px rgba(0,0,0,0.12);
+   padding: 10px 0px;
+ }
+
+ #preview svg {
    display:      block;
    margin:       0px;
    margin-left:  auto;
@@ -165,20 +126,21 @@
    max-height:   355px;
  }
 
- .disabled {
-   color: lightgray;
+ #preview_spacer {
+   padding: 10px 0px;
+   width: 50vw;
+   height: 50vw;
+   max-width:    355px;
+   max-height:   355px;
  }
-
- .hidden {
-   visibility: hidden;
- }
-
+ 
  #footer {
    position: fixed;
    z-index: 999;
    bottom: 0;
    left:0;
    width: 100%;
+   box-shadow: 0px -3px 3px rgba(0,0,0,0.12);
  }
 
  #footer input {
@@ -189,124 +151,22 @@
    width: 100%;
    border-radius: 0;
  }
-
- .item-container-header {
-   text-transform: none;
-   color: #000000;
- }
-
- @keyframes buzz {
-   0%, 100% {
-     transform: translate(0, 0);
-   }
-
-   10%, 30%, 50%, 70%, 90% {
-     transform: translate(-3px, 0);
-   }
-
-   20%, 40%, 60%, 80% {
-     transform: translate(3px, 0);
-   }
- }
 </style>
 
 <script>
- var query = function(variable, defaultVariable) {
-   var query = location.search.substring(1);
-   var vars = query.split('&');
-   for (var i = 0; i < vars.length; i++) {
-     var pair = vars[i].split('=');
-     if (pair[0] === variable) {
-       return decodeURIComponent(pair[1]);
-     }
-   }
-   return defaultVariable || null;
- }
-
- var bool = function(name, defaultValue){
-   var val = (query(name) || '').toLowerCase();
-   switch(val){
-     case 'true':
-       return true;
-     case 'false':
-       return false;
-     default:
-       return defaultValue;
-   }
- }
-
- var color = function(name, defaultValue){
-   var val = query(name, defaultValue);
-   if(val.match(/(?:#|0x)[0-9a-fA-F]{6}/)){
-     return val;
-   }
-   return defaultValue;
- }
-
- var queryIn = function(name, authorizedValues, defaultValue){
-   var val = query(name, defaultValue);
-   if(authorizedValues.indexOf(val) > -1){
-     return val;
-   }
-   return defaultValue;
- }
-
- var svg_color = function(color){
-   return color.replace(/^0x/, '#');
- };
-
- var defaults = {
-   minute_hand_color: '#FFFFFF',
-   hour_hand_color:  '#FF0000',
-   date_displayed:  true,
-   bluetooth_icon: 1,
-   rainbow_mode: false,
-   background_color: '#000000',
-   date_color: '#555555',
-   time_color: '#AAAAAA'
- }
- 
  component.exports = {
-   data: {
-     minute_hand_color: color('minute_hand_color', defaults.minute_hand_color),
-     hour_hand_color:  color('hour_hand_color', defaults.hour_hand_color),
-     date_displayed:  bool('date_displayed', defaults.date_displayed),
-     bluetooth_icon: queryIn('bluetooth_icon', ["0","1","2"], defaults.bluetooth_icon),
-     rainbow_mode: bool('rainbow_mode', defaults.rainbow_mode),
-     background_color: color('background_color', defaults.background_color),
-     date_color: color('date_color', defaults.date_color),
-     time_color: color('time_color', defaults.time_color),
-     platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
+   computed: {
+     bluetooth_source: function(){
+       return [
+         { label: "No icon" },
+         { label: "Bluetooth" },
+         { label: "Broken heart" }
+       ];
+     }
    },
    onrender: function(){
-     $('.item-toggle').itemToggle();
-     $('.item-color-normal').itemColor({sunny: false});
-     $('.tab-button').tab();
-     this.on('save', function() {
-       var return_to = query('return_to', 'pebblejs://close#');
-       document.location = return_to + encodeURIComponent(JSON.stringify(this.get()));
-     });
      this.on('reset-defaults', function() {
-       this.set(defaults);
-       $('.item-color').change();
-       $('.bt-icon[data-icon="' + ractive.get('bluetooth_icon') + '"]').click();
-     });
-     var ractive = this;
-     $('.bt-icon').click(function(icon){
-       ractive.set('bluetooth_icon', $(this).data("icon"));
-     });
-     $('.bt-icon[data-icon="' + ractive.get('bluetooth_icon') + '"]').addClass('active');
-     $('#minute_hand_color_picker').parent().click(function(ev){
-       if(ractive.get('rainbow_mode')){
-         $('#rainbow_container label').animate("buzz", { duration: 'slow', easing: 'ease'});
-         ev.preventDefault();
-       }
-     });
-     $('#date_color_picker').parent().click(function(ev){
-       if(!ractive.get('date_displayed')){
-         $('#date_displayed_container label').animate("buzz", { duration: 'slow', easing: 'ease'});
-         ev.preventDefault();
-       }
+       this.set(this.get('defaults'));
      });
    }
  }
