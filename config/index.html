@@ -3,14 +3,12 @@
   <head>
     <title>Minimalin Configuration</title>
     <link rel="stylesheet" type="text/css" href="css/slate.css">
-    <script type="text/javascript" src="js/slate.js"></script>
-    <script type="text/javascript" src="js/fx.js"></script>
-    <script type="text/javascript" src="https://cdn.rawgit.com/groyoh/minimalin/4f58f39e82ccb1788bb4f73b10ce4d10e62edb9a/config/js/ractive.js"></script>
-    <script type="text/javascript" src="js/ractive-load.js"></script>
-    <script type="text/javascript" src="js/ractive-events-tap.js"></script>
+    <script type="text/javascript" src="js/ractive.min.js"></script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/ractive.load/latest/ractive-load.min.js"></script>
   </head>
   <body>
     <script type="text/javascript">
+     Ractive.DEBUG = false;
      var query = function(variable, defaultVariable) {
        var query = location.search.substring(1);
        var vars = query.split('&');
@@ -81,8 +79,18 @@
          data: data,
          oninit: function(){
            this.on('save', function() {
+             var response_data = {
+               minute_hand_color: this.get("minute_hand_color"),
+               hour_hand_color: this.get("hour_hand_color"),
+               date_displayed: this.get("date_displayed"),
+               bluetooth_icon: this.get("bluetooth_icon"),
+               rainbow_mode: this.get("rainbow_mode"),
+               background_color: this.get("background_color"),
+               date_color: this.get("date_color"),
+               time_color: this.get("time_color")
+             };
              var return_to = query('return_to', 'pebblejs://close#');
-             document.location = return_to + encodeURIComponent(JSON.stringify(this.get()));
+             document.location = return_to + encodeURIComponent(JSON.stringify(response_data));
            });
          }
        });

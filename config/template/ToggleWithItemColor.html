@@ -53,17 +53,17 @@
    },
    computed: {
      colorItemDisabled: function(){
-       return this.get('inverted') ? !this.get('toggleValue') : this.get('toggleValue');
+       return this.get("inverted") ? !this.get("toggleValue") : this.get("toggleValue");
      }
    },
    oninit: function(){
-     this.on('buzz', function () {
-       if(this.get('colorItemDisabled')){
-         if(!this.get('buzzing')){
-           this.set('buzzing', true);
+     this.on("buzz", function () {
+       if(this.get("colorItemDisabled")){
+         if(!this.get("buzzing")){
+           this.set("buzzing", true);
            var ractive = this;
            setTimeout(function(){
-             ractive.set('buzzing', false);
+             ractive.set("buzzing", false);
            }, 800);
          }
        }
