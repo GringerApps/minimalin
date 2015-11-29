@@ -1,4 +1,5 @@
-<link rel='ractive' href='./ItemColor.html'>
+<link rel="ractive" href="./ItemColor.html">
+<link rel="ractive" href="./ToggleWithItemColor.html">
 <div id="content">
   <h1 class="title">Minimalin Configuration</h1>
   <svg version="1.1" id="preview" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -40,27 +41,9 @@
       <path fill="{{date_color}}"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
     </g>
   </svg>
-  <ItemColor color="{{ hour_hand_color }}"  label="Hour hand color"/>
+  <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
+  <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand"/>
   <div id="non_ractive_components">
-    <div class="item-container">
-      <div class="item-container-content">
-        <label class="item {{ rainbow_mode ? 'disabled' : ''}}">
-          Minute hand color
-          <input id="minute_hand_color_picker" type="text" class="item-color item-color-normal" value="{{minute_hand_color}}">
-        </label>
-      </div>
-    </div>
-    <div class="item-container" id="rainbow_container">
-      <div class="item-container-content">
-        <label class="item">
-          Use rainbow minute hand
-          <input type="checkbox" class="item-toggle" checked="{{rainbow_mode}}">
-        </label>
-      </div>
-      <div class="item-container-footer">
-        Overrides color selection for the minute hand
-      </div>
-    </div>
     <div class="item-container">
       <div class="item-container-content">
         <label class="item">
@@ -190,20 +173,6 @@
    text-transform: none;
    color: #000000;
  }
-
- @keyframes buzz {
-   0%, 100% {
-     transform: translate(0, 0);
-   }
-
-   10%, 30%, 50%, 70%, 90% {
-     transform: translate(-3px, 0);
-   }
-
-   20%, 40%, 60%, 80% {
-     transform: translate(3px, 0);
-   }
- }
 </style>
 
 <script>
@@ -275,7 +244,7 @@
      platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
    },
    onrender: function(){
-     $('.item-toggle').itemToggle();
+     $('#non_ractive_components .item-toggle').itemToggle();
      $('#non_ractive_components .item-color-normal').itemColor({sunny: false});
      $('.tab-button').tab();
      this.on('save', function() {

@@ -1,0 +1,67 @@
+<link rel="ractive" href="./ItemColor.html">
+<ItemColor color="{{ colorItemValue }}" label="{{ colorItemLabel }}" on-show="buzz" disabled="{{ toggleValue }}"/>
+<div class="item-container" id="rainbow_container">
+  <div class="item-container-content">
+    <label class="item {{ buzzing ? 'buzzing' : '' }}">
+      {{ toggleLabel }}
+      <input type="checkbox" class="item-toggle" checked="{{ toggleValue }}">
+      <div class="item-styled-toggle-wrapper">
+        <div class="item-styled-toggle">
+          <div class="item-styled-toggle-bar"></div>
+          <div class="item-styled-toggle-bar"></div>
+          <div class="item-styled-toggle-bar"></div>
+        </div>
+      </div>
+    </label>
+  </div>
+  <div class="item-container-footer">
+    {{ footer }}
+  </div>
+</div>
+
+<style>
+ .buzzing {
+   -webkit-animation: 600ms buzz alternate ease-in-out;
+   -moz-animation: 600ms buzz alternate ease-in-out;
+   -ms-animation: 600ms buzz alternate ease-in-out;
+   -o-animation: 600ms buzz alternate ease-in-out;
+   animation: 600ms buzz alternate ease-in-out;
+ }
+
+ @keyframes buzz {
+   0%, 100% {
+     transform: translate(0, 0);
+   }
+
+   10%, 30%, 50%, 70%, 90% {
+     transform: translate(-3px, 0);
+   }
+
+   20%, 40%, 60%, 80% {
+     transform: translate(3px, 0);
+   }
+ }
+</style>
+
+<script>
+ component.exports = {
+   data: function(){
+     return {
+       buzzing: false
+     };
+   },
+   oninit: function(){
+     this.on('buzz', function () {
+       if(this.get('toggleValue')){
+         if(!this.get('buzzing')){
+           this.set('buzzing', true);
+           var ractive = this;
+           setTimeout(function(){
+             ractive.set('buzzing', false);
+           }, 800);
+         }
+       }
+     });
+   }
+ };
+</script>

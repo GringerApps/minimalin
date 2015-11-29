@@ -1,8 +1,8 @@
 <div class="item-container">
   <div class="item-container-content">
-    <label class="item">
+    <label class="item {{ disabled ? 'disabled' : '' }}">
       {{ label }}
-      <input type="text" class="item-color item-color-normal" value="{{ color }}" on-click="toggle('show')"/>
+      <input type="text" class="item-color item-color-normal" value="{{ color }}" on-click="show"/>
       <div class="item-styled-color">
         <span class="value" style="background:{{ css_color }}"></span>
         <div style="padding-bottom:{{ boxHeight }}%" class="color-box-wrap {{ show ? 'show' : '' }}">
@@ -20,6 +20,12 @@
     </label>
   </div>
 </div>
+
+<style> 
+ .disabled {
+   color: lightgray;
+ }
+</style>
 
 <script>
  var ENUMS = {
@@ -69,6 +75,7 @@
      return {
        sunny: false,
        show: false,
+       disabled: false,
        itemWidth: ITEM_WIDTH,
        itemHeight: ITEM_HEIGHT,
        boxHeight: BOX_HEIGHT,
@@ -78,7 +85,6 @@
            layout[line] = { line: [] };
            for(var col = 0; col < LAYOUT[line].length; col++){
              var color = LAYOUT[line][col];
-             console.log(color);
              layout[line].line[col] = {
                color: color,
                selectable: selectable(color),
@@ -93,8 +99,12 @@
        }()
      };
    },
-   show: function(){
-     this.toggle("show");
+   oninit: function(){
+     this.on('show', function () {
+       if(!this.get('disabled')){
+         this.toggle("show");
+       }
+     });
    },
    computed: {
      css_color: function(){
