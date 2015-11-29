@@ -43,6 +43,7 @@
     </g>
   </svg>
 </div>
+<div id="preview_spacer"></div>
 <div id="content">
   <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
   <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand"/>
@@ -79,7 +80,6 @@
  }
 
  #content {
-   padding-top: 360px;
    padding-bottom: 40px;
  }
 
@@ -119,10 +119,18 @@
    margin:       0px;
    margin-left:  auto;
    margin-right: auto;
-   width:    355px;
-   height:   355px;
+   width:        50%;
+   max-width:    355px;
+   max-height:   355px;
  }
 
+ #preview_spacer {
+   width: 50vw;
+   height: 50vw;
+   max-width:    355px;
+   max-height:   355px;
+ }
+ 
  #footer {
    position: fixed;
    z-index: 999;
