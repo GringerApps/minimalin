@@ -43,15 +43,8 @@
   </svg>
   <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
   <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand"/>
+  <ItemColor color="{{ background_color }}" label="Background color"/>
   <div id="non_ractive_components">
-    <div class="item-container">
-      <div class="item-container-content">
-        <label class="item">
-          Background color
-          <input type="text" class="item-color item-color-normal" value="{{background_color}}">
-        </label>
-      </div>
-    </div>
     <div id="date_displayed_container" class="item-container">
       <div class="item-container-content">
         <label class="item">
