@@ -1,5 +1,7 @@
 <link rel="ractive" href="./ItemColor.html">
 <link rel="ractive" href="./ToggleWithItemColor.html">
+<link rel="ractive" href="./Tabs.html">
+
 <div id="content">
   <h1 class="title">Minimalin Configuration</h1>
   <svg version="1.1" id="preview" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -46,18 +48,7 @@
   <ItemColor color="{{ background_color }}" label="Background color"/>
   <ToggleWithItemColor toggleLabel="Show date" toggleValue="{{ date_displayed }}" colorItemValue="{{ date_color }}" colorItemLabel="Date color" inverted/>
   <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
-  <div id="non_ractive_components">
-    <div class="item-container">
-      <div class="item-container-header">When bluetooth is disconnected, show:</div>
-      <div class="item-container-content">
-        <div class="item tab-buttons">
-          <a name="tab-bt" class="tab-button bt-icon" data-icon="0">No icon</a>
-          <a name="tab-bt" class="tab-button bt-icon" data-icon="1">Bluetooth</a>
-          <a name="tab-bt" class="tab-button bt-icon" data-icon="2">Broken heart</a>
-        </div>
-      </div>
-    </div>
-  </div>
+  <Tabs source="{{ bluetooth_source }}" active_tab="{{ bluetooth_icon }}">
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
   </div>
@@ -89,6 +80,10 @@
    padding-bottom: 40px;
  }
 
+ .hidden {
+   visibility: hidden;
+ }
+ 
  .donation {
    padding: 10px 10px 0px 10px;
    font-size: 0.7em;
@@ -115,14 +110,6 @@
    max-height:   355px;
  }
 
- .disabled {
-   color: lightgray;
- }
-
- .hidden {
-   visibility: hidden;
- }
-
  #footer {
    position: fixed;
    z-index: 999;
@@ -138,11 +125,6 @@
  #footer input {
    width: 100%;
    border-radius: 0;
- }
-
- .item-container-header {
-   text-transform: none;
-   color: #000000;
  }
 </style>
 
@@ -187,10 +169,6 @@
    return defaultValue;
  }
 
- var svg_color = function(color){
-   return color.replace(/^0x/, '#');
- };
-
  var defaults = {
    minute_hand_color: '#FFFFFF',
    hour_hand_color:  '#FF0000',
@@ -214,21 +192,23 @@
      time_color: color('time_color', defaults.time_color),
      platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
    },
+   computed: {
+     bluetooth_source: function(){
+       return [
+         { label: "No Icon" },
+         { label: "Bluetooth" },
+         { label: "Broken Heart" }
+       ];
+     }
+   },
    onrender: function(){
-     $('.tab-button').tab();
      this.on('save', function() {
        var return_to = query('return_to', 'pebblejs://close#');
        document.location = return_to + encodeURIComponent(JSON.stringify(this.get()));
      });
      this.on('reset-defaults', function() {
        this.set(defaults);
-       $('.bt-icon[data-icon="' + ractive.get('bluetooth_icon') + '"]').click();
      });
-     var ractive = this;
-     $('.bt-icon').click(function(icon){
-       ractive.set('bluetooth_icon', $(this).data("icon"));
-     });
-     $('.bt-icon[data-icon="' + ractive.get('bluetooth_icon') + '"]').addClass('active');
    }
  }
 </script>
