@@ -2,9 +2,8 @@
 <link rel="ractive" href="./ToggleWithItemColor.html">
 <link rel="ractive" href="./Tabs.html">
 
-<div id="content">
-  <h1 class="title">Minimalin Configuration</h1>
-  <svg version="1.1" id="preview" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+<div id="preview">
+  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
        viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
     <g class="{{ platform == 'basalt' ? '' : 'hidden' }}">
       <rect fill="{{background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
@@ -43,6 +42,8 @@
       <path fill="{{date_color}}"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
     </g>
   </svg>
+</div>
+<div id="content">
   <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
   <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand"/>
   <ItemColor color="{{ background_color }}" label="Background color"/>
@@ -52,6 +53,7 @@
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
   </div>
+
   <div class="item-container">
     <div id="reset_button_container" class="button-container">
       <input id="reset_button" type="button" class="item-button" value="RESET DEFAULTS" on-click="reset-defaults">
@@ -77,6 +79,7 @@
  }
 
  #content {
+   padding-top: 360px;
    padding-bottom: 40px;
  }
 
@@ -101,13 +104,23 @@
  }
 
  #preview {
+   position: fixed;
+   z-index: 999;
+   top:      0;
+   left:     0;
+   width:    100%;
+   background-color: rgb(234, 234, 234);
+   border-bottom: 1px solid #dedede;
+   box-shadow: 0px 6px 6px rgba(0,0,0,0.12);
+ }
+
+ #preview svg {
    display:      block;
    margin:       0px;
    margin-left:  auto;
    margin-right: auto;
-   width:        50%;
-   max-width:    355px;
-   max-height:   355px;
+   width:    355px;
+   height:   355px;
  }
 
  #footer {
@@ -116,6 +129,7 @@
    bottom: 0;
    left:0;
    width: 100%;
+   box-shadow: 0px -6px 6px rgba(0,0,0,0.12);
  }
 
  #footer input {
@@ -140,7 +154,7 @@
      }
    },
    onrender: function(){
-      this.on('reset-defaults', function() {
+     this.on('reset-defaults', function() {
        this.set(this.get('defaults'));
      });
    }
