@@ -61,14 +61,7 @@
         </label>
       </div>
     </div>
-    <div class="item-container">
-      <div class="item-container-content">
-        <label class="item">
-          Numbers and ticks color
-          <input type="text" class="item-color item-color-normal" value="{{time_color}}">
-        </label>
-      </div>
-    </div>
+    <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
     <div class="item-container">
       <div class="item-container-header">When bluetooth is disconnected, show:</div>
       <div class="item-container-content">
@@ -238,7 +231,6 @@
    },
    onrender: function(){
      $('#non_ractive_components .item-toggle').itemToggle();
-     $('#non_ractive_components .item-color-normal').itemColor({sunny: false});
      $('.tab-button').tab();
      this.on('save', function() {
        var return_to = query('return_to', 'pebblejs://close#');
