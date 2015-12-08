@@ -35,7 +35,7 @@ GRect grect_translated(const GRect rect, const int x, const int y){
 
 GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius){
   const int diameter = radius * 2;
-  const GRect grect_for_polar = GRect(center.x - radius, center.y - radius, diameter, diameter);
+  const GRect grect_for_polar = GRect(center.x - radius + 1, center.y - radius + 1, diameter, diameter);
   return gpoint_from_polar(grect_for_polar, GOvalScaleModeFitCircle, angle);
 }
 
