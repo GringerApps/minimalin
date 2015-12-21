@@ -39,7 +39,7 @@
         "type": "png"
       },
       {
-        "characterRegex": "[0-9:]",
+        "characterRegex": "[0-9:μν]",
         "file": "fonts/nupe.tff",
         "name": "FONT_NUPE_23",
         "type": "font"
