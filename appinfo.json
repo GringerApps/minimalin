@@ -39,7 +39,7 @@
         "type": "png"
       },
       {
-        "characterRegex": "[0-9:]",
+        "characterRegex": "[0-9:μν]",
         "file": "fonts/nupe.tff",
         "name": "FONT_NUPE_23",
         "type": "font"
@@ -53,7 +53,7 @@
     "chalk"
   ],
   "uuid": "46e3f887-596e-4a67-b4a7-f277128e7de7",
-  "versionLabel": "0.16",
+  "versionLabel": "0.17",
   "watchapp": {
     "watchface": true
   }
