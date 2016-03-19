@@ -2,6 +2,7 @@
 #include "common.h"
 
 #define HOUR_HAND_COLOR GColorRed
+#define d(string, ...) APP_LOG (APP_LOG_LEVEL_DEBUG, string, ##__VA_ARGS__)
 
 #ifdef PBL_ROUND
 static GPoint ticks_points[12][2] = {
@@ -18,23 +19,6 @@ static GPoint ticks_points[12][2] = {
   {{12, 45} , {18, 48} },
   {{45, 12} , {48, 18}  }
 };
-#else
-static GPoint ticks_points[12][2] = {
-  {{72, 0}  , {72, 7}  },
-  {{120,0}  , {117,7}  },
-  {{144,42} , {137,46} },
-  {{144,84} , {137,84} },
-  {{144,126}, {137,122}},
-  {{120,168}, {117,161}},
-  {{72, 168}, {72, 161}},
-  {{24, 168}, {27, 161}},
-  {{0,  126}, {7,  122}},
-  {{0,  84} , {7,  84} },
-  {{0,  42} , {7,  46} },
-  {{24, 0}  , {27, 7}  }
-};
-#endif
-#ifdef PBL_ROUND
 static GPoint time_points[12] = {
   {90,  21} ,
   {124, 30} ,
@@ -50,6 +34,20 @@ static GPoint time_points[12] = {
   {56,  30} ,
 };
 #else
+static GPoint ticks_points[12][2] = {
+  {{72, 0}  , {72, 7}  },
+  {{120,0}  , {117,7}  },
+  {{144,42} , {137,46} },
+  {{144,84} , {137,84} },
+  {{144,126}, {137,122}},
+  {{120,168}, {117,161}},
+  {{72, 168}, {72, 161}},
+  {{24, 168}, {27, 161}},
+  {{0,  126}, {7,  122}},
+  {{0,  84} , {7,  84} },
+  {{0,  42} , {7,  46} },
+  {{24, 0}  , {27, 7}  }
+};
 static GPoint time_points[12] = {
   {72,  15} ,
   {112, 15} ,
@@ -75,6 +73,9 @@ typedef struct {
   int32_t background_color;
   int32_t date_color;
   int32_t time_color;
+  int32_t weather_timestamp;
+  int8_t weather_icon;
+  int8_t weather_temperature;
   int8_t date_displayed;
   int8_t bluetooth_icon;
   int8_t rainbow_mode;
@@ -88,6 +89,9 @@ static const int MESSAGE_KEY_RAINBOW_MODE      = 4;
 static const int MESSAGE_KEY_BACKGROUND_COLOR  = 5;
 static const int MESSAGE_KEY_DATE_COLOR        = 6;
 static const int MESSAGE_KEY_TIME_COLOR        = 7;
+static const int MESSAGE_KEY_WEATHER_TEMP      = 8;
+static const int MESSAGE_KEY_WEATHER_ICON      = 9;
+static const int MESSAGE_KEY_WEATHER_TIMESTAMP = 10;
 static const int PERSIST_KEY_CONFIG            = 0;
 
 static const int HOUR_CIRCLE_RADIUS = 5;
@@ -101,25 +105,28 @@ static const int TICK_LENGTH = 6;
 static const int DATE_Y_OFFSET = 28;
 
 static Window * s_main_window;
-static TextLayer * s_bt_layer;
 static Layer * s_root_layer;
-static Layer * s_tick_layer;
-static GRect s_bounds;
+static GRect s_root_layer_bounds;
 static GPoint s_center;
 
-static GPoint s_center;
-static GRect s_bounds;
+static TextLayer * s_info_layer;
+
+static Layer * s_tick_layer;
+
 static GBitmap * s_rainbow_bitmap;
 static Layer * s_minute_hand_layer;
 static Layer * s_hour_hand_layer;
 static RotBitmapLayer * s_rainbow_hand_layer;
 static Layer * s_center_circle_layer;
-static GRect s_bounds;
-static GPoint s_center;
+
 static Layer * s_time_layer;
 
 static Config s_config;
 static ConfigUpdatedCallback s_config_updated_callback;
+
+static bool s_bt_connected;
+
+static void update_info_layer();
 
 static void fetch_int32(const DictionaryIterator * iter, const int key, int32_t * config){
   Tuple * tuple = dict_find(iter, key);
@@ -151,6 +158,19 @@ static void fetch_config_or_default(){
   }
 }
 
+static void fetch_weather_config(DictionaryIterator *iter) {
+  Tuple * timestamp_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_TIMESTAMP);
+  Tuple * icon_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_ICON);
+  Tuple * temp_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_TEMP);
+  if(timestamp_tuple && icon_tuple && temp_tuple){
+    s_config.weather_timestamp = timestamp_tuple->value->int32;
+    s_config.weather_icon = icon_tuple->value->int8;
+    s_config.weather_temperature = temp_tuple->value->int8;
+  }
+  persist_write_data(PERSIST_KEY_CONFIG, &s_config, sizeof(s_config));
+  update_info_layer();
+}
+
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   fetch_int32(iter, MESSAGE_KEY_MINUTE_HAND_COLOR, &s_config.minute_hand_color);
   fetch_int32(iter, MESSAGE_KEY_HOUR_HAND_COLOR, &s_config.hour_hand_color);
@@ -160,7 +180,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   fetch_int8(iter, MESSAGE_KEY_DATE_DISPLAYED, &s_config.date_displayed);
   fetch_int8(iter, MESSAGE_KEY_BLUETOOTH_ICON, &s_config.bluetooth_icon);
   fetch_int8(iter, MESSAGE_KEY_RAINBOW_MODE, &s_config.rainbow_mode);
-  persist_write_data(PERSIST_KEY_CONFIG, &s_config, sizeof(s_config));
+  fetch_weather_config(iter);
   s_config_updated_callback();
 }
 
@@ -217,7 +237,7 @@ static bool time_displayed_vertically(const int hour, const int minute){
 }
 
 static GSize get_display_box_size(const char * text){
-  return graphics_text_layout_get_content_size(text, get_font(), s_bounds, GTextOverflowModeWordWrap, GTextAlignmentCenter);
+  return graphics_text_layout_get_content_size(text, get_font(), s_root_layer_bounds, GTextOverflowModeWordWrap, GTextAlignmentCenter);
 }
 
 static GRect get_display_box(const GPoint box_center, const char * time){
@@ -285,12 +305,10 @@ static void time_layer_update_callback(Layer * layer, GContext *ctx){
   }
 }
 
-void init_times(Layer * root_layer){
-  s_bounds = layer_get_bounds(root_layer);
-  s_center = grect_center_point(&s_bounds);
-  s_time_layer = layer_create(s_bounds);
+void init_times(){
+  s_time_layer = layer_create(s_root_layer_bounds);
   layer_set_update_proc(s_time_layer, time_layer_update_callback);
-  layer_add_child(root_layer, s_time_layer);
+  layer_add_child(s_root_layer, s_time_layer);
 }
 
 void deinit_times(){
@@ -376,15 +394,12 @@ static void update_center_circle_layer(Layer * layer, GContext * ctx){
   graphics_fill_circle(ctx, s_center, HOUR_CIRCLE_RADIUS);
 }
 
-static void init_hands(Layer * root_layer){
-  s_bounds = layer_get_bounds(root_layer);
-  s_center = grect_center_point(&s_bounds);
-
+static void init_hands(){
   s_rainbow_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMG_RAINBOW_HAND);
 
-  s_minute_hand_layer   = layer_create(s_bounds);
-  s_hour_hand_layer     = layer_create(s_bounds);
-  s_center_circle_layer = layer_create(s_bounds);
+  s_minute_hand_layer   = layer_create(s_root_layer_bounds);
+  s_hour_hand_layer     = layer_create(s_root_layer_bounds);
+  s_center_circle_layer = layer_create(s_root_layer_bounds);
   s_rainbow_hand_layer  = rot_bitmap_layer_create(s_rainbow_bitmap);
   rot_bitmap_set_compositing_mode(s_rainbow_hand_layer, GCompOpSet);
   rot_bitmap_set_src_ic(s_rainbow_hand_layer, GPoint(5, 55));
@@ -397,10 +412,10 @@ static void init_hands(Layer * root_layer){
   layer_set_update_proc(s_minute_hand_layer,   update_minute_hand_layer);
   layer_set_update_proc(s_center_circle_layer, update_center_circle_layer);
 
-  layer_add_child(root_layer, s_minute_hand_layer);
-  layer_add_child(root_layer, (Layer *)s_rainbow_hand_layer);
-  layer_add_child(root_layer, s_hour_hand_layer);
-  layer_add_child(root_layer, s_center_circle_layer);
+  layer_add_child(s_root_layer, s_minute_hand_layer);
+  layer_add_child(s_root_layer, (Layer *)s_rainbow_hand_layer);
+  layer_add_child(s_root_layer, s_hour_hand_layer);
+  layer_add_child(s_root_layer, s_center_circle_layer);
 
   hands_update_rainbow_mode_config_changed();
 }
@@ -432,13 +447,10 @@ static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
   }
 }
 
-static void init_tick_layer(Layer * root_layer){
-  s_bounds = layer_get_bounds(root_layer);
-  s_center = grect_center_point(&s_bounds);
-
-  s_tick_layer = layer_create(s_bounds);
+static void init_tick_layer(){
+  s_tick_layer = layer_create(s_root_layer_bounds);
   layer_set_update_proc(s_tick_layer, tick_layer_update_callback);
-  layer_add_child(root_layer, s_tick_layer);
+  layer_add_child(s_root_layer, s_tick_layer);
 }
 
 static void deinit_tick_layer(){
@@ -452,59 +464,72 @@ static void mark_dirty_tick_layer(){
 }
 
 
-// Info layer: bluetooth
+// Infos: bluetooth + weather
 
 static void mark_dirty_info_layer();
 
-static void bt_handler(bool connected){
-  const GColor bg_color = config_get_background_color();
-  bool bg_reddish = false;
-  const GColor reddish_colors[] = { GColorRed, GColorFolly, GColorFashionMagenta, GColorMagenta };
-  for(int i = 0; i < 4; i++){
-    if(gcolor_equal(bg_color, reddish_colors[i])){
-      bg_reddish = true;
-      break;
-    }
-  }
-  if(bg_reddish){
-    text_layer_set_text_color(s_bt_layer, GColorWhite);
-  }else{
-    text_layer_set_text_color(s_bt_layer, GColorRed);
-  }
+static void update_info_layer(){
+  static char s_info_buffer[10];
+  int idx = 0;
+  s_info_buffer[0] = 0;
+
   const BluetoothIcon new_icon = config_get_bluetooth_icon();
-  if(connected || new_icon == NoIcon){
-    text_layer_set_text(s_bt_layer, "");
-  }else if(new_icon == Bluetooth){
-    text_layer_set_text(s_bt_layer, "μ");
-  }else{
-    text_layer_set_text(s_bt_layer, "ν");
+  if(!s_bt_connected && new_icon == Bluetooth){
+    s_info_buffer[idx++] = 'z';
+  }else if(!s_bt_connected && new_icon == Heart){
+    s_info_buffer[idx++] = 'Z';
   }
+
+  s_info_buffer[idx++] = s_config.weather_icon;
+
+  // itoa
+  int temp = s_config.weather_temperature;
+  if(temp < 0){
+    s_info_buffer[idx++] = '-';
+    temp = -temp;
+  }else if(temp == 0){
+    s_info_buffer[idx++] = '0';
+  }
+  char temp_buffer[5];
+  int idx_temp = 0;
+  while(temp != 0 && idx_temp < 5){
+    char next_digit = (char)(temp % 10);
+    temp_buffer[idx_temp++] = next_digit + '0';
+    temp /= 10;
+  }
+  while(idx_temp > 0){
+    s_info_buffer[idx++] = temp_buffer[--idx_temp];
+  }
+  s_info_buffer[idx] = 0;
+  strcat(s_info_buffer, "°");
+  text_layer_set_text(s_info_layer, s_info_buffer);
 }
 
-static void mark_dirty_info_layer(){
-  bt_handler(connection_service_peek_pebble_app_connection());
+static void bt_handler(bool connected){
+  s_bt_connected = connected;
+  update_info_layer();
 }
 
-static void init_info_layer(Layer * root_layer){
-  s_root_layer = root_layer;
-  const GRect root_layer_bounds = layer_get_bounds(root_layer);
-  const GPoint center = grect_center_point(&root_layer_bounds);
-  const GSize size = GSize(23, 23);
-  const GRect rect_at_center = (GRect) { .origin = center, .size = size };
+static void init_info_layer(){
+  const GSize size = GSize(100, 23);
+  const GRect rect_at_center = (GRect) { .origin = s_center, .size = size };
   const GRect bounds = grect_translated(rect_at_center, - size.w / 2, - size.h + ICON_OFFSET);
-  s_bt_layer = text_layer_create(bounds);
-  text_layer_set_text_alignment(s_bt_layer, GTextAlignmentCenter);
-  text_layer_set_font(s_bt_layer, get_font());
-  text_layer_set_overflow_mode(s_bt_layer, GTextOverflowModeWordWrap);
-  text_layer_set_background_color(s_bt_layer, GColorClear);
-  layer_add_child(root_layer, text_layer_get_layer(s_bt_layer));
+
+  s_info_layer = text_layer_create(bounds);
+  text_layer_set_text_color(s_info_layer, GColorWhite);
+  text_layer_set_text_alignment(s_info_layer, GTextAlignmentCenter);
+  text_layer_set_font(s_info_layer, get_font());
+  text_layer_set_overflow_mode(s_info_layer, GTextOverflowModeWordWrap);
+  text_layer_set_background_color(s_info_layer, GColorClear);
+  layer_add_child(s_root_layer, text_layer_get_layer(s_info_layer));
+
   bluetooth_connection_service_subscribe(bt_handler);
-  mark_dirty_info_layer();
+  bt_handler(connection_service_peek_pebble_app_connection());
 }
 
 static void deinit_info_layer(){
   bluetooth_connection_service_unsubscribe();
-  text_layer_destroy(s_bt_layer);
+  text_layer_destroy(s_info_layer);
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
@@ -515,8 +540,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
 }
 
 static void config_updated_callback(){
-  Layer * root_layer = window_get_root_layer(s_main_window);
-  layer_mark_dirty(root_layer);
+  layer_mark_dirty(s_root_layer);
   mark_dirty_time_layer();
   mark_dirty_tick_layer();
   hands_update_rainbow_mode_config_changed();
@@ -526,14 +550,17 @@ static void config_updated_callback(){
 }
 
 static void main_window_load(Window *window) {
+  s_root_layer = window_get_root_layer(window);
+  s_root_layer_bounds = layer_get_bounds(s_root_layer);
+  s_center = grect_center_point(&s_root_layer_bounds);
   update_current_time();
   window_set_background_color(window, config_get_background_color());
-  Layer * root_layer = window_get_root_layer(window);
+
   init_font();
-  init_info_layer(root_layer);
-  init_times(root_layer);
-  init_tick_layer(root_layer);
-  init_hands(root_layer);
+  init_info_layer();
+  init_times();
+  init_tick_layer();
+  init_hands();
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 }
 

@@ -1,5 +1,9 @@
 {
   "appKeys": {
+    "KEY_WEATHER_FAIL": 11,
+    "KEY_WEATHER_TIMESTAMP": 10,
+    "KEY_WEATHER_ICON": 9,
+    "KEY_WEATHER_TEMP": 8,
     "KEY_TIME_COLOR": 7,
     "KEY_DATE_COLOR": 6,
     "KEY_BACKGROUND_COLOR": 5,
@@ -39,7 +43,7 @@
         "type": "png"
       },
       {
-        "characterRegex": "[0-9:μν]",
+        "characterRegex": "[0-9:°a-izA-IZ\u2212]",
         "file": "fonts/nupe.tff",
         "name": "FONT_NUPE_23",
         "type": "font"
