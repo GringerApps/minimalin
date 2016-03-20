@@ -73,13 +73,16 @@ typedef struct {
   int32_t background_color;
   int32_t date_color;
   int32_t time_color;
-  int32_t weather_timestamp;
-  int8_t weather_icon;
-  int8_t weather_temperature;
   int8_t date_displayed;
   int8_t bluetooth_icon;
   int8_t rainbow_mode;
 } __attribute__((__packed__)) Config;
+
+typedef struct {
+  int32_t timestamp;
+  int8_t icon;
+  int8_t temperature;
+} __attribute__((__packed__)) Weather;
 
 static const int MESSAGE_KEY_MINUTE_HAND_COLOR = 0;
 static const int MESSAGE_KEY_HOUR_HAND_COLOR   = 1;
@@ -93,6 +96,7 @@ static const int MESSAGE_KEY_WEATHER_TEMP      = 8;
 static const int MESSAGE_KEY_WEATHER_ICON      = 9;
 static const int MESSAGE_KEY_WEATHER_TIMESTAMP = 10;
 static const int PERSIST_KEY_CONFIG            = 0;
+static const int PERSIST_KEY_WEATHER           = 1;
 
 static const int HOUR_CIRCLE_RADIUS = 5;
 static const int HOUR_HAND_STROKE = 6;
@@ -122,6 +126,7 @@ static Layer * s_center_circle_layer;
 static Layer * s_time_layer;
 
 static Config s_config;
+static Weather s_weather;
 static ConfigUpdatedCallback s_config_updated_callback;
 
 static bool s_bt_connected;
@@ -143,6 +148,9 @@ static void fetch_int8(const DictionaryIterator * iter, const int key, int8_t * 
 }
 
 static void fetch_config_or_default(){
+  if(persist_exists(PERSIST_KEY_WEATHER)){
+    persist_read_data(PERSIST_KEY_WEATHER, &s_weather, sizeof(Weather));
+  }
   if(persist_exists(PERSIST_KEY_CONFIG)){
     persist_read_data(PERSIST_KEY_CONFIG, &s_config, sizeof(Config));
   }else{
@@ -163,11 +171,11 @@ static void fetch_weather_config(DictionaryIterator *iter) {
   Tuple * icon_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_ICON);
   Tuple * temp_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_TEMP);
   if(timestamp_tuple && icon_tuple && temp_tuple){
-    s_config.weather_timestamp = timestamp_tuple->value->int32;
-    s_config.weather_icon = icon_tuple->value->int8;
-    s_config.weather_temperature = temp_tuple->value->int8;
+    s_weather.timestamp = timestamp_tuple->value->int32;
+    s_weather.icon = icon_tuple->value->int8;
+    s_weather.temperature = temp_tuple->value->int8;
   }
-  persist_write_data(PERSIST_KEY_CONFIG, &s_config, sizeof(s_config));
+  persist_write_data(PERSIST_KEY_WEATHER, &s_weather, sizeof(s_weather));
   update_info_layer();
 }
 
@@ -180,6 +188,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   fetch_int8(iter, MESSAGE_KEY_DATE_DISPLAYED, &s_config.date_displayed);
   fetch_int8(iter, MESSAGE_KEY_BLUETOOTH_ICON, &s_config.bluetooth_icon);
   fetch_int8(iter, MESSAGE_KEY_RAINBOW_MODE, &s_config.rainbow_mode);
+  persist_write_data(PERSIST_KEY_CONFIG, &s_config, sizeof(s_config));
   fetch_weather_config(iter);
   s_config_updated_callback();
 }
@@ -305,17 +314,17 @@ static void time_layer_update_callback(Layer * layer, GContext *ctx){
   }
 }
 
-void init_times(){
+static void init_times(){
   s_time_layer = layer_create(s_root_layer_bounds);
   layer_set_update_proc(s_time_layer, time_layer_update_callback);
   layer_add_child(s_root_layer, s_time_layer);
 }
 
-void deinit_times(){
+static void deinit_times(){
   layer_destroy(s_time_layer);
 }
 
-void mark_dirty_time_layer(){
+static void mark_dirty_time_layer(){
   if(s_time_layer){
     layer_mark_dirty(s_time_layer);
   }
@@ -480,10 +489,10 @@ static void update_info_layer(){
     s_info_buffer[idx++] = 'Z';
   }
 
-  s_info_buffer[idx++] = s_config.weather_icon;
+  s_info_buffer[idx++] = s_weather.icon;
 
   // itoa
-  int temp = s_config.weather_temperature;
+  int temp = s_weather.temperature;
   if(temp < 0){
     s_info_buffer[idx++] = '-';
     temp = -temp;
