@@ -1,17 +1,18 @@
 {
   "appKeys": {
-    "KEY_WEATHER_FAIL": 11,
-    "KEY_WEATHER_TIMESTAMP": 10,
-    "KEY_WEATHER_ICON": 9,
-    "KEY_WEATHER_TEMP": 8,
-    "KEY_TIME_COLOR": 7,
-    "KEY_DATE_COLOR": 6,
-    "KEY_BACKGROUND_COLOR": 5,
-    "KEY_RAINBOW_MODE": 4,
-    "KEY_BLUETOOTH_ICON": 3,
-    "KEY_DATE_DISPLAYED": 2,
-    "KEY_HOUR_HAND_COLOR": 1,
-    "KEY_MINUTE_HAND_COLOR": 0
+    "AppKeyJsReady": 12,
+    "AppKeyWeatherRequest": 11,
+    "AppKeyWeatherFailed": 10,
+    "AppKeyWeatherIcon": 9,
+    "AppKeyWeatherTemperature": 8,
+    "AppKeyTimeColor": 7,
+    "AppKeyDateColor": 6,
+    "AppKeyBackgroundColor": 5,
+    "AppKeyRainbowMode": 4,
+    "AppKeyBluetoothIcon": 3,
+    "AppKeyDateDisplayed": 2,
+    "AppKeyHourHandColor": 1,
+    "AppKeyMinuteHandColor": 0
   },
   "capabilities": [
     "configurable"
@@ -57,7 +58,7 @@
     "chalk"
   ],
   "uuid": "46e3f887-596e-4a67-b4a7-f277128e7de7",
-  "versionLabel": "0.17",
+  "versionLabel": "0.18",
   "watchapp": {
     "watchface": true
   }

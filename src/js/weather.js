@@ -37,16 +37,15 @@ function fetchWeather(latitude, longitude) {
         var icon = parseIcon(response.weather[0].icon);
         var city = response.name;
         var data = {
-          "KEY_WEATHER_TIMESTAMP": timestamp,
-          "KEY_WEATHER_ICON": icon,
-          "KEY_WEATHER_TEMP": temperature
+          "AppKeyWeatherIcon": icon,
+          "AppKeyWeatherTemperature": temperature
         };
-        console.log("weather sent: " + data);
+        console.log("weather sent: " + JSON.stringify(data));
         Pebble.sendAppMessage(data);
       } else {
         console.warn("weather error (" + req.code + ")");
         Pebble.sendAppMessage({
-          "KEY_WEATHER_FAIL": 1
+          "AppKeyWeatherFailed": 1
         });
       }
     }
@@ -62,19 +61,26 @@ function locationSuccess(pos) {
 function locationError(err) {
   console.warn("location error (" + err.code + "): " + err.message);
   Pebble.sendAppMessage({
-    "KEY_WEATHER_FAIL": 0
+    "AppKeyWeatherFailed": 0
   });
 }
 
 var locationOptions = {
-  "timeout": 15000,
-  "maximumAge": 60000
+  "timeout": 5000,
+  "maximumAge": 5 * 60000
 };
 
 Pebble.addEventListener("ready", function (e) {
-  window.navigator.geolocation.getCurrentPosition(locationSuccess, locationError, locationOptions);
+  var data = {
+    "AppKeyJsReady": 1
+  };
+  Pebble.sendAppMessage(data);
 });
 
 Pebble.addEventListener("appmessage", function (e) {
-  window.navigator.geolocation.getCurrentPosition(locationSuccess, locationError, locationOptions);
+    var dict = e.payload;
+    console.log("ok")
+  if(dict["AppKeyWeatherRequest"]) {
+    window.navigator.geolocation.getCurrentPosition(locationSuccess, locationError, locationOptions);
+  }
 });

@@ -3,6 +3,8 @@
 
 #define HOUR_HAND_COLOR GColorRed
 #define d(string, ...) APP_LOG (APP_LOG_LEVEL_DEBUG, string, ##__VA_ARGS__)
+#define e(string, ...) APP_LOG (APP_LOG_LEVEL_ERROR, string, ##__VA_ARGS__)
+#define i(string, ...) APP_LOG (APP_LOG_LEVEL_INFO, string, ##__VA_ARGS__)
 
 #ifdef PBL_ROUND
 static GPoint ticks_points[12][2] = {
@@ -65,8 +67,11 @@ static GPoint time_points[12] = {
 #endif
 
 typedef void (*ConfigUpdatedCallback)();
+
 typedef enum { NoIcon = 0, Bluetooth = 1, Heart = 2 } BluetoothIcon;
+
 typedef enum { Hour, Minute } TimeType;
+
 typedef struct {
   int32_t minute_hand_color;
   int32_t hour_hand_color;
@@ -84,19 +89,26 @@ typedef struct {
   int8_t temperature;
 } __attribute__((__packed__)) Weather;
 
-static const int MESSAGE_KEY_MINUTE_HAND_COLOR = 0;
-static const int MESSAGE_KEY_HOUR_HAND_COLOR   = 1;
-static const int MESSAGE_KEY_DATE_DISPLAYED    = 2;
-static const int MESSAGE_KEY_BLUETOOTH_ICON    = 3;
-static const int MESSAGE_KEY_RAINBOW_MODE      = 4;
-static const int MESSAGE_KEY_BACKGROUND_COLOR  = 5;
-static const int MESSAGE_KEY_DATE_COLOR        = 6;
-static const int MESSAGE_KEY_TIME_COLOR        = 7;
-static const int MESSAGE_KEY_WEATHER_TEMP      = 8;
-static const int MESSAGE_KEY_WEATHER_ICON      = 9;
-static const int MESSAGE_KEY_WEATHER_TIMESTAMP = 10;
-static const int PERSIST_KEY_CONFIG            = 0;
-static const int PERSIST_KEY_WEATHER           = 1;
+typedef enum {
+  AppKeyMinuteHandColor = 0,
+  AppKeyHourHandColor,
+  AppKeyDateDisplayed,
+  AppKeyBluetoothIcon,
+  AppKeyRainbowMode,
+  AppKeyBackgroundColor,
+  AppKeyDateColor,
+  AppKeyTimeColor,
+  AppKeyWeatherTemperature,
+  AppKeyWeatherIcon,
+  AppKeyWeatherFailed,
+  AppKeyWeatherRequest,
+  AppKeyJsReady
+} AppKey;
+
+typedef enum {
+  PersistKeyConfig = 0,
+  PersistKeyWeather
+} PersistKey;
 
 static const int HOUR_CIRCLE_RADIUS = 5;
 static const int HOUR_HAND_STROKE = 6;
@@ -131,7 +143,33 @@ static ConfigUpdatedCallback s_config_updated_callback;
 
 static bool s_bt_connected;
 
+static AppTimer * s_weather_timer;
+
+static int s_weather_failure_count;
+static int s_can_send_request;
+static int s_js_ready;
+
 static void update_info_layer();
+
+static void send_weather_request();
+
+static void send_weather_request_callback(void * context){
+  send_weather_request();
+}
+
+static void schedule_weather_request(int timeout){
+  s_weather_timer = app_timer_register(timeout, send_weather_request_callback, NULL);
+}
+
+static int weather_expiration(){
+  int timeout = 5 * 60;
+  return s_weather.timestamp + timeout;
+}
+
+static bool weather_timedout(){
+  int expiration = weather_expiration();
+  return time(NULL) > expiration;
+}
 
 static void fetch_int32(const DictionaryIterator * iter, const int key, int32_t * config){
   Tuple * tuple = dict_find(iter, key);
@@ -148,11 +186,11 @@ static void fetch_int8(const DictionaryIterator * iter, const int key, int8_t * 
 }
 
 static void fetch_config_or_default(){
-  if(persist_exists(PERSIST_KEY_WEATHER)){
-    persist_read_data(PERSIST_KEY_WEATHER, &s_weather, sizeof(Weather));
+  if(persist_exists(PersistKeyWeather)){
+    persist_read_data(PersistKeyWeather, &s_weather, sizeof(Weather));
   }
-  if(persist_exists(PERSIST_KEY_CONFIG)){
-    persist_read_data(PERSIST_KEY_CONFIG, &s_config, sizeof(Config));
+  if(persist_exists(PersistKeyConfig)){
+    persist_read_data(PersistKeyConfig, &s_config, sizeof(Config));
   }else{
     s_config.minute_hand_color = 0xffffff;
     s_config.hour_hand_color   = 0xff0000;
@@ -162,34 +200,58 @@ static void fetch_config_or_default(){
     s_config.date_displayed    = true;
     s_config.bluetooth_icon    = Bluetooth;
     s_config.rainbow_mode      = false;
-    persist_write_data(PERSIST_KEY_CONFIG, &s_config, sizeof(s_config));
+    persist_write_data(PersistKeyConfig, &s_config, sizeof(s_config));
   }
 }
 
-static void fetch_weather_config(DictionaryIterator *iter) {
-  Tuple * timestamp_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_TIMESTAMP);
-  Tuple * icon_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_ICON);
-  Tuple * temp_tuple = dict_find(iter, MESSAGE_KEY_WEATHER_TEMP);
-  if(timestamp_tuple && icon_tuple && temp_tuple){
-    s_weather.timestamp = timestamp_tuple->value->int32;
+static void fetch_weather(DictionaryIterator *iter) {
+  Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);
+  Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
+  if(icon_tuple && temp_tuple){
+    s_weather.timestamp = time(NULL);
     s_weather.icon = icon_tuple->value->int8;
     s_weather.temperature = temp_tuple->value->int8;
   }
-  persist_write_data(PERSIST_KEY_WEATHER, &s_weather, sizeof(s_weather));
+  persist_write_data(PersistKeyWeather, &s_weather, sizeof(s_weather));
   update_info_layer();
 }
 
+static void send_weather_request();
+
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
-  fetch_int32(iter, MESSAGE_KEY_MINUTE_HAND_COLOR, &s_config.minute_hand_color);
-  fetch_int32(iter, MESSAGE_KEY_HOUR_HAND_COLOR, &s_config.hour_hand_color);
-  fetch_int32(iter, MESSAGE_KEY_BACKGROUND_COLOR, &s_config.background_color);
-  fetch_int32(iter, MESSAGE_KEY_DATE_COLOR, &s_config.date_color);
-  fetch_int32(iter, MESSAGE_KEY_TIME_COLOR, &s_config.time_color);
-  fetch_int8(iter, MESSAGE_KEY_DATE_DISPLAYED, &s_config.date_displayed);
-  fetch_int8(iter, MESSAGE_KEY_BLUETOOTH_ICON, &s_config.bluetooth_icon);
-  fetch_int8(iter, MESSAGE_KEY_RAINBOW_MODE, &s_config.rainbow_mode);
-  persist_write_data(PERSIST_KEY_CONFIG, &s_config, sizeof(s_config));
-  fetch_weather_config(iter);
+  Tuple * tuple = dict_read_first(iter);
+  while (tuple) {
+    switch (tuple->key) {
+    case AppKeyJsReady:
+      d("Message received: JsReady");
+      s_js_ready = true;
+      send_weather_request();
+      break;
+    case AppKeyWeatherFailed:
+      d("Message received: Weather Failed");
+      s_can_send_request = true;
+      s_weather_failure_count++;
+      if(s_weather_failure_count < 5){
+        schedule_weather_request(1000);
+      }
+      break;
+    case AppKeyWeatherTemperature:
+      d("Message received: Weather");
+      s_can_send_request = true;
+      fetch_weather(iter);
+      break;
+    }
+    tuple = dict_read_next(iter);
+  }
+  fetch_int32(iter, AppKeyMinuteHandColor, &s_config.minute_hand_color);
+  fetch_int32(iter, AppKeyHourHandColor, &s_config.hour_hand_color);
+  fetch_int32(iter, AppKeyBackgroundColor, &s_config.background_color);
+  fetch_int32(iter, AppKeyDateColor, &s_config.date_color);
+  fetch_int32(iter, AppKeyTimeColor, &s_config.time_color);
+  fetch_int8(iter, AppKeyDateDisplayed, &s_config.date_displayed);
+  fetch_int8(iter, AppKeyBluetoothIcon, &s_config.bluetooth_icon);
+  fetch_int8(iter, AppKeyRainbowMode, &s_config.rainbow_mode);
+  persist_write_data(PersistKeyConfig, &s_config, sizeof(s_config));
   s_config_updated_callback();
 }
 
@@ -472,7 +534,6 @@ static void mark_dirty_tick_layer(){
   }
 }
 
-
 // Infos: bluetooth + weather
 
 static void mark_dirty_info_layer();
@@ -488,35 +549,66 @@ static void update_info_layer(){
   }else if(!s_bt_connected && new_icon == Heart){
     s_info_buffer[idx++] = 'Z';
   }
+  if(!weather_timedout()){
+    s_info_buffer[idx++] = s_weather.icon;
 
-  s_info_buffer[idx++] = s_weather.icon;
-
-  // itoa
-  int temp = s_weather.temperature;
-  if(temp < 0){
-    s_info_buffer[idx++] = '-';
-    temp = -temp;
-  }else if(temp == 0){
-    s_info_buffer[idx++] = '0';
+    // itoa
+    int temp = s_weather.temperature;
+    if(temp < 0){
+      s_info_buffer[idx++] = '-';
+      temp = -temp;
+    }else if(temp == 0){
+      s_info_buffer[idx++] = '0';
+    }
+    char temp_buffer[5];
+    int idx_temp = 0;
+    while(temp != 0 && idx_temp < 5){
+      char next_digit = (char)(temp % 10);
+      temp_buffer[idx_temp++] = next_digit + '0';
+      temp /= 10;
+    }
+    while(idx_temp > 0){
+      s_info_buffer[idx++] = temp_buffer[--idx_temp];
+    }
+    s_info_buffer[idx] = 0;
+    strcat(s_info_buffer, "°");
   }
-  char temp_buffer[5];
-  int idx_temp = 0;
-  while(temp != 0 && idx_temp < 5){
-    char next_digit = (char)(temp % 10);
-    temp_buffer[idx_temp++] = next_digit + '0';
-    temp /= 10;
-  }
-  while(idx_temp > 0){
-    s_info_buffer[idx++] = temp_buffer[--idx_temp];
-  }
-  s_info_buffer[idx] = 0;
-  strcat(s_info_buffer, "°");
   text_layer_set_text(s_info_layer, s_info_buffer);
 }
 
 static void bt_handler(bool connected){
   s_bt_connected = connected;
   update_info_layer();
+}
+
+static bool should_not_update_weather(){
+  const bool almost_expired = time(NULL) > weather_expiration() - 60;
+  return !almost_expired || !(s_can_send_request && s_js_ready);
+}
+
+static void send_weather_request(){
+  d("send weather");
+  if(should_not_update_weather()){
+    return;
+  }
+  DictionaryIterator *out_iter;
+  AppMessageResult result = app_message_outbox_begin(&out_iter);
+  if(result == APP_MSG_OK) {
+    s_can_send_request = false;
+    const int value = 1;
+    dict_write_int(out_iter, AppKeyWeatherRequest, &value, sizeof(int), true);
+    result = app_message_outbox_send();
+    if(result != APP_MSG_OK) {
+      s_can_send_request = true;
+      schedule_weather_request(100);
+      e("Error sending the outbox: %d", (int)result);
+    }else{
+      d("Weather requested");
+    }
+  } else {
+    schedule_weather_request(100);
+    e("Error preparing the outbox: %d", (int)result);
+  }
 }
 
 static void init_info_layer(){
@@ -542,10 +634,12 @@ static void deinit_info_layer(){
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
+  schedule_weather_request(100);
   update_current_time();
   mark_dirty_time_layer();
   mark_dirty_tick_layer();
   hands_update_time_changed();
+  update_info_layer();
 }
 
 static void config_updated_callback(){
@@ -571,6 +665,7 @@ static void main_window_load(Window *window) {
   init_tick_layer();
   init_hands();
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  update_current_time();
 }
 
 static void main_window_unload(Window *window) {
@@ -582,6 +677,9 @@ static void main_window_unload(Window *window) {
 }
 
 static void init() {
+  s_weather_failure_count = 0;
+  s_js_ready = false;
+  s_can_send_request = true;
   init_config(config_updated_callback);
   s_main_window = window_create();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
