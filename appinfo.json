@@ -1,10 +1,11 @@
 {
   "appKeys": {
-    "AppKeyJsReady": 12,
-    "AppKeyWeatherRequest": 11,
-    "AppKeyWeatherFailed": 10,
-    "AppKeyWeatherIcon": 9,
-    "AppKeyWeatherTemperature": 8,
+    "AppKeyJsReady": 13,
+    "AppKeyWeatherRequest": 12,
+    "AppKeyWeatherFailed": 11,
+    "AppKeyWeatherIcon": 10,
+    "AppKeyWeatherTemperature": 9,
+    "AppKeyInfoColor": 8,
     "AppKeyTimeColor": 7,
     "AppKeyDateColor": 6,
     "AppKeyBackgroundColor": 5,
@@ -45,7 +46,7 @@
       },
       {
         "characterRegex": "[0-9:°a-izA-IZ\u2212]",
-        "file": "fonts/nupe.tff",
+        "file": "fonts/nupe.ttf",
         "name": "FONT_NUPE_23",
         "type": "font"
       }

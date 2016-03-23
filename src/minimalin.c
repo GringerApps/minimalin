@@ -78,6 +78,7 @@ typedef struct {
   int32_t background_color;
   int32_t date_color;
   int32_t time_color;
+  int32_t info_color;
   int8_t date_displayed;
   int8_t bluetooth_icon;
   int8_t rainbow_mode;
@@ -98,6 +99,7 @@ typedef enum {
   AppKeyBackgroundColor,
   AppKeyDateColor,
   AppKeyTimeColor,
+  AppKeyInfoColor,
   AppKeyWeatherTemperature,
   AppKeyWeatherIcon,
   AppKeyWeatherFailed,
@@ -197,6 +199,7 @@ static void fetch_config_or_default(){
     s_config.background_color  = 0x000000;
     s_config.date_color        = 0x555555;
     s_config.time_color        = 0xAAAAAA;
+    s_config.info_color        = 0x555555;
     s_config.date_displayed    = true;
     s_config.bluetooth_icon    = Bluetooth;
     s_config.rainbow_mode      = false;
@@ -223,12 +226,10 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   while (tuple) {
     switch (tuple->key) {
     case AppKeyJsReady:
-      d("Message received: JsReady");
       s_js_ready = true;
       send_weather_request();
       break;
     case AppKeyWeatherFailed:
-      d("Message received: Weather Failed");
       s_can_send_request = true;
       s_weather_failure_count++;
       if(s_weather_failure_count < 5){
@@ -236,10 +237,13 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
       }
       break;
     case AppKeyWeatherTemperature:
-      d("Message received: Weather");
       s_can_send_request = true;
       fetch_weather(iter);
       break;
+    case AppKeyInfoColor:
+      s_config.info_color = tuple->value->int32;
+      fetch_int32(iter, AppKeyInfoColor, &s_config.info_color);
+      update_info_layer();
     }
     tuple = dict_read_next(iter);
   }
@@ -536,9 +540,8 @@ static void mark_dirty_tick_layer(){
 
 // Infos: bluetooth + weather
 
-static void mark_dirty_info_layer();
-
 static void update_info_layer(){
+  text_layer_set_text_color(s_info_layer, GColorFromHEX(s_config.info_color));
   static char s_info_buffer[10];
   int idx = 0;
   s_info_buffer[0] = 0;
@@ -587,7 +590,6 @@ static bool should_not_update_weather(){
 }
 
 static void send_weather_request(){
-  d("send weather");
   if(should_not_update_weather()){
     return;
   }
@@ -602,8 +604,6 @@ static void send_weather_request(){
       s_can_send_request = true;
       schedule_weather_request(100);
       e("Error sending the outbox: %d", (int)result);
-    }else{
-      d("Weather requested");
     }
   } else {
     schedule_weather_request(100);
@@ -617,7 +617,6 @@ static void init_info_layer(){
   const GRect bounds = grect_translated(rect_at_center, - size.w / 2, - size.h + ICON_OFFSET);
 
   s_info_layer = text_layer_create(bounds);
-  text_layer_set_text_color(s_info_layer, GColorWhite);
   text_layer_set_text_alignment(s_info_layer, GTextAlignmentCenter);
   text_layer_set_font(s_info_layer, get_font());
   text_layer_set_overflow_mode(s_info_layer, GTextOverflowModeWordWrap);

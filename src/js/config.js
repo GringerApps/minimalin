@@ -26,14 +26,15 @@ Pebble.addEventListener('showConfiguration', function() {
 
   var url = 'https://cdn.rawgit.com/groyoh/minimalin/35daf64b3962759dee5276c7a3061c8ee1fe9096/config/index.html?';
   var params = {
-    minute_hand_color: getSavedColor('minute_hand'),
-    hour_hand_color: getSavedColor('hour_hand'),
-    date_displayed: getSavedBool('date_displayed'),
-    bluetooth_icon: getSavedInt('bluetooth_icon'),
-    rainbow_mode: getSavedBool('rainbow_mode'),
-    background_color: getSavedColor('background'),
-    date_color: getSavedColor('date'),
-    time_color: getSavedColor('time'),
+    minute_hand_color: getSavedColor('MinuteHand'),
+    hour_hand_color: getSavedColor('HourHand'),
+    date_displayed: getSavedBool('DateDisplayed'),
+    bluetooth_icon: getSavedInt('BluetoothIcon'),
+    rainbow_mode: getSavedBool('RainbowMode'),
+    background_color: getSavedColor('Background'),
+    date_color: getSavedColor('Date'),
+    time_color: getSavedColor('Time'),
+    info_color: getSavedColor('Info'),
     platform: Pebble.getActiveWatchInfo().platform
   };
   url += toQueryString(params);
@@ -63,6 +64,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   saveColor(dict, 'Background', configData.background_color);
   saveColor(dict, 'Date', configData.date_color);
   saveColor(dict, 'Time', configData.time_color);
+  saveColor(dict, 'Info', configData.info_color);
   saveBool(dict, 'DateDisplayed', configData.date_displayed);
   saveInt(dict, 'BluetoothIcon', configData.bluetooth_icon);
   saveBool(dict, 'RainbowMode', configData.rainbow_mode);
