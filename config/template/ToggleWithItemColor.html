@@ -5,7 +5,7 @@
     <label class="item {{ buzzing ? 'buzzing' : '' }}">
       {{ toggleLabel }}
       <input type="checkbox" class="item-toggle" checked="{{ toggleValue }}">
-      <div class="item-styled-toggle-wrapper">
+      <div class="item-styled-toggle-wrapper {{ footer ? 'with-footer': ''}}">
         <div class="item-styled-toggle">
           <div class="item-styled-toggle-bar"></div>
           <div class="item-styled-toggle-bar"></div>
@@ -23,13 +23,17 @@
   .item-container-footer {
     padding: 5px 0px 0px 0px;
   }
-  
+
  .buzzing {
    -webkit-animation: 600ms buzz alternate ease-in-out;
    -moz-animation: 600ms buzz alternate ease-in-out;
    -ms-animation: 600ms buzz alternate ease-in-out;
    -o-animation: 600ms buzz alternate ease-in-out;
    animation: 600ms buzz alternate ease-in-out;
+ }
+
+ .with-footer {
+     top: 18px;
  }
 
  @keyframes buzz {

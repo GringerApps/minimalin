@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Minimalin Configuration</title>
-    <link rel="stylesheet" type="text/css" href="css/slate.css">
+    <link rel="stylesheet" type="text/css" href="css/slate.min.css">
     <script type="text/javascript" src="js/ractive.min.js"></script>
     <script type="text/javascript" src="//cdn.jsdelivr.net/ractive.load/latest/ractive-load.min.js"></script>
   </head>
@@ -43,8 +43,10 @@
 
      var queryIn = function(name, authorizedValues, defaultValue){
        var val = query(name, defaultValue);
-       if(authorizedValues.indexOf(val) > -1){
-         return val;
+       for(var i in authorizedValues){
+         if(authorizedValues[i] == val){
+           return authorizedValues[i];
+         }
        }
        return defaultValue;
      };
@@ -57,7 +59,8 @@
        rainbow_mode: false,
        background_color: '#000000',
        date_color: '#555555',
-       time_color: '#AAAAAA'
+       time_color: '#AAAAAA',
+       info_color: '#555555'
      };
 
      var data = {
@@ -65,11 +68,12 @@
        minute_hand_color: color('minute_hand_color', defaults.minute_hand_color),
        hour_hand_color:  color('hour_hand_color', defaults.hour_hand_color),
        date_displayed:  bool('date_displayed', defaults.date_displayed),
-       bluetooth_icon: queryIn('bluetooth_icon', ["0","1","2"], defaults.bluetooth_icon),
+       bluetooth_icon: queryIn('bluetooth_icon', [0,1,2], defaults.bluetooth_icon),
        rainbow_mode: bool('rainbow_mode', defaults.rainbow_mode),
        background_color: color('background_color', defaults.background_color),
        date_color: color('date_color', defaults.date_color),
        time_color: color('time_color', defaults.time_color),
+       info_color: color('info_color', defaults.info_color),
        platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
      };
 
@@ -87,7 +91,8 @@
                rainbow_mode: this.get("rainbow_mode"),
                background_color: this.get("background_color"),
                date_color: this.get("date_color"),
-               time_color: this.get("time_color")
+               time_color: this.get("time_color"),
+               info_color: this.get("info_color")
              };
              var return_to = query('return_to', 'pebblejs://close#');
              document.location = return_to + encodeURIComponent(JSON.stringify(response_data));

@@ -1,13 +1,19 @@
 {
   "appKeys": {
-    "KEY_TIME_COLOR": 7,
-    "KEY_DATE_COLOR": 6,
-    "KEY_BACKGROUND_COLOR": 5,
-    "KEY_RAINBOW_MODE": 4,
-    "KEY_BLUETOOTH_ICON": 3,
-    "KEY_DATE_DISPLAYED": 2,
-    "KEY_HOUR_HAND_COLOR": 1,
-    "KEY_MINUTE_HAND_COLOR": 0
+    "AppKeyJsReady": 13,
+    "AppKeyWeatherRequest": 12,
+    "AppKeyWeatherFailed": 11,
+    "AppKeyWeatherIcon": 10,
+    "AppKeyWeatherTemperature": 9,
+    "AppKeyInfoColor": 8,
+    "AppKeyTimeColor": 7,
+    "AppKeyDateColor": 6,
+    "AppKeyBackgroundColor": 5,
+    "AppKeyRainbowMode": 4,
+    "AppKeyBluetoothIcon": 3,
+    "AppKeyDateDisplayed": 2,
+    "AppKeyHourHandColor": 1,
+    "AppKeyMinuteHandColor": 0
   },
   "capabilities": [
     "configurable"
@@ -39,8 +45,8 @@
         "type": "png"
       },
       {
-        "characterRegex": "[0-9:μν]",
-        "file": "fonts/nupe.tff",
+        "characterRegex": "[0-9:°a-izA-IZ\u2212]",
+        "file": "fonts/nupe.ttf",
         "name": "FONT_NUPE_23",
         "type": "font"
       }
@@ -53,7 +59,7 @@
     "chalk"
   ],
   "uuid": "46e3f887-596e-4a67-b4a7-f277128e7de7",
-  "versionLabel": "0.17",
+  "versionLabel": "0.18",
   "watchapp": {
     "watchface": true
   }
