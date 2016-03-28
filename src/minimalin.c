@@ -153,10 +153,11 @@ static int s_js_ready;
 
 static void update_info_layer();
 
+static void try_send_weather_request();
 static void send_weather_request();
 
 static void send_weather_request_callback(void * context){
-  send_weather_request();
+  try_send_weather_request();
 }
 
 static void schedule_weather_request(int timeout){
@@ -219,15 +220,17 @@ static void fetch_weather(DictionaryIterator *iter) {
   update_info_layer();
 }
 
-static void send_weather_request();
-
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple * tuple = dict_read_first(iter);
+  bool config_message = false;
   while (tuple) {
+    if(tuple->key < AppKeyInfoColor){
+      config_message = true;
+    }
     switch (tuple->key) {
     case AppKeyJsReady:
       s_js_ready = true;
-      send_weather_request();
+      try_send_weather_request();
       break;
     case AppKeyWeatherFailed:
       s_can_send_request = true;
@@ -257,6 +260,10 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   fetch_int8(iter, AppKeyRainbowMode, &s_config.rainbow_mode);
   persist_write_data(PersistKeyConfig, &s_config, sizeof(s_config));
   s_config_updated_callback();
+  if(config_message){
+    s_weather.timestamp = time(NULL);
+    send_weather_request();
+  }
 }
 
 static GColor config_get_minute_hand_color(){
@@ -590,9 +597,6 @@ static bool should_not_update_weather(){
 }
 
 static void send_weather_request(){
-  if(should_not_update_weather()){
-    return;
-  }
   DictionaryIterator *out_iter;
   AppMessageResult result = app_message_outbox_begin(&out_iter);
   if(result == APP_MSG_OK) {
@@ -609,6 +613,13 @@ static void send_weather_request(){
     schedule_weather_request(100);
     e("Error preparing the outbox: %d", (int)result);
   }
+}
+
+static void try_send_weather_request(){
+  if(should_not_update_weather()){
+    return;
+  }
+  send_weather_request();
 }
 
 static void init_info_layer(){
