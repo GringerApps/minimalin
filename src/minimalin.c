@@ -85,6 +85,7 @@ typedef enum {
   AppKeyTimeColor,
   AppKeyInfoColor,
   AppKeyTemperatureUnit,
+  AppKeyWeatherEnabled,
   AppKeyWeatherTemperature,
   AppKeyWeatherIcon,
   AppKeyWeatherFailed,
@@ -104,6 +105,7 @@ typedef struct {
   int32_t date_color;
   int32_t time_color;
   int32_t info_color;
+  int8_t weather_enabled;
   int8_t temperature_unit;
   int8_t date_displayed;
   int8_t bluetooth_icon;
@@ -209,6 +211,7 @@ static void fetch_config_or_default(){
     s_config.bluetooth_icon    = Bluetooth;
     s_config.temperature_unit  = Celsius;
     s_config.rainbow_mode      = false;
+    s_config.weather_enabled   = true;
     persist_write_data(PersistKeyConfig, &s_config, sizeof(s_config));
   }
 }
@@ -246,7 +249,9 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
       break;
     case AppKeyInfoColor:
       s_config.info_color = tuple->value->int32;
-      fetch_int32(iter, AppKeyInfoColor, &s_config.info_color);
+      update_info_layer();
+    case AppKeyWeatherEnabled:
+      s_config.weather_enabled = tuple->value->int8;
       update_info_layer();
     }
     tuple = dict_read_next(iter);
@@ -561,7 +566,7 @@ static void update_info_layer(){
   }else if(!s_bt_connected && new_icon == Heart){
     s_info_buffer[idx++] = 'Z';
   }
-  if(!weather_timedout()){
+  if(!weather_timedout() && s_config.weather_enabled){
     s_info_buffer[idx++] = s_weather.icon;
 
     // itoa
@@ -587,6 +592,8 @@ static void update_info_layer(){
     }
     s_info_buffer[idx] = 0;
     strcat(s_info_buffer, "°");
+  }else{
+    s_info_buffer[idx] = 0;
   }
   text_layer_set_text(s_info_layer, s_info_buffer);
 }
@@ -602,21 +609,23 @@ static bool should_not_update_weather(){
 }
 
 static void send_weather_request(){
-  DictionaryIterator *out_iter;
-  AppMessageResult result = app_message_outbox_begin(&out_iter);
-  if(result == APP_MSG_OK) {
-    s_can_send_request = false;
-    const int value = 1;
-    dict_write_int(out_iter, AppKeyWeatherRequest, &value, sizeof(int), true);
-    result = app_message_outbox_send();
-    if(result != APP_MSG_OK) {
-      s_can_send_request = true;
+  if(s_config.weather_enabled){
+    DictionaryIterator *out_iter;
+    AppMessageResult result = app_message_outbox_begin(&out_iter);
+    if(result == APP_MSG_OK) {
+      s_can_send_request = false;
+      const int value = 1;
+      dict_write_int(out_iter, AppKeyWeatherRequest, &value, sizeof(int), true);
+      result = app_message_outbox_send();
+      if(result != APP_MSG_OK) {
+        s_can_send_request = true;
+        schedule_weather_request(100);
+        e("Error sending the outbox: %d", (int)result);
+      }
+    } else {
       schedule_weather_request(100);
-      e("Error sending the outbox: %d", (int)result);
+      e("Error preparing the outbox: %d", (int)result);
     }
-  } else {
-    schedule_weather_request(100);
-    e("Error preparing the outbox: %d", (int)result);
   }
 }
 
