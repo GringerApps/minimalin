@@ -1,0 +1,22 @@
+<div class="item-container">
+  <div class="item-container-content">
+    <div class="item-container-header">{{ header }}</div>
+    <label class="item">
+      <div class="item-input-wrapper">
+        <input type="text" class="item-input" name="input-1" placeholder="{{ placeholder }}" value="{{ value }}">
+      </div>
+    </label>
+  </div>
+</div>
+
+<style>
+ .item:not(:first-child) {
+   border-top: 0px;
+ }
+
+ .item-container-header {
+   padding: 7px 0px 0px 10px;
+   text-transform: none;
+   color: #000000;
+ }
+</style>

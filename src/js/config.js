@@ -2,9 +2,9 @@ Pebble.addEventListener('showConfiguration', function() {
   var toQueryString = function(obj){
     var parts = [];
     for (var i in obj) {
-        if (obj.hasOwnProperty(i) && obj[i] !== null) {
-            parts.push(encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]));
-        }
+      if (obj.hasOwnProperty(i) && obj[i] !== null) {
+        parts.push(encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]));
+      }
     }
     return parts.join('&');
   };
@@ -23,8 +23,11 @@ Pebble.addEventListener('showConfiguration', function() {
   var getSavedInt = function(attr){
     return localStorage.getItem(attr + '_int');
   };
+  var getSaved = function(attr){
+    return localStorage.getItem(attr);
+  }
 
-  var url = 'https://cdn.rawgit.com/groyoh/minimalin/7296e9b7f02bd4d31d6342a1372fc0da40626a5e/config/index.html?';
+  var url = 'https://cdn.rawgit.com/groyoh/minimalin/e05c510bbda7a15b0ddee7ab0807e7d7e57ab514/config/index.html?';
   var params = {
     minute_hand_color: getSavedColor('MinuteHand'),
     hour_hand_color: getSavedColor('HourHand'),
@@ -35,6 +38,7 @@ Pebble.addEventListener('showConfiguration', function() {
     date_color: getSavedColor('Date'),
     time_color: getSavedColor('Time'),
     info_color: getSavedColor('Info'),
+    location: getSaved('Location'),
     platform: Pebble.getActiveWatchInfo().platform
   };
   url += toQueryString(params);
@@ -44,9 +48,9 @@ Pebble.addEventListener('showConfiguration', function() {
 
 Pebble.addEventListener('webviewclosed', function(e) {
   var saveColor = function(dict, attr, color){
-      color = color.replace('#', '').replace('0x','');
-      localStorage.setItem(attr + '_color', color);
-      dict['AppKey' + attr + 'Color'] = parseInt(color, 16);
+    color = color.replace('#', '').replace('0x','');
+    localStorage.setItem(attr + '_color', color);
+    dict['AppKey' + attr + 'Color'] = parseInt(color, 16);
   };
   var saveBool = function(dict, attr, bool){
     localStorage.setItem(attr + '_bool', bool);
@@ -68,6 +72,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   saveBool(dict, 'DateDisplayed', configData.date_displayed);
   saveInt(dict, 'BluetoothIcon', configData.bluetooth_icon);
   saveBool(dict, 'RainbowMode', configData.rainbow_mode);
+  localStorage.setItem("Location", configData.location);
   Pebble.sendAppMessage(dict, function() {
     console.log('Send successful: ' + JSON.stringify(dict));
   }, function() {
