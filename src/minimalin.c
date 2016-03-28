@@ -70,25 +70,9 @@ typedef void (*ConfigUpdatedCallback)();
 
 typedef enum { NoIcon = 0, Bluetooth = 1, Heart = 2 } BluetoothIcon;
 
+typedef enum { Celsius = 0, Fahrenheit= 1 } TemperatureUnit;
+
 typedef enum { Hour, Minute } TimeType;
-
-typedef struct {
-  int32_t minute_hand_color;
-  int32_t hour_hand_color;
-  int32_t background_color;
-  int32_t date_color;
-  int32_t time_color;
-  int32_t info_color;
-  int8_t date_displayed;
-  int8_t bluetooth_icon;
-  int8_t rainbow_mode;
-} __attribute__((__packed__)) Config;
-
-typedef struct {
-  int32_t timestamp;
-  int8_t icon;
-  int8_t temperature;
-} __attribute__((__packed__)) Weather;
 
 typedef enum {
   AppKeyMinuteHandColor = 0,
@@ -100,6 +84,7 @@ typedef enum {
   AppKeyDateColor,
   AppKeyTimeColor,
   AppKeyInfoColor,
+  AppKeyTemperatureUnit,
   AppKeyWeatherTemperature,
   AppKeyWeatherIcon,
   AppKeyWeatherFailed,
@@ -111,6 +96,25 @@ typedef enum {
   PersistKeyConfig = 0,
   PersistKeyWeather
 } PersistKey;
+
+typedef struct {
+  int32_t minute_hand_color;
+  int32_t hour_hand_color;
+  int32_t background_color;
+  int32_t date_color;
+  int32_t time_color;
+  int32_t info_color;
+  int8_t temperature_unit;
+  int8_t date_displayed;
+  int8_t bluetooth_icon;
+  int8_t rainbow_mode;
+} __attribute__((__packed__)) Config;
+
+typedef struct {
+  int32_t timestamp;
+  int8_t icon;
+  int8_t temperature;
+} __attribute__((__packed__)) Weather;
 
 static const int HOUR_CIRCLE_RADIUS = 5;
 static const int HOUR_HAND_STROKE = 6;
@@ -203,21 +207,10 @@ static void fetch_config_or_default(){
     s_config.info_color        = 0x555555;
     s_config.date_displayed    = true;
     s_config.bluetooth_icon    = Bluetooth;
+    s_config.temperature_unit  = Celsius;
     s_config.rainbow_mode      = false;
     persist_write_data(PersistKeyConfig, &s_config, sizeof(s_config));
   }
-}
-
-static void fetch_weather(DictionaryIterator *iter) {
-  Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);
-  Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
-  if(icon_tuple && temp_tuple){
-    s_weather.timestamp = time(NULL);
-    s_weather.icon = icon_tuple->value->int8;
-    s_weather.temperature = temp_tuple->value->int8;
-  }
-  persist_write_data(PersistKeyWeather, &s_weather, sizeof(s_weather));
-  update_info_layer();
 }
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
@@ -241,7 +234,15 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
       break;
     case AppKeyWeatherTemperature:
       s_can_send_request = true;
-      fetch_weather(iter);
+      Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);
+      Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
+      if(icon_tuple && temp_tuple){
+        s_weather.timestamp = time(NULL);
+        s_weather.icon = icon_tuple->value->int8;
+        s_weather.temperature = temp_tuple->value->int8;
+      }
+      persist_write_data(PersistKeyWeather, &s_weather, sizeof(s_weather));
+      update_info_layer();
       break;
     case AppKeyInfoColor:
       s_config.info_color = tuple->value->int32;
@@ -255,6 +256,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   fetch_int32(iter, AppKeyBackgroundColor, &s_config.background_color);
   fetch_int32(iter, AppKeyDateColor, &s_config.date_color);
   fetch_int32(iter, AppKeyTimeColor, &s_config.time_color);
+  fetch_int8(iter, AppKeyTemperatureUnit, &s_config.temperature_unit);
   fetch_int8(iter, AppKeyDateDisplayed, &s_config.date_displayed);
   fetch_int8(iter, AppKeyBluetoothIcon, &s_config.bluetooth_icon);
   fetch_int8(iter, AppKeyRainbowMode, &s_config.rainbow_mode);
@@ -564,6 +566,9 @@ static void update_info_layer(){
 
     // itoa
     int temp = s_weather.temperature;
+    if(s_config.temperature_unit == Fahrenheit){
+      temp = tempToF(temp);
+    }
     if(temp < 0){
       s_info_buffer[idx++] = '-';
       temp = -temp;
