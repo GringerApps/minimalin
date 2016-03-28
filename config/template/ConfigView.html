@@ -1,6 +1,7 @@
 <link rel="ractive" href="./ItemColor.html">
 <link rel="ractive" href="./ToggleWithItemColor.html">
 <link rel="ractive" href="./Tabs.html">
+<link rel="ractive" href="./Input.html">
 
 <div id="preview">
   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -63,8 +64,9 @@
   <ItemColor color="{{ background_color }}" label="Background color"/>
   <ToggleWithItemColor toggleLabel="Show date" toggleValue="{{ date_displayed }}" colorItemValue="{{ date_color }}" colorItemLabel="Date color" inverted/>
   <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
-  <Tabs source="{{ bluetooth_source }}" active_tab="{{ bluetooth_icon }}"/>
   <ItemColor color="{{ info_color }}" label="Bluetooth and weather color"/>
+  <Tabs source="{{ bluetooth_source }}" active_tab="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show:"/>
+  <Input header="Fixed location:" placeholder="Location" value="{{ location }}">
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
   </div>
