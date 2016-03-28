@@ -67,6 +67,7 @@
   <ItemColor color="{{ info_color }}" label="Bluetooth and weather color"/>
   <Tabs source="{{ bluetooth_source }}" active_tab="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show:"/>
   <Input header="Fixed location:" placeholder="Location" value="{{ location }}">
+  <Tabs source="{{ temperature_unit_source }}" active_tab="{{ temperature_unit }}" header="Temperature unit:"/>
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
   </div>
@@ -192,7 +193,14 @@
          { label: "Bluetooth" },
          { label: "Broken heart" }
        ];
-     }
+     },
+     temperature_unit_source: function(){
+       return [
+         { label: "Celsius" },
+         { label: "Fahrenheit" }
+       ];
+     },
+
    },
    onrender: function(){
      this.on('reset-defaults', function() {
