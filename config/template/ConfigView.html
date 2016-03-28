@@ -2,6 +2,7 @@
 <link rel="ractive" href="./ToggleWithItemColor.html">
 <link rel="ractive" href="./Tabs.html">
 <link rel="ractive" href="./Input.html">
+<link rel="ractive" href="./Toggle.html">
 
 <div id="preview">
   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
@@ -66,7 +67,8 @@
   <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
   <ItemColor color="{{ info_color }}" label="Bluetooth and weather color"/>
   <Tabs source="{{ bluetooth_source }}" active_tab="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show:"/>
-  <Input header="Fixed location:" placeholder="Location" value="{{ location }}">
+  <Toggle value="{{ weather_enabled }}" label="Show weather"/>
+  <Input header="Fixed location:" placeholder="Location" value="{{ location }}"/>
   <Tabs source="{{ temperature_unit_source }}" active_tab="{{ temperature_unit }}" header="Temperature unit:"/>
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
@@ -174,18 +176,21 @@
  component.exports = {
    computed: {
      info_text: function(){
-       var bt;
+       var info;
        switch(this.get("bluetooth_icon")){
        case 1:
-         bt = "z";
+         info = "z";
          break;
        case 2:
-         bt = "Z";
+         info = "Z";
          break;
        default:
-         bt = "";
+         info = "";
        }
-       return bt + " b18°";
+       if(this.get("weather_enabled")){
+         info += " b18°";
+       }
+       return info;
      },
      bluetooth_source: function(){
        return [
