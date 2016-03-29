@@ -82,6 +82,7 @@
   <Toggle value="{{ weather_enabled }}" label="Show weather"/>
   <Input header="Fixed location:" placeholder="Location" value="{{ location }}"/>
   <Tabs source="{{ temperature_unit_source }}" active_tab="{{ temperature_unit }}" header="Temperature unit:"/>
+  <Tabs source="{{ refresh_rate_source }}" active_tab="{{ refresh_rate }}" header="Refresh rate:"/>
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
   </div>
@@ -246,7 +247,13 @@
          { label: "Fahrenheit" }
        ];
      },
-
+     refresh_rate_source: function(){
+       return [
+         { label: "5 min" },
+         { label: "20 min" },
+         { label: "40 min" }
+       ];
+     }
    },
    onrender: function(){
      this.on('reset-defaults', function() {
