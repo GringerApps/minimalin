@@ -75,6 +75,10 @@ typedef enum { Celsius = 0, Fahrenheit= 1 } TemperatureUnit;
 typedef enum { Hour, Minute } TimeType;
 
 typedef enum {
+  MinuteHandColor
+} ConfigColorKey;
+
+typedef enum {
   AppKeyMinuteHandColor = 0,
   AppKeyHourHandColor,
   AppKeyDateDisplayed,
@@ -113,6 +117,18 @@ typedef struct {
   int8_t bluetooth_icon;
   int8_t rainbow_mode;
 } __attribute__((__packed__)) Config;
+
+static GColor config_get_color(const Config * conf, const ConfigColorKey key){
+  int color;
+  switch(key){
+  case MinuteHandColor:
+    color = conf->minute_hand_color;
+    break;
+  default:
+    color = 0;
+  }
+  return GColorFromHEX(color);
+}
 
 typedef struct {
   int32_t timestamp;
@@ -278,10 +294,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     s_weather.timestamp = time(NULL);
     send_weather_request();
   }
-}
-
-static GColor config_get_minute_hand_color(){
-  return GColorFromHEX(s_config.minute_hand_color);
 }
 
 static GColor config_get_hour_hand_color(){
@@ -468,7 +480,7 @@ static void update_minute_hand_layer(Layer *layer, GContext * ctx){
   const float hand_angle = angle(current_time.minute, 60);
   const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
   set_stroke_width(ctx, MINUTE_HAND_STROKE);
-  set_stroke_color(ctx, config_get_minute_hand_color());
+  set_stroke_color(ctx, config_get_color(&s_config, MinuteHandColor));
   draw_line(ctx, s_center, hand_end);
 }
 
