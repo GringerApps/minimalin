@@ -40,6 +40,7 @@ Pebble.addEventListener('showConfiguration', function() {
     date_color: getSavedColor('Date'),
     time_color: getSavedColor('Time'),
     info_color: getSavedColor('Info'),
+    refresh_rate: getSavedInt('RefreshRate'),
     location: getSaved('Location'),
     platform: Pebble.getActiveWatchInfo().platform
   };
@@ -75,6 +76,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   saveInt(dict, 'WeatherEnabled', configData.weather_enabled);
   saveInt(dict, 'BluetoothIcon', configData.bluetooth_icon);
   saveInt(dict, 'TemperatureUnit', configData.temperature_unit);
+  saveInt(dict, 'RefreshRate', configData.refresh_rate);
   saveBool(dict, 'RainbowMode', configData.rainbow_mode);
   localStorage.setItem("Location", configData.location);
   Pebble.sendAppMessage(dict, function() {

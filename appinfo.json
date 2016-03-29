@@ -1,11 +1,12 @@
 {
   "appKeys": {
-    "AppKeyJsReady": 15,
-    "AppKeyWeatherRequest": 14,
-    "AppKeyWeatherFailed": 13,
-    "AppKeyWeatherIcon": 12,
-    "AppKeyWeatherTemperature": 11,
-    "AppKeyWeatherEnabled": 10,
+    "AppKeyJsReady": 16,
+    "AppKeyWeatherRequest": 15,
+    "AppKeyWeatherFailed": 14,
+    "AppKeyWeatherIcon": 13,
+    "AppKeyWeatherTemperature": 12,
+    "AppKeyWeatherEnabled": 11,
+    "AppKeyRefreshRate": 10,
     "AppKeyTemperatureUnit": 9,
     "AppKeyInfoColor": 8,
     "AppKeyTimeColor": 7,

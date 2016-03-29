@@ -85,6 +85,7 @@ typedef enum {
   AppKeyTimeColor,
   AppKeyInfoColor,
   AppKeyTemperatureUnit,
+  AppKeyRefreshRate,
   AppKeyWeatherEnabled,
   AppKeyWeatherTemperature,
   AppKeyWeatherIcon,
@@ -105,6 +106,7 @@ typedef struct {
   int32_t date_color;
   int32_t time_color;
   int32_t info_color;
+  int32_t refresh_rate; // in minutes
   int8_t weather_enabled;
   int8_t temperature_unit;
   int8_t date_displayed;
@@ -171,7 +173,9 @@ static void schedule_weather_request(int timeout){
 }
 
 static int weather_expiration(){
-  int timeout = 5 * 60;
+  int timeout = s_config.refresh_rate * 60;
+  d("timeout: %d", timeout);
+  d("expiration: %d", (int)s_weather.timestamp + timeout);
   return s_weather.timestamp + timeout;
 }
 
@@ -212,6 +216,7 @@ static void fetch_config_or_default(){
     s_config.temperature_unit  = Celsius;
     s_config.rainbow_mode      = false;
     s_config.weather_enabled   = true;
+    s_config.refresh_rate      = 20;
     persist_write_data(PersistKeyConfig, &s_config, sizeof(s_config));
   }
 }
@@ -250,6 +255,8 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     case AppKeyInfoColor:
       s_config.info_color = tuple->value->int32;
       update_info_layer();
+    case AppKeyRefreshRate:
+      s_config.refresh_rate = tuple->value->int32;
     case AppKeyWeatherEnabled:
       s_config.weather_enabled = tuple->value->int8;
       update_info_layer();
