@@ -75,7 +75,12 @@ typedef enum { Celsius = 0, Fahrenheit= 1 } TemperatureUnit;
 typedef enum { Hour, Minute } TimeType;
 
 typedef enum {
-  MinuteHandColor
+  ConfigColorKeyMinuteHand,
+  ConfigColorKeyHourHand,
+  ConfigColorKeyBackground,
+  ConfigColorKeyDate,
+  ConfigColorKeyTime,
+  ConfigColorKeyInfo
 } ConfigColorKey;
 
 typedef enum {
@@ -119,13 +124,26 @@ typedef struct {
 } __attribute__((__packed__)) Config;
 
 static GColor config_get_color(const Config * conf, const ConfigColorKey key){
-  int color;
+  int color = 0;
   switch(key){
-  case MinuteHandColor:
+  case ConfigColorKeyMinuteHand:
     color = conf->minute_hand_color;
     break;
-  default:
-    color = 0;
+  case ConfigColorKeyHourHand:
+    color = conf->hour_hand_color;
+    break;
+  case ConfigColorKeyBackground:
+    color = conf->background_color;
+    break;
+  case ConfigColorKeyDate:
+    color = conf->date_color;
+    break;
+  case ConfigColorKeyTime:
+    color = conf->time_color;
+    break;
+  case ConfigColorKeyInfo:
+    color = conf->info_color;
+    break;
   }
   return GColorFromHEX(color);
 }
@@ -190,8 +208,6 @@ static void schedule_weather_request(int timeout){
 
 static int weather_expiration(){
   int timeout = s_config.refresh_rate * 60;
-  d("timeout: %d", timeout);
-  d("expiration: %d", (int)s_weather.timestamp + timeout);
   return s_weather.timestamp + timeout;
 }
 
@@ -296,22 +312,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   }
 }
 
-static GColor config_get_hour_hand_color(){
-  return GColorFromHEX(s_config.hour_hand_color);
-}
-
-static GColor config_get_background_color(){
-  return GColorFromHEX(s_config.background_color);
-}
-
-static GColor config_get_date_color(){
-  return GColorFromHEX(s_config.date_color);
-}
-
-static GColor config_get_time_color(){
-  return GColorFromHEX(s_config.time_color);
-}
-
 static bool config_is_date_displayed(){
   return s_config.date_displayed;
 }
@@ -373,7 +373,7 @@ static void display_number(GContext * ctx, const GRect box, const int number, co
 }
 
 static void display_time(GContext * ctx, const int hour, const int minute){
-  graphics_context_set_text_color(ctx, config_get_time_color());
+  graphics_context_set_text_color(ctx, config_get_color(&s_config, ConfigColorKeyTime));
   char buffer[] = "00:00";
   if(time_displayed_horizontally(hour, minute)){
     snprintf(buffer, sizeof(buffer), "%02d:%02d", hour, minute);
@@ -400,7 +400,7 @@ static void display_time(GContext * ctx, const int hour, const int minute){
 }
 
 static void display_date(GContext * ctx, const int day){
-  set_text_color(ctx, config_get_date_color());
+  set_text_color(ctx, config_get_color(&s_config, ConfigColorKeyDate));
   const GRect box = get_display_box(s_center, "00");
   display_number(ctx, grect_translated(box, 0, DATE_Y_OFFSET), day, false);
 }
@@ -480,7 +480,7 @@ static void update_minute_hand_layer(Layer *layer, GContext * ctx){
   const float hand_angle = angle(current_time.minute, 60);
   const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
   set_stroke_width(ctx, MINUTE_HAND_STROKE);
-  set_stroke_color(ctx, config_get_color(&s_config, MinuteHandColor));
+  set_stroke_color(ctx, config_get_color(&s_config, ConfigColorKeyMinuteHand));
   draw_line(ctx, s_center, hand_end);
 }
 
@@ -489,7 +489,7 @@ static void update_hour_hand_layer(Layer * layer, GContext * ctx){
   const float hand_angle = angle(current_time.hour * 50 + current_time.minute * 50 / 60, 600);
   const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
   set_stroke_width(ctx, HOUR_HAND_STROKE);
-  set_stroke_color(ctx, config_get_hour_hand_color());
+  set_stroke_color(ctx, config_get_color(&s_config, ConfigColorKeyHourHand));
   draw_line(ctx, s_center, hand_end);
 }
 
@@ -497,7 +497,7 @@ static void update_center_circle_layer(Layer * layer, GContext * ctx){
   if(config_is_rainbow_mode()){
     graphics_context_set_fill_color(ctx, GColorVividViolet);
   }else{
-    graphics_context_set_fill_color(ctx, config_get_hour_hand_color());
+    graphics_context_set_fill_color(ctx, config_get_color(&s_config, ConfigColorKeyHourHand));
   }
   graphics_fill_circle(ctx, s_center, HOUR_CIRCLE_RADIUS);
 }
@@ -545,7 +545,7 @@ static void draw_tick(GContext *ctx, const int index){
 
 static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
   const Time current_time = get_current_time();
-  set_stroke_color(ctx, config_get_time_color());
+  set_stroke_color(ctx, config_get_color(&s_config, ConfigColorKeyTime));
   set_stroke_width(ctx, TICK_STROKE);
   const int hour_tick_index = current_time.hour % 12;
   draw_tick(ctx, hour_tick_index);
@@ -574,7 +574,7 @@ static void mark_dirty_tick_layer(){
 // Infos: bluetooth + weather
 
 static void update_info_layer(){
-  text_layer_set_text_color(s_info_layer, GColorFromHEX(s_config.info_color));
+  text_layer_set_text_color(s_info_layer, config_get_color(&s_config, ConfigColorKeyInfo));
   static char s_info_buffer[10];
   int idx = 0;
   s_info_buffer[0] = 0;
@@ -692,7 +692,7 @@ static void config_updated_callback(){
   hands_update_rainbow_mode_config_changed();
   hands_update_minute_hand_config_changed();
   hands_update_hour_hand_config_changed();
-  window_set_background_color(s_main_window, config_get_background_color());
+  window_set_background_color(s_main_window, config_get_color(&s_config, ConfigColorKeyBackground));
 }
 
 static void main_window_load(Window *window) {
@@ -700,7 +700,7 @@ static void main_window_load(Window *window) {
   s_root_layer_bounds = layer_get_bounds(s_root_layer);
   s_center = grect_center_point(&s_root_layer_bounds);
   update_current_time();
-  window_set_background_color(window, config_get_background_color());
+  window_set_background_color(window, config_get_color(&s_config, ConfigColorKeyBackground));
 
   init_font();
   init_info_layer();
