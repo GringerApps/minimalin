@@ -62,6 +62,7 @@
        time_color: '#AAAAAA',
        info_color: '#555555',
        temperature_unit: 0,
+       weather_enabled: true,
        location: ''
      };
 
@@ -77,6 +78,7 @@
        date_color: color('date_color', defaults.date_color),
        time_color: color('time_color', defaults.time_color),
        info_color: color('info_color', defaults.info_color),
+       weather_enabled: bool('weather_enabled', defaults.weather_enabled),
        location: query('location',defaults.location),
        platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
      };
@@ -97,8 +99,9 @@
                date_color: this.get("date_color"),
                time_color: this.get("time_color"),
                info_color: this.get("info_color"),
+               weather_enabled: this.get("weather_enabled"),
                temperature_unit: this.get("temperature_unit"),
-               location: this.get("location")
+               location: this.get("location") || ""
              };
              var return_to = query('return_to', 'pebblejs://close#');
              document.location = return_to + encodeURIComponent(JSON.stringify(response_data));

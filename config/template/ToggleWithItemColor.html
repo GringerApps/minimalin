@@ -1,55 +1,7 @@
 <link rel="ractive" href="./ItemColor.html">
+<link rel="ractive" href="./Toggle.html">
 <ItemColor color="{{ colorItemValue }}" label="{{ colorItemLabel }}" on-show="buzz" disabled="{{ colorItemDisabled }}"/>
-<div class="item-container" id="rainbow_container">
-  <div class="item-container-content">
-    <label class="item {{ buzzing ? 'buzzing' : '' }}">
-      {{ toggleLabel }}
-      <input type="checkbox" class="item-toggle" checked="{{ toggleValue }}">
-      <div class="item-styled-toggle-wrapper {{ footer ? 'with-footer': ''}}">
-        <div class="item-styled-toggle">
-          <div class="item-styled-toggle-bar"></div>
-          <div class="item-styled-toggle-bar"></div>
-          <div class="item-styled-toggle-bar"></div>
-        </div>
-      </div>
-      <div class="item-container-footer">
-        {{ footer }}
-      </div>
-    </label>
-  </div>
-</div>
-
-<style>
-  .item-container-footer {
-    padding: 5px 0px 0px 0px;
-  }
-
- .buzzing {
-   -webkit-animation: 600ms buzz alternate ease-in-out;
-   -moz-animation: 600ms buzz alternate ease-in-out;
-   -ms-animation: 600ms buzz alternate ease-in-out;
-   -o-animation: 600ms buzz alternate ease-in-out;
-   animation: 600ms buzz alternate ease-in-out;
- }
-
- .with-footer {
-     top: 18px;
- }
-
- @keyframes buzz {
-   0%, 100% {
-     transform: translate(0, 0);
-   }
-
-   10%, 30%, 50%, 70%, 90% {
-     transform: translate(-3px, 0);
-   }
-
-   20%, 40%, 60%, 80% {
-     transform: translate(3px, 0);
-   }
- }
-</style>
+<Toggle buzzing="{{ buzzing }}" label={{ toggleLabel }} footer="{{ footer }}" value="{{ toggleValue }}"/>
 
 <script>
  component.exports = {
