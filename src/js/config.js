@@ -27,7 +27,7 @@ Pebble.addEventListener('showConfiguration', function() {
     return localStorage.getItem(attr);
   }
 
-  var url = 'https://cdn.rawgit.com/groyoh/minimalin/0968393b1bf7811a3e0e81fbdc4bff5fb0011c3f/config/index.html?';
+  var url = 'https://cdn.rawgit.com/groyoh/minimalin/541865350c890f027b743d5ff777e8c516f369a5/config/index.html?';
   var params = {
     minute_hand_color: getSavedColor('MinuteHand'),
     hour_hand_color: getSavedColor('HourHand'),
@@ -40,6 +40,7 @@ Pebble.addEventListener('showConfiguration', function() {
     date_color: getSavedColor('Date'),
     time_color: getSavedColor('Time'),
     info_color: getSavedColor('Info'),
+    refresh_rate: getSavedInt('RefreshRate'),
     location: getSaved('Location'),
     platform: Pebble.getActiveWatchInfo().platform
   };
@@ -75,6 +76,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   saveInt(dict, 'WeatherEnabled', configData.weather_enabled);
   saveInt(dict, 'BluetoothIcon', configData.bluetooth_icon);
   saveInt(dict, 'TemperatureUnit', configData.temperature_unit);
+  saveInt(dict, 'RefreshRate', configData.refresh_rate);
   saveBool(dict, 'RainbowMode', configData.rainbow_mode);
   localStorage.setItem("Location", configData.location);
   Pebble.sendAppMessage(dict, function() {
