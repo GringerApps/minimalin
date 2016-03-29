@@ -1,7 +1,12 @@
 <link rel="ractive" href="./ItemColor.html">
 <link rel="ractive" href="./Toggle.html">
+{{#if toggleFirst}}
 <ItemColor color="{{ colorItemValue }}" label="{{ colorItemLabel }}" on-show="buzz" disabled="{{ colorItemDisabled }}"/>
+{{/if}}
 <Toggle buzzing="{{ buzzing }}" label={{ toggleLabel }} footer="{{ footer }}" value="{{ toggleValue }}"/>
+{{#if !toggleFirst}}
+<ItemColor color="{{ colorItemValue }}" label="{{ colorItemLabel }}" on-show="buzz" disabled="{{ colorItemDisabled }}"/>
+{{/if}}
 
 <script>
  component.exports = {
