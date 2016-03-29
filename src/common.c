@@ -4,8 +4,12 @@ static Time s_current_time;
 static bool s_current_time_set = false;
 static GFont s_font;
 
+int tempToF(const int temp){
+  return temp * 9 / 5 + 32;
+}
+
 void update_current_time() {
-  const time_t temp = time(NULL); 
+  const time_t temp = time(NULL);
   const struct tm *tick_time = localtime(&temp);
   int hour = tick_time->tm_hour;
   if(hour > 12){

@@ -25,3 +25,4 @@ void update_current_time();
 void init_font();
 void deinit_font();
 GFont get_font();
+int tempToF(const int temp);

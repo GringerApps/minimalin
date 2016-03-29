@@ -61,6 +61,8 @@
        date_color: '#555555',
        time_color: '#AAAAAA',
        info_color: '#555555',
+       temperature_unit: 0,
+       weather_enabled: true,
        location: ''
      };
 
@@ -70,11 +72,13 @@
        hour_hand_color:  color('hour_hand_color', defaults.hour_hand_color),
        date_displayed:  bool('date_displayed', defaults.date_displayed),
        bluetooth_icon: queryIn('bluetooth_icon', [0,1,2], defaults.bluetooth_icon),
+       temperature_unit: queryIn('temperature_unit', [0,1], defaults.temperature_unit),
        rainbow_mode: bool('rainbow_mode', defaults.rainbow_mode),
        background_color: color('background_color', defaults.background_color),
        date_color: color('date_color', defaults.date_color),
        time_color: color('time_color', defaults.time_color),
        info_color: color('info_color', defaults.info_color),
+       weather_enabled: bool('weather_enabled', defaults.weather_enabled),
        location: query('location',defaults.location),
        platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
      };
@@ -95,7 +99,9 @@
                date_color: this.get("date_color"),
                time_color: this.get("time_color"),
                info_color: this.get("info_color"),
-               location: this.get("location")
+               weather_enabled: this.get("weather_enabled"),
+               temperature_unit: this.get("temperature_unit"),
+               location: this.get("location") || ""
              };
              var return_to = query('return_to', 'pebblejs://close#');
              document.location = return_to + encodeURIComponent(JSON.stringify(response_data));
