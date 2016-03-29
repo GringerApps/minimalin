@@ -84,6 +84,12 @@ typedef enum {
 } ConfigColorKey;
 
 typedef enum {
+  ConfigBoolKeyWeatherEnabled,
+  ConfigBoolKeyRainbowMode,
+  ConfigBoolKeyDateDisplayed
+} ConfigBoolKey;
+
+typedef enum {
   AppKeyMinuteHandColor = 0,
   AppKeyHourHandColor,
   AppKeyDateDisplayed,
@@ -122,6 +128,17 @@ typedef struct {
   int8_t bluetooth_icon;
   int8_t rainbow_mode;
 } __attribute__((__packed__)) Config;
+
+static bool config_get_bool(const Config * conf, const ConfigBoolKey key){
+  switch(key){
+  case ConfigBoolKeyRainbowMode:
+    return conf->rainbow_mode;
+  case ConfigBoolKeyDateDisplayed:
+    return conf->date_displayed;
+  default:
+    return conf->weather_enabled;
+  }
+}
 
 static GColor config_get_color(const Config * conf, const ConfigColorKey key){
   int color = 0;
@@ -287,8 +304,10 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     case AppKeyInfoColor:
       s_config.info_color = tuple->value->int32;
       update_info_layer();
+      break;
     case AppKeyRefreshRate:
       s_config.refresh_rate = tuple->value->int32;
+      break;
     case AppKeyWeatherEnabled:
       s_config.weather_enabled = tuple->value->int8;
       update_info_layer();
@@ -312,18 +331,10 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   }
 }
 
-static bool config_is_date_displayed(){
-  return s_config.date_displayed;
-}
 
 static BluetoothIcon config_get_bluetooth_icon(){
   return s_config.bluetooth_icon;
 }
-
-static bool config_is_rainbow_mode(){
-  return s_config.rainbow_mode;
-}
-
 static void init_config(ConfigUpdatedCallback callback){
   s_config_updated_callback = callback;
   app_message_register_inbox_received(inbox_received_handler);
@@ -408,7 +419,7 @@ static void display_date(GContext * ctx, const int day){
 static void time_layer_update_callback(Layer * layer, GContext *ctx){
   Time current_time = get_current_time();
   display_time(ctx, current_time.hour, current_time.minute);
-  if(config_is_date_displayed()){
+  if(config_get_bool(&s_config, ConfigBoolKeyDateDisplayed)){
     display_date(ctx, current_time.day);
   }
 }
@@ -439,7 +450,7 @@ static void hands_update_time_changed(){
  if(s_rainbow_hand_layer){
    const Time current_time = get_current_time();
    const float hand_angle = angle(current_time.minute, 60);
-   const bool rainbow_mode = config_is_rainbow_mode();
+   const bool rainbow_mode = config_get_bool(&s_config, ConfigBoolKeyRainbowMode);
    rot_bitmap_layer_set_angle(s_rainbow_hand_layer, hand_angle);
    layer_set_hidden((Layer*)s_rainbow_hand_layer, !rainbow_mode);
  }
@@ -460,7 +471,7 @@ static void hands_update_hour_hand_config_changed(){
 static void hands_update_rainbow_mode_config_changed(){
   const Time current_time = get_current_time();
   const float hand_angle = angle(current_time.minute, 60);
-  const bool rainbow_mode = config_is_rainbow_mode();
+  const bool rainbow_mode = config_get_bool(&s_config, ConfigBoolKeyRainbowMode);
   if(s_minute_hand_layer){
     layer_set_hidden(s_minute_hand_layer, rainbow_mode);
     layer_mark_dirty(s_minute_hand_layer);
@@ -494,7 +505,7 @@ static void update_hour_hand_layer(Layer * layer, GContext * ctx){
 }
 
 static void update_center_circle_layer(Layer * layer, GContext * ctx){
-  if(config_is_rainbow_mode()){
+  if(config_get_bool(&s_config, ConfigBoolKeyRainbowMode)){
     graphics_context_set_fill_color(ctx, GColorVividViolet);
   }else{
     graphics_context_set_fill_color(ctx, config_get_color(&s_config, ConfigColorKeyHourHand));
@@ -585,7 +596,7 @@ static void update_info_layer(){
   }else if(!s_bt_connected && new_icon == Heart){
     s_info_buffer[idx++] = 'Z';
   }
-  if(!weather_timedout() && s_config.weather_enabled){
+  if(!weather_timedout() && config_get_bool(&s_config, ConfigBoolKeyWeatherEnabled)){
     s_info_buffer[idx++] = s_weather.icon;
 
     // itoa
