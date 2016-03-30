@@ -90,6 +90,12 @@ typedef enum {
 } ConfigBoolKey;
 
 typedef enum {
+  ConfigIntKeyRefreshRate,
+  ConfigIntKeyTemperatureUnit,
+  ConfigIntKeyBluetoothIcon
+} ConfigIntKey;
+
+typedef enum {
   AppKeyMinuteHandColor = 0,
   AppKeyHourHandColor,
   AppKeyDateDisplayed,
@@ -165,6 +171,17 @@ static GColor config_get_color(const Config * conf, const ConfigColorKey key){
   return GColorFromHEX(color);
 }
 
+static int config_get_int(const Config * conf, const ConfigIntKey key){
+  switch(key){
+  case ConfigIntKeyBluetoothIcon:
+    return conf->bluetooth_icon;
+  case ConfigIntKeyRefreshRate:
+    return conf->refresh_rate;
+  default:
+    return conf->temperature_unit;
+  }
+}
+
 typedef struct {
   int32_t timestamp;
   int8_t icon;
@@ -224,7 +241,7 @@ static void schedule_weather_request(int timeout){
 }
 
 static int weather_expiration(){
-  int timeout = s_config.refresh_rate * 60;
+  int timeout = config_get_int(&s_config, ConfigIntKeyRefreshRate) * 60;
   return s_weather.timestamp + timeout;
 }
 
@@ -332,9 +349,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 }
 
 
-static BluetoothIcon config_get_bluetooth_icon(){
-  return s_config.bluetooth_icon;
-}
 static void init_config(ConfigUpdatedCallback callback){
   s_config_updated_callback = callback;
   app_message_register_inbox_received(inbox_received_handler);
@@ -590,7 +604,7 @@ static void update_info_layer(){
   int idx = 0;
   s_info_buffer[0] = 0;
 
-  const BluetoothIcon new_icon = config_get_bluetooth_icon();
+  const BluetoothIcon new_icon = config_get_int(&s_config, ConfigIntKeyBluetoothIcon);
   if(!s_bt_connected && new_icon == Bluetooth){
     s_info_buffer[idx++] = 'z';
   }else if(!s_bt_connected && new_icon == Heart){
@@ -601,7 +615,7 @@ static void update_info_layer(){
 
     // itoa
     int temp = s_weather.temperature;
-    if(s_config.temperature_unit == Fahrenheit){
+    if(config_get_int(&s_config, ConfigIntKeyTemperatureUnit) == Fahrenheit){
       temp = tempToF(temp);
     }
     if(temp < 0){
