@@ -69,6 +69,42 @@ static GPoint time_points[12] = {
 static GPoint SOUTH_INFO_CENTER = { .x = 72, .y = 112 };
 #endif
 
+typedef struct {
+  TextLayer * layer;
+  char text[20];
+} TextBlock;
+
+static TextBlock * text_block_create(Layer * parent_layer, const GPoint center, const GFont font){
+  TextBlock * text_block = (TextBlock *) malloc(sizeof(TextBlock));
+  const GSize size = GSize(100, 23);
+  const GRect bounds = (GRect) {
+    .origin = GPoint(center.x - size.w / 2 , center.y - size.h / 2),
+    .size   = size
+  };
+  text_block->layer = text_layer_create(bounds);
+  text_layer_set_font(text_block->layer, font);
+  text_layer_set_text_alignment(text_block->layer, GTextAlignmentCenter);
+  text_layer_set_background_color(text_block->layer, GColorClear);
+  layer_add_child(parent_layer, text_layer_get_layer(text_block->layer));
+  return text_block;
+}
+
+static TextBlock * text_block_destroy(TextBlock * text_block){
+  text_layer_destroy(text_block->layer);
+  free(text_block);
+  return NULL;
+}
+
+static void text_block_set_text(TextBlock * text_block, const char * text, const GColor color){
+  strncpy(text_block->text, text, sizeof(text_block->text));
+  text_layer_set_text_color(text_block->layer, color);
+  text_layer_set_text(text_block->layer, text_block->text);
+}
+
+static void text_block_set_visible(TextBlock * text_block, const bool visible){
+  layer_set_hidden(text_layer_get_layer(text_block->layer), !visible);
+}
+
 typedef enum { Hour, Minute } TimeType;
 
 typedef enum {
@@ -117,6 +153,7 @@ static GRect s_root_layer_bounds;
 static GPoint s_center;
 
 static TextLayer * s_info_layer;
+static TextBlock * s_south_info;
 
 static Layer * s_tick_layer;
 
@@ -210,6 +247,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
       break;
     case AppKeyDateDisplayed:
       config_set_bool(s_config, ConfigBoolKeyDateDisplayed, tuple->value->int8);
+      text_block_set_visible(s_south_info, tuple->value->int8);
       break;
     case AppKeyRainbowMode:
       config_set_bool(s_config, ConfigBoolKeyRainbowMode, tuple->value->int8);
@@ -236,9 +274,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   }
   if(config_message){
     config_save(s_config, PersistKeyConfig);
-    update_info_layer();
     config_updated_callback();
-    s_weather.timestamp = time(NULL);
     send_weather_request();
   }
 }
@@ -318,9 +354,10 @@ static void display_time(GContext * ctx, const int hour, const int minute){
 }
 
 static void display_date(GContext * ctx, const int day){
-  set_text_color(ctx, config_get_color(s_config, ConfigColorKeyDate));
-  const GRect box = get_display_box(SOUTH_INFO_CENTER, "00");
-  display_number(ctx, box, day, false);
+  const GColor date_color = config_get_color(s_config, ConfigColorKeyDate);
+  char buffer[] = "00";
+  snprintf(buffer, sizeof(buffer), "%d", day);
+  text_block_set_text(s_south_info, buffer, date_color);
 }
 
 static void time_layer_update_callback(Layer * layer, GContext *ctx){
@@ -438,9 +475,9 @@ static void init_hands(){
   layer_set_update_proc(s_minute_hand_layer,   update_minute_hand_layer);
   layer_set_update_proc(s_center_circle_layer, update_center_circle_layer);
 
-  layer_add_child(s_root_layer, s_hour_hand_layer);
   layer_add_child(s_root_layer, s_minute_hand_layer);
   layer_add_child(s_root_layer, (Layer *)s_rainbow_hand_layer);
+  layer_add_child(s_root_layer, s_hour_hand_layer);
   layer_add_child(s_root_layer, s_center_circle_layer);
 
   hands_update_rainbow_mode_config_changed();
@@ -503,6 +540,7 @@ static void update_info_layer(){
   }else if(!s_bt_connected && new_icon == Heart){
     s_info_buffer[idx++] = 'Z';
   }
+  d("%s", weather_timedout() ? "true" : "false");
   if(!weather_timedout() && config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
     s_info_buffer[idx++] = s_weather.icon;
 
@@ -621,15 +659,21 @@ static void main_window_load(Window *window) {
   window_set_background_color(window, config_get_color(s_config, ConfigColorKeyBackground));
 
   init_font();
+
+  s_south_info = text_block_create(s_root_layer, SOUTH_INFO_CENTER, get_font());
+  text_block_set_visible(s_south_info, config_get_bool(s_config, ConfigBoolKeyDateDisplayed));
+
   init_info_layer();
   init_times();
   init_tick_layer();
   init_hands();
+
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   update_current_time();
 }
 
 static void main_window_unload(Window *window) {
+  text_block_destroy(s_south_info);
   deinit_hands();
   deinit_times();
   deinit_tick_layer();
