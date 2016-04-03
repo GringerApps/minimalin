@@ -553,11 +553,6 @@ static void bt_handler(bool connected){
   update_info_layer();
 }
 
-static bool should_not_update_weather(){
-  const bool almost_expired = time(NULL) > weather_expiration() - 60;
-  return !almost_expired || !(s_can_send_request && s_js_ready);
-}
-
 static void send_weather_request(){
   if(config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
     DictionaryIterator *out_iter;
@@ -580,10 +575,11 @@ static void send_weather_request(){
 }
 
 static void try_send_weather_request(){
-  if(should_not_update_weather()){
-    return;
+  const bool almost_expired = time(NULL) > weather_expiration() - 60;
+  const bool can_update_weather = !almost_expired || !(s_can_send_request && s_js_ready);
+  if(can_update_weather){
+    send_weather_request();
   }
-  send_weather_request();
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
