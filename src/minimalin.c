@@ -72,9 +72,21 @@ static GPoint NORTH_INFO_CENTER = { .x = 72, .y = 56 };
 #endif
 
 typedef struct {
-  TextLayer * layer;
+  Layer * layer;
+  GFont font;
+  GColor color;
   char text[20];
 } TextBlock;
+
+static void text_block_update_proc(struct Layer *layer, GContext *ctx){
+  TextBlock ** data = (TextBlock**) layer_get_data(layer);
+  TextBlock * text_block = *data;
+  graphics_context_set_text_color(ctx, text_block->color);
+  GRect frame = layer_get_frame(layer);
+  frame.origin = GPoint(0,0);
+  draw_text(ctx, text_block->text, text_block->font, frame);
+
+}
 
 static TextBlock * text_block_create(Layer * parent_layer, const GPoint center, const GFont font){
   TextBlock * text_block = (TextBlock *) malloc(sizeof(TextBlock));
@@ -83,28 +95,30 @@ static TextBlock * text_block_create(Layer * parent_layer, const GPoint center, 
     .origin = GPoint(center.x - size.w / 2 , center.y - size.h / 2),
     .size   = size
   };
-  text_block->layer = text_layer_create(bounds);
-  text_layer_set_font(text_block->layer, font);
-  text_layer_set_text_alignment(text_block->layer, GTextAlignmentCenter);
-  text_layer_set_background_color(text_block->layer, GColorClear);
-  layer_add_child(parent_layer, text_layer_get_layer(text_block->layer));
+  Layer * layer = layer_create_with_data(bounds, sizeof(TextBlock*));
+  TextBlock ** data = (TextBlock**) layer_get_data(layer);
+  *data = text_block;
+  text_block->layer = layer;
+  text_block->font = font;
+  layer_set_update_proc(layer, text_block_update_proc);
+  layer_add_child(parent_layer, layer);
   return text_block;
 }
 
 static TextBlock * text_block_destroy(TextBlock * text_block){
-  text_layer_destroy(text_block->layer);
+  layer_destroy(text_block->layer);
   free(text_block);
   return NULL;
 }
 
 static void text_block_set_text(TextBlock * text_block, const char * text, const GColor color){
   strncpy(text_block->text, text, sizeof(text_block->text));
-  text_layer_set_text_color(text_block->layer, color);
-  text_layer_set_text(text_block->layer, text_block->text);
+  text_block->color = color;
+  layer_mark_dirty(text_block->layer);
 }
 
 static void text_block_set_visible(TextBlock * text_block, const bool visible){
-  layer_set_hidden(text_layer_get_layer(text_block->layer), !visible);
+  layer_set_hidden(text_block->layer, !visible);
 }
 
 typedef enum { Hour, Minute } TimeType;
