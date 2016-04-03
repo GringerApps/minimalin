@@ -526,46 +526,26 @@ static void mark_dirty_tick_layer(){
 // Infos: bluetooth + weather
 
 static void update_info_layer(){
-  char s_info_buffer[10] = {0};
-  int idx = 0;
-
+  char info_buffer[10] = {0};
   const BluetoothIcon new_icon = config_get_int(s_config, ConfigIntKeyBluetoothIcon);
-  if(!s_bt_connected && new_icon == Bluetooth){
-    s_info_buffer[idx++] = 'z';
-  }else if(!s_bt_connected && new_icon == Heart){
-    s_info_buffer[idx++] = 'Z';
+  if(!s_bt_connected){
+    if(new_icon == Bluetooth){
+      strncat(info_buffer, "z", 2);
+    }else if(new_icon == Heart){
+      strncat(info_buffer, "Z", 2);
+    }
   }
   if(!weather_timedout() && config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
-    s_info_buffer[idx++] = s_weather.icon;
-
-    // itoa
     int temp = s_weather.temperature;
     if(config_get_int(s_config, ConfigIntKeyTemperatureUnit) == Fahrenheit){
       temp = tempToF(temp);
     }
-    if(temp < 0){
-      s_info_buffer[idx++] = '-';
-      temp = -temp;
-    }else if(temp == 0){
-      s_info_buffer[idx++] = '0';
-    }
-    char temp_buffer[5];
-    int idx_temp = 0;
-    while(temp != 0 && idx_temp < 5){
-      char next_digit = (char)(temp % 10);
-      temp_buffer[idx_temp++] = next_digit + '0';
-      temp /= 10;
-    }
-    while(idx_temp > 0){
-      s_info_buffer[idx++] = temp_buffer[--idx_temp];
-    }
-    s_info_buffer[idx] = 0;
-    strcat(s_info_buffer, "°");
-  }else{
-    s_info_buffer[idx] = 0;
+    char temp_buffer[6];
+    snprintf(temp_buffer, 6, "%c%d°", s_weather.icon, temp);
+    strcat(info_buffer, temp_buffer);
   }
   const GColor info_color = config_get_color(s_config, ConfigColorKeyInfo);
-  text_block_set_text(s_north_info, s_info_buffer, info_color);
+  text_block_set_text(s_north_info, info_buffer, info_color);
 }
 
 static void bt_handler(bool connected){
