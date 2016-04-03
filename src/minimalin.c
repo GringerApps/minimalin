@@ -66,13 +66,24 @@ static GPoint time_points[12] = {
 };
 #endif
 
-typedef void (*ConfigUpdatedCallback)();
+typedef struct {
+  int32_t minute_hand_color;
+  int32_t hour_hand_color;
+  int32_t background_color;
+  int32_t date_color;
+  int32_t time_color;
+  int32_t info_color;
+  int32_t refresh_rate; // in minutes
+  int8_t weather_enabled;
+  int8_t temperature_unit;
+  int8_t date_displayed;
+  int8_t bluetooth_icon;
+  int8_t rainbow_mode;
+} __attribute__((__packed__)) Config;
 
 typedef enum { NoIcon = 0, Bluetooth = 1, Heart = 2 } BluetoothIcon;
 
 typedef enum { Celsius = 0, Fahrenheit= 1 } TemperatureUnit;
-
-typedef enum { Hour, Minute } TimeType;
 
 typedef enum {
   ConfigColorKeyMinuteHand,
@@ -95,46 +106,6 @@ typedef enum {
   ConfigIntKeyBluetoothIcon
 } ConfigIntKey;
 
-typedef enum {
-  AppKeyMinuteHandColor = 0,
-  AppKeyHourHandColor,
-  AppKeyDateDisplayed,
-  AppKeyBluetoothIcon,
-  AppKeyRainbowMode,
-  AppKeyBackgroundColor,
-  AppKeyDateColor,
-  AppKeyTimeColor,
-  AppKeyInfoColor,
-  AppKeyTemperatureUnit,
-  AppKeyRefreshRate,
-  AppKeyWeatherEnabled,
-  AppKeyWeatherTemperature,
-  AppKeyWeatherIcon,
-  AppKeyWeatherFailed,
-  AppKeyWeatherRequest,
-  AppKeyJsReady
-} AppKey;
-
-typedef enum {
-  PersistKeyConfig = 0,
-  PersistKeyWeather
-} PersistKey;
-
-typedef struct {
-  int32_t minute_hand_color;
-  int32_t hour_hand_color;
-  int32_t background_color;
-  int32_t date_color;
-  int32_t time_color;
-  int32_t info_color;
-  int32_t refresh_rate; // in minutes
-  int8_t weather_enabled;
-  int8_t temperature_unit;
-  int8_t date_displayed;
-  int8_t bluetooth_icon;
-  int8_t rainbow_mode;
-} __attribute__((__packed__)) Config;
-
 static bool config_get_bool(const Config * conf, const ConfigBoolKey key){
   switch(key){
   case ConfigBoolKeyRainbowMode:
@@ -143,6 +114,19 @@ static bool config_get_bool(const Config * conf, const ConfigBoolKey key){
     return conf->date_displayed;
   default:
     return conf->weather_enabled;
+  }
+}
+
+static void config_set_bool(Config * conf, const ConfigBoolKey key, const bool value){
+  switch(key){
+  case ConfigBoolKeyRainbowMode:
+    conf->rainbow_mode = value;
+    break;
+  case ConfigBoolKeyDateDisplayed:
+    conf->date_displayed = value;
+    break;
+  default:
+    conf->weather_enabled = value;
   }
 }
 
@@ -171,6 +155,29 @@ static GColor config_get_color(const Config * conf, const ConfigColorKey key){
   return GColorFromHEX(color);
 }
 
+static void config_set_color(Config * conf, const ConfigColorKey key, const int value){
+  switch(key){
+  case ConfigColorKeyMinuteHand:
+    conf->minute_hand_color = value;
+    break;
+  case ConfigColorKeyHourHand:
+    conf->hour_hand_color = value;
+    break;
+  case ConfigColorKeyBackground:
+    conf->background_color = value;
+    break;
+  case ConfigColorKeyDate:
+    conf->date_color = value;
+    break;
+  case ConfigColorKeyTime:
+    conf->time_color = value;
+    break;
+  case ConfigColorKeyInfo:
+    conf->info_color = value;
+    break;
+  }
+}
+
 static int config_get_int(const Config * conf, const ConfigIntKey key){
   switch(key){
   case ConfigIntKeyBluetoothIcon:
@@ -181,6 +188,83 @@ static int config_get_int(const Config * conf, const ConfigIntKey key){
     return conf->temperature_unit;
   }
 }
+
+static void config_set_int(Config * conf, const ConfigIntKey key, const int value){
+  switch(key){
+  case ConfigIntKeyBluetoothIcon:
+    conf->bluetooth_icon = value;
+    break;
+  case ConfigIntKeyRefreshRate:
+    conf->refresh_rate = value;
+    break;
+  default:
+    conf->temperature_unit = value;
+  }
+}
+
+static Config * config_create(){
+  Config *conf =  (Config *) malloc(sizeof(Config));
+  *conf = (Config){
+    .minute_hand_color = 0xffffff,
+    .hour_hand_color   = 0xff0000,
+    .background_color  = 0x000000,
+    .date_color        = 0x555555,
+    .time_color        = 0xAAAAAA,
+    .info_color        = 0x555555,
+    .date_displayed    = true,
+    .bluetooth_icon    = Bluetooth,
+    .temperature_unit  = Celsius,
+    .rainbow_mode      = false,
+    .weather_enabled   = true,
+    .refresh_rate      = 20,
+  };
+  return conf;
+}
+
+static Config * config_load(const int persist_key){
+  Config * conf = config_create();
+  if(persist_exists(persist_key)){
+    persist_read_data(persist_key, conf, sizeof(Config));
+  }
+  return conf;
+}
+
+static void config_save(Config * conf, const int persist_key){
+  persist_write_data(persist_key, conf, sizeof(Config));
+}
+
+static Config * config_destroy(Config * conf){
+  free(conf);
+  return NULL;
+}
+
+
+typedef enum { Hour, Minute } TimeType;
+
+typedef enum {
+  AppKeyMinuteHandColor = 0,
+  AppKeyHourHandColor,
+  AppKeyDateDisplayed,
+  AppKeyBluetoothIcon,
+  AppKeyRainbowMode,
+  AppKeyBackgroundColor,
+  AppKeyDateColor,
+  AppKeyTimeColor,
+  AppKeyInfoColor,
+  AppKeyTemperatureUnit,
+  AppKeyRefreshRate,
+  AppKeyWeatherEnabled,
+  AppKeyWeatherTemperature,
+  AppKeyWeatherIcon,
+  AppKeyWeatherFailed,
+  AppKeyWeatherRequest,
+  AppKeyJsReady
+} AppKey;
+
+typedef enum {
+  PersistKeyConfig = 0,
+  PersistKeyWeather
+} PersistKey;
 
 typedef struct {
   int32_t timestamp;
@@ -217,7 +301,6 @@ static Layer * s_time_layer;
 
 static Config * s_config;
 static Weather s_weather;
-static ConfigUpdatedCallback s_config_updated_callback;
 
 static bool s_bt_connected;
 
@@ -250,57 +333,13 @@ static bool weather_timedout(){
   return time(NULL) > expiration;
 }
 
-static void fetch_int32(const DictionaryIterator * iter, const int key, int32_t * config){
-  Tuple * tuple = dict_find(iter, key);
-  if(tuple){
-    *config = tuple->value->int32;
-  }
-}
-
-static void fetch_int8(const DictionaryIterator * iter, const int key, int8_t * config){
-  Tuple * tuple = dict_find(iter, key);
-  if(tuple){
-    *config = tuple->value->int8;
-  }
-}
-
-static Config * config_create(){
-  Config *conf =  (Config *) malloc(sizeof(Config));
-  *conf = (Config){
-    .minute_hand_color = 0xffffff,
-    .hour_hand_color   = 0xff0000,
-    .background_color  = 0x000000,
-    .date_color        = 0x555555,
-    .time_color        = 0xAAAAAA,
-    .info_color        = 0x555555,
-    .date_displayed    = true,
-    .bluetooth_icon    = Bluetooth,
-    .temperature_unit  = Celsius,
-    .rainbow_mode      = false,
-    .weather_enabled   = true,
-    .refresh_rate      = 20,
-  };
-  return conf;
-}
-
-static Config * config_load(const int persist_key){
-  Config * conf = config_create();
-  if(persist_exists(persist_key)){
-    persist_read_data(persist_key, conf, sizeof(Config));
-  }
-  return conf;
-}
-
-static Config * config_destroy(Config * conf){
-  free(conf);
-  return NULL;
-}
+static void config_updated_callback();
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple * tuple = dict_read_first(iter);
   bool config_message = false;
   while (tuple) {
-    if(tuple->key < AppKeyInfoColor){
+    if(tuple->key < AppKeyWeatherTemperature){
       config_message = true;
     }
     switch (tuple->key) {
@@ -332,34 +371,50 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
       update_info_layer();
       break;
     case AppKeyRefreshRate:
-      s_config->refresh_rate = tuple->value->int32;
+      config_set_int(s_config, ConfigIntKeyRefreshRate, tuple->value->int32);
+      break;
+    case AppKeyTemperatureUnit:
+      config_set_int(s_config, ConfigIntKeyTemperatureUnit, tuple->value->int32);
+      break;
+    case AppKeyBluetoothIcon:
+      config_set_int(s_config, ConfigIntKeyBluetoothIcon, tuple->value->int32);
+      break;
+    case AppKeyDateDisplayed:
+      config_set_bool(s_config, ConfigBoolKeyDateDisplayed, tuple->value->int8);
+      break;
+    case AppKeyRainbowMode:
+      config_set_bool(s_config, ConfigBoolKeyRainbowMode, tuple->value->int8);
+      break;
+    case AppKeyBackgroundColor:
+      config_set_color(s_config, ConfigColorKeyBackground, tuple->value->int32);
+      break;
+    case AppKeyTimeColor:
+      config_set_color(s_config, ConfigColorKeyTime, tuple->value->int32);
+      break;
+    case AppKeyDateColor:
+      config_set_color(s_config, ConfigColorKeyDate, tuple->value->int32);
+      break;
+    case AppKeyHourHandColor:
+      config_set_color(s_config, ConfigColorKeyHourHand, tuple->value->int32);
+      break;
+    case AppKeyMinuteHandColor:
+      config_set_color(s_config, ConfigColorKeyMinuteHand, tuple->value->int32);
       break;
     case AppKeyWeatherEnabled:
-      s_config->weather_enabled = tuple->value->int8;
-      update_info_layer();
+      config_set_bool(s_config, ConfigBoolKeyWeatherEnabled, tuple->value->int8);
     }
     tuple = dict_read_next(iter);
   }
-  fetch_int32(iter, AppKeyMinuteHandColor, &s_config->minute_hand_color);
-  fetch_int32(iter, AppKeyHourHandColor, &s_config->hour_hand_color);
-  fetch_int32(iter, AppKeyBackgroundColor, &s_config->background_color);
-  fetch_int32(iter, AppKeyDateColor, &s_config->date_color);
-  fetch_int32(iter, AppKeyTimeColor, &s_config->time_color);
-  fetch_int8(iter, AppKeyTemperatureUnit, &s_config->temperature_unit);
-  fetch_int8(iter, AppKeyDateDisplayed, &s_config->date_displayed);
-  fetch_int8(iter, AppKeyBluetoothIcon, &s_config->bluetooth_icon);
-  fetch_int8(iter, AppKeyRainbowMode, &s_config->rainbow_mode);
-  persist_write_data(PersistKeyConfig, s_config, sizeof(Config));
-  s_config_updated_callback();
   if(config_message){
+    config_save(s_config, PersistKeyConfig);
+    update_info_layer();
+    config_updated_callback();
     s_weather.timestamp = time(NULL);
     send_weather_request();
   }
 }
 
-
-static void init_config(ConfigUpdatedCallback callback){
-  s_config_updated_callback = callback;
+static void init_config(){
   app_message_register_inbox_received(inbox_received_handler);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   s_config = config_load(PersistKeyConfig);
@@ -554,9 +609,9 @@ static void init_hands(){
   layer_set_update_proc(s_minute_hand_layer,   update_minute_hand_layer);
   layer_set_update_proc(s_center_circle_layer, update_center_circle_layer);
 
+  layer_add_child(s_root_layer, s_hour_hand_layer);
   layer_add_child(s_root_layer, s_minute_hand_layer);
   layer_add_child(s_root_layer, (Layer *)s_rainbow_hand_layer);
-  layer_add_child(s_root_layer, s_hour_hand_layer);
   layer_add_child(s_root_layer, s_center_circle_layer);
 
   hands_update_rainbow_mode_config_changed();
@@ -757,7 +812,7 @@ static void init() {
   s_weather_failure_count = 0;
   s_js_ready = false;
   s_can_send_request = true;
-  init_config(config_updated_callback);
+  init_config();
   s_main_window = window_create();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
     .load = main_window_load,
