@@ -8,6 +8,9 @@ typedef struct {
   int day;
 } Time;
 
+typedef enum { NoIcon = 0, Bluetooth = 1, Heart = 2 } BluetoothIcon;
+typedef enum { Celsius = 0, Fahrenheit= 1 } TemperatureUnit;
+
 // Pebble specific macros
 #define set_stroke_width(ctx, stroke_width) graphics_context_set_stroke_width(ctx, stroke_width)
 #define set_stroke_color(ctx, color)  graphics_context_set_stroke_color(ctx, color)
