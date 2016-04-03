@@ -74,6 +74,7 @@ static GPoint NORTH_INFO_CENTER = { .x = 72, .y = 56 };
 typedef struct {
   Layer * layer;
   GFont font;
+  GRect frame;
   GColor color;
   char text[20];
 } TextBlock;
@@ -82,24 +83,22 @@ static void text_block_update_proc(struct Layer *layer, GContext *ctx){
   TextBlock ** data = (TextBlock**) layer_get_data(layer);
   TextBlock * text_block = *data;
   graphics_context_set_text_color(ctx, text_block->color);
-  GRect frame = layer_get_frame(layer);
-  frame.origin = GPoint(0,0);
-  draw_text(ctx, text_block->text, text_block->font, frame);
-
+  draw_text(ctx, text_block->text, text_block->font, text_block->frame);
 }
 
 static TextBlock * text_block_create(Layer * parent_layer, const GPoint center, const GFont font){
   TextBlock * text_block = (TextBlock *) malloc(sizeof(TextBlock));
-  const GSize size = GSize(100, 23);
-  const GRect bounds = (GRect) {
-    .origin = GPoint(center.x - size.w / 2 , center.y - size.h / 2),
-    .size   = size
-  };
-  Layer * layer = layer_create_with_data(bounds, sizeof(TextBlock*));
+  Layer * layer = layer_create_with_data(layer_get_frame(parent_layer), sizeof(TextBlock*));
   TextBlock ** data = (TextBlock**) layer_get_data(layer);
   *data = text_block;
   text_block->layer = layer;
   text_block->font = font;
+  const GSize size = GSize(100, 23);
+  const GRect frame = (GRect) {
+    .origin = GPoint(center.x - size.w / 2 , center.y - size.h / 2),
+    .size   = size
+  };
+  text_block->frame = frame;
   layer_set_update_proc(layer, text_block_update_proc);
   layer_add_child(parent_layer, layer);
   return text_block;
@@ -119,6 +118,16 @@ static void text_block_set_text(TextBlock * text_block, const char * text, const
 
 static void text_block_set_visible(TextBlock * text_block, const bool visible){
   layer_set_hidden(text_block->layer, !visible);
+}
+
+static void text_block_move(TextBlock * text_block, const GPoint center){
+  const GSize size = GSize(100, 23);
+  const GRect frame = (GRect) {
+    .origin = GPoint(center.x - size.w / 2 , center.y - size.h / 2),
+    .size   = size
+  };
+  text_block->frame = frame;
+  layer_mark_dirty(text_block->layer);
 }
 
 typedef enum { Hour, Minute } TimeType;
@@ -170,6 +179,8 @@ static GPoint s_center;
 
 static TextBlock * s_north_info;
 static TextBlock * s_south_info;
+static TextBlock * s_hour_text;
+static TextBlock * s_minute_text;
 
 static Layer * s_tick_layer;
 
@@ -178,8 +189,6 @@ static Layer * s_minute_hand_layer;
 static Layer * s_hour_hand_layer;
 static RotBitmapLayer * s_rainbow_hand_layer;
 static Layer * s_center_circle_layer;
-
-static Layer * s_time_layer;
 
 static Config * s_config;
 static Weather s_weather;
@@ -207,16 +216,6 @@ static void schedule_weather_request(int timeout){
   s_weather_timer = app_timer_register(timeout, send_weather_request_callback, NULL);
 }
 
-static int weather_expiration(){
-  int timeout = config_get_int(s_config, ConfigIntKeyRefreshRate) * 60;
-  return s_weather.timestamp + timeout;
-}
-
-static bool weather_timedout(){
-  int expiration = weather_expiration();
-  return time(NULL) > expiration;
-}
-
 static void config_updated_callback();
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
@@ -239,6 +238,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
       }
       break;
     case AppKeyWeatherTemperature:
+      d("temp");
       s_can_send_request = true;
       Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);
       Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
@@ -247,7 +247,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
         s_weather.icon = icon_tuple->value->int8;
         s_weather.temperature = temp_tuple->value->int8;
       }
-      persist_write_data(PersistKeyWeather, &s_weather, sizeof(s_weather));
+      persist_write_data(PersistKeyWeather, &s_weather, sizeof(Weather));
       update_info_layer();
       break;
     case AppKeyInfoColor:
@@ -297,101 +297,39 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 }
 
 // Hands
-static bool times_overlap(const int hour, const int minute){
-  return (hour == 12 && minute < 5) || hour == minute / 5;
-}
-
-static bool time_displayed_horizontally(const int hour, const int minute){
-  return times_overlap(hour, minute) && (hour <= 1 || hour >= 11 || (hour <= 7 && hour >= 5));
-}
-
-static bool time_displayed_vertically(const int hour, const int minute){
-  return times_overlap(hour, minute) && ((hour > 1 && hour < 5) || (hour > 7 && hour < 11));
-}
-
-static GSize get_display_box_size(const char * text){
-  return graphics_text_layout_get_content_size(text, s_font, s_root_layer_bounds, GTextOverflowModeWordWrap, GTextAlignmentCenter);
-}
-
-static GRect get_display_box(const GPoint box_center, const char * time){
-  const GSize box_size    = get_display_box_size(time);
-  const GPoint box_origin = GPoint(box_center.x - box_size.w / 2, box_center.y - box_size.h / 2);
-  const GRect box         = (GRect) { .origin = box_origin, .size = box_size };
-  return box;
-}
-
-static GPoint get_time_point(const int time, const TimeType type){
-  if(type == Minute){
-    return time_points[time / 5];
-  }
-  return time_points[time % 12];
-}
-
-static void display_number(GContext * ctx, const GRect box, const int number, const bool leading_zero){
-  char buffer[] = "00";
-  if(leading_zero){
-    snprintf(buffer, sizeof(buffer), "%02d", number);
-  }else{
-    snprintf(buffer, sizeof(buffer), "%d", number);
-  }
-  draw_text(ctx, buffer, s_font, box);
-}
-
-static void display_time(GContext * ctx, const int hour, const int minute){
-  graphics_context_set_text_color(ctx, config_get_color(s_config, ConfigColorKeyTime));
-  char buffer[] = "00:00";
-  if(time_displayed_horizontally(hour, minute)){
-    snprintf(buffer, sizeof(buffer), "%02d:%02d", hour, minute);
-    const GPoint box_center = get_time_point(hour, Hour);
-    const GRect box         = get_display_box(box_center, "00:00");
-    draw_text(ctx, buffer, s_font, box);
-  }else{
-    GRect hour_box;
-    GRect minute_box;
-    if(time_displayed_vertically(hour, minute)){
-      const GPoint box_center = get_time_point(hour, Hour);
-      const GRect box         = get_display_box(box_center, "00");
-      hour_box                = grect_translated(box, 0, - box.size.h / 2 - 4);
-      minute_box              = grect_translated(box, 0, box.size.h / 2 - 2);
-    }else{
-      const GPoint hour_box_center   = get_time_point(hour, Hour);
-      hour_box                       = get_display_box(hour_box_center, "00");
-      const GPoint minute_box_center = get_time_point(minute, Minute);
-      minute_box                     = get_display_box(minute_box_center, "00");
-    }
-    display_number(ctx, hour_box, hour, false);
-    display_number(ctx, minute_box, minute, true);
-  }
-}
-
-static void display_date(GContext * ctx, const int day){
-  const GColor date_color = config_get_color(s_config, ConfigColorKeyDate);
-  char buffer[] = "00";
-  snprintf(buffer, sizeof(buffer), "%d", day);
-  text_block_set_text(s_south_info, buffer, date_color);
-}
-
-static void time_layer_update_callback(Layer * layer, GContext *ctx){
+static void update_times(){
   Time current_time = get_current_time();
-  display_time(ctx, current_time.hour, current_time.minute);
-  if(config_get_bool(s_config, ConfigBoolKeyDateDisplayed)){
-    display_date(ctx, current_time.day);
+  int hour = current_time.hour;
+  int minute = current_time.minute;
+  GColor color = config_get_color(s_config, ConfigColorKeyTime);
+  char buffer[] = "00:00";
+  GPoint hour_box_center   = time_points[hour % 12];
+  GPoint minute_box_center = time_points[minute / 5];
+  const bool time_conflicts = hour % 12 == minute / 5;
+  const bool horizontal_display = time_conflicts && (hour <= 1 || hour >= 11 || (hour >= 5 && hour <= 7));
+  if(horizontal_display){
+    snprintf(buffer, sizeof(buffer), "%02d:%02d", hour, minute);
+    text_block_set_text(s_hour_text, buffer, color);
+    text_block_set_visible(s_minute_text, false);
+  }else{
+    text_block_set_visible(s_minute_text, true);
+    bool vertical_display = time_conflicts && ((hour > 1 && hour < 5) || (hour > 7 && hour < 11));
+    if(vertical_display){
+      hour_box_center.y -= 12;
+      minute_box_center.y += 12;
+    }
+    snprintf(buffer, 3, "%d", current_time.hour);
+    text_block_set_text(s_hour_text, buffer, color);
+    snprintf(buffer, 3, "%02d", current_time.minute);
+    text_block_set_text(s_minute_text, buffer, color);
   }
-}
-
-static void init_times(){
-  s_time_layer = layer_create(s_root_layer_bounds);
-  layer_set_update_proc(s_time_layer, time_layer_update_callback);
-  layer_add_child(s_root_layer, s_time_layer);
-}
-
-static void deinit_times(){
-  layer_destroy(s_time_layer);
-}
-
-static void mark_dirty_time_layer(){
-  if(s_time_layer){
-    layer_mark_dirty(s_time_layer);
+  text_block_move(s_hour_text, hour_box_center);
+  text_block_move(s_minute_text, minute_box_center);
+  if(config_get_bool(s_config, ConfigBoolKeyDateDisplayed)){
+    const GColor date_color = config_get_color(s_config, ConfigColorKeyDate);
+    char buffer[] = "00";
+    snprintf(buffer, sizeof(buffer), "%d", current_time.day);
+    text_block_set_text(s_south_info, buffer, date_color);
   }
 }
 
@@ -549,7 +487,13 @@ static void update_info_layer(){
       strncat(info_buffer, "Z", 2);
     }
   }
-  if(!weather_timedout() && config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
+  const int timeout = config_get_int(s_config, ConfigIntKeyRefreshRate) * 60;
+  d("timeout %d", timeout);
+  const int expiration =  s_weather.timestamp + timeout;
+  d("expiration %d", expiration);
+  const bool weather_valid = time(NULL) < expiration;
+  d("waether valid %d", weather_valid);
+  if(weather_valid && config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
     int temp = s_weather.temperature;
     if(config_get_int(s_config, ConfigIntKeyTemperatureUnit) == Fahrenheit){
       temp = tempToF(temp);
@@ -589,8 +533,10 @@ static void send_weather_request(){
 }
 
 static void try_send_weather_request(){
-  const bool almost_expired = time(NULL) > weather_expiration() - 60;
-  const bool can_update_weather = !almost_expired || !(s_can_send_request && s_js_ready);
+  const int timeout = (config_get_int(s_config, ConfigIntKeyRefreshRate) - 1) * 60;
+  const int expiration =  s_weather.timestamp + timeout;
+  const bool almost_expired = time(NULL) > expiration;
+  const bool can_update_weather = almost_expired && s_can_send_request && s_js_ready;
   if(can_update_weather){
     send_weather_request();
   }
@@ -599,7 +545,7 @@ static void try_send_weather_request(){
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   schedule_weather_request(100);
   update_current_time();
-  mark_dirty_time_layer();
+  update_times();
   mark_dirty_tick_layer();
   hands_update_time_changed();
   update_info_layer();
@@ -607,7 +553,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
 
 static void config_updated_callback(){
   layer_mark_dirty(s_root_layer);
-  mark_dirty_time_layer();
+  update_times();
   mark_dirty_tick_layer();
   update_info_layer();
   hands_update_rainbow_mode_config_changed();
@@ -632,17 +578,23 @@ static void main_window_load(Window *window) {
   bluetooth_connection_service_subscribe(bt_handler);
   bt_handler(connection_service_peek_pebble_app_connection());
 
-  init_times();
+  s_hour_text = text_block_create(s_root_layer, time_points[6] , s_font);
+  s_minute_text = text_block_create(s_root_layer, time_points[0] , s_font);
+
   init_tick_layer();
   init_hands();
 
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   update_current_time();
+  update_times();
 }
 
 static void main_window_unload(Window *window) {
   deinit_hands();
-  deinit_times();
+
+  text_block_destroy(s_hour_text);
+  text_block_destroy(s_minute_text);
+
   deinit_tick_layer();
 
   bluetooth_connection_service_unsubscribe();
@@ -657,7 +609,9 @@ static void init() {
   s_js_ready = false;
   s_can_send_request = true;
   s_config = config_load(PersistKeyConfig);
-
+  if(persist_exists(PersistKeyWeather)){
+    persist_read_data(PersistKeyWeather, &s_weather, sizeof(Weather));
+  }
   app_message_register_inbox_received(inbox_received_handler);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 
