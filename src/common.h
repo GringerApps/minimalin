@@ -8,8 +8,8 @@ typedef struct {
   int day;
 } Time;
 
-typedef enum { NoIcon = 0, Bluetooth = 1, Heart = 2 } BluetoothIcon;
-typedef enum { Celsius = 0, Fahrenheit= 1 } TemperatureUnit;
+typedef enum { NoIcon = 0, Bluetooth , Heart } BluetoothIcon;
+typedef enum { Celsius = 0, Fahrenheit } TemperatureUnit;
 
 // Pebble specific macros
 #define set_stroke_width(ctx, stroke_width) graphics_context_set_stroke_width(ctx, stroke_width)
@@ -25,7 +25,4 @@ GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius);
 float angle(int time, int max);
 Time get_current_time();
 void update_current_time();
-void init_font();
-void deinit_font();
-GFont get_font();
 int tempToF(const int temp);

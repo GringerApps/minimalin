@@ -2,7 +2,6 @@
 
 static Time s_current_time;
 static bool s_current_time_set = false;
-static GFont s_font;
 
 int tempToF(const int temp){
   return temp * 9 / 5 + 32;
@@ -48,16 +47,4 @@ float angle(int time, int max){
     return 0;
   }
   return TRIG_MAX_ANGLE * time / max;
-}
-
-void init_font(){
-  s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_NUPE_23));
-}
-
-void deinit_font(){
-  fonts_unload_custom_font(s_font);
-}
-
-GFont get_font(){
-  return s_font;
 }

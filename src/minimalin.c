@@ -37,6 +37,7 @@ static GPoint time_points[12] = {
   {56,  30} ,
 };
 static GPoint SOUTH_INFO_CENTER = { .x = 90, .y = 118 };
+static GPoint NORTH_INFO_CENTER = { .x = 90, .y = 62 };
 #else
 static GPoint ticks_points[12][2] = {
   {{72, 0}  , {72, 7}  },
@@ -67,6 +68,7 @@ static GPoint time_points[12] = {
   {32,  15} ,
 };
 static GPoint SOUTH_INFO_CENTER = { .x = 72, .y = 112 };
+static GPoint NORTH_INFO_CENTER = { .x = 72, .y = 56 };
 #endif
 
 typedef struct {
@@ -152,7 +154,7 @@ static Layer * s_root_layer;
 static GRect s_root_layer_bounds;
 static GPoint s_center;
 
-static TextLayer * s_info_layer;
+static TextBlock * s_north_info;
 static TextBlock * s_south_info;
 
 static Layer * s_tick_layer;
@@ -175,6 +177,8 @@ static AppTimer * s_weather_timer;
 static int s_weather_failure_count;
 static int s_can_send_request;
 static int s_js_ready;
+
+static GFont s_font;
 
 static void update_info_layer();
 
@@ -234,7 +238,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
       break;
     case AppKeyInfoColor:
       s_config->info_color = tuple->value->int32;
-      update_info_layer();
       break;
     case AppKeyRefreshRate:
       config_set_int(s_config, ConfigIntKeyRefreshRate, tuple->value->int32);
@@ -279,12 +282,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   }
 }
 
-static void init_config(){
-  app_message_register_inbox_received(inbox_received_handler);
-  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
-  s_config = config_load(PersistKeyConfig);
-}
-
 // Hands
 static bool times_overlap(const int hour, const int minute){
   return (hour == 12 && minute < 5) || hour == minute / 5;
@@ -299,7 +296,7 @@ static bool time_displayed_vertically(const int hour, const int minute){
 }
 
 static GSize get_display_box_size(const char * text){
-  return graphics_text_layout_get_content_size(text, get_font(), s_root_layer_bounds, GTextOverflowModeWordWrap, GTextAlignmentCenter);
+  return graphics_text_layout_get_content_size(text, s_font, s_root_layer_bounds, GTextOverflowModeWordWrap, GTextAlignmentCenter);
 }
 
 static GRect get_display_box(const GPoint box_center, const char * time){
@@ -323,7 +320,7 @@ static void display_number(GContext * ctx, const GRect box, const int number, co
   }else{
     snprintf(buffer, sizeof(buffer), "%d", number);
   }
-  draw_text(ctx, buffer, get_font(), box);
+  draw_text(ctx, buffer, s_font, box);
 }
 
 static void display_time(GContext * ctx, const int hour, const int minute){
@@ -333,7 +330,7 @@ static void display_time(GContext * ctx, const int hour, const int minute){
     snprintf(buffer, sizeof(buffer), "%02d:%02d", hour, minute);
     const GPoint box_center = get_time_point(hour, Hour);
     const GRect box         = get_display_box(box_center, "00:00");
-    draw_text(ctx, buffer, get_font(), box);
+    draw_text(ctx, buffer, s_font, box);
   }else{
     GRect hour_box;
     GRect minute_box;
@@ -529,10 +526,8 @@ static void mark_dirty_tick_layer(){
 // Infos: bluetooth + weather
 
 static void update_info_layer(){
-  text_layer_set_text_color(s_info_layer, config_get_color(s_config, ConfigColorKeyInfo));
-  static char s_info_buffer[10];
+  char s_info_buffer[10] = {0};
   int idx = 0;
-  s_info_buffer[0] = 0;
 
   const BluetoothIcon new_icon = config_get_int(s_config, ConfigIntKeyBluetoothIcon);
   if(!s_bt_connected && new_icon == Bluetooth){
@@ -540,7 +535,6 @@ static void update_info_layer(){
   }else if(!s_bt_connected && new_icon == Heart){
     s_info_buffer[idx++] = 'Z';
   }
-  d("%s", weather_timedout() ? "true" : "false");
   if(!weather_timedout() && config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
     s_info_buffer[idx++] = s_weather.icon;
 
@@ -570,7 +564,8 @@ static void update_info_layer(){
   }else{
     s_info_buffer[idx] = 0;
   }
-  text_layer_set_text(s_info_layer, s_info_buffer);
+  const GColor info_color = config_get_color(s_config, ConfigColorKeyInfo);
+  text_block_set_text(s_north_info, s_info_buffer, info_color);
 }
 
 static void bt_handler(bool connected){
@@ -611,27 +606,6 @@ static void try_send_weather_request(){
   send_weather_request();
 }
 
-static void init_info_layer(){
-  const GSize size = GSize(100, 23);
-  const GRect rect_at_center = (GRect) { .origin = s_center, .size = size };
-  const GRect bounds = grect_translated(rect_at_center, - size.w / 2, - size.h + ICON_OFFSET);
-
-  s_info_layer = text_layer_create(bounds);
-  text_layer_set_text_alignment(s_info_layer, GTextAlignmentCenter);
-  text_layer_set_font(s_info_layer, get_font());
-  text_layer_set_overflow_mode(s_info_layer, GTextOverflowModeWordWrap);
-  text_layer_set_background_color(s_info_layer, GColorClear);
-  layer_add_child(s_root_layer, text_layer_get_layer(s_info_layer));
-
-  bluetooth_connection_service_subscribe(bt_handler);
-  bt_handler(connection_service_peek_pebble_app_connection());
-}
-
-static void deinit_info_layer(){
-  bluetooth_connection_service_unsubscribe();
-  text_layer_destroy(s_info_layer);
-}
-
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   schedule_weather_request(100);
   update_current_time();
@@ -645,6 +619,7 @@ static void config_updated_callback(){
   layer_mark_dirty(s_root_layer);
   mark_dirty_time_layer();
   mark_dirty_tick_layer();
+  update_info_layer();
   hands_update_rainbow_mode_config_changed();
   hands_update_minute_hand_config_changed();
   hands_update_hour_hand_config_changed();
@@ -658,12 +633,15 @@ static void main_window_load(Window *window) {
   update_current_time();
   window_set_background_color(window, config_get_color(s_config, ConfigColorKeyBackground));
 
-  init_font();
+  s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_NUPE_23));
 
-  s_south_info = text_block_create(s_root_layer, SOUTH_INFO_CENTER, get_font());
+  s_south_info = text_block_create(s_root_layer, SOUTH_INFO_CENTER, s_font);
   text_block_set_visible(s_south_info, config_get_bool(s_config, ConfigBoolKeyDateDisplayed));
 
-  init_info_layer();
+  s_north_info = text_block_create(s_root_layer, NORTH_INFO_CENTER, s_font);
+  bluetooth_connection_service_subscribe(bt_handler);
+  bt_handler(connection_service_peek_pebble_app_connection());
+
   init_times();
   init_tick_layer();
   init_hands();
@@ -673,19 +651,26 @@ static void main_window_load(Window *window) {
 }
 
 static void main_window_unload(Window *window) {
-  text_block_destroy(s_south_info);
   deinit_hands();
   deinit_times();
   deinit_tick_layer();
-  deinit_info_layer();
-  deinit_font();
+
+  bluetooth_connection_service_unsubscribe();
+  text_block_destroy(s_south_info);
+  text_block_destroy(s_north_info);
+
+  fonts_unload_custom_font(s_font);
 }
 
 static void init() {
   s_weather_failure_count = 0;
   s_js_ready = false;
   s_can_send_request = true;
-  init_config();
+  s_config = config_load(PersistKeyConfig);
+
+  app_message_register_inbox_received(inbox_received_handler);
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+
   s_main_window = window_create();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
     .load = main_window_load,
@@ -697,6 +682,7 @@ static void init() {
 static void deinit() {
   config_destroy(s_config);
   tick_timer_service_unsubscribe();
+  app_message_deregister_callbacks();
   window_destroy(s_main_window);
 }
 
