@@ -36,6 +36,7 @@ static GPoint time_points[12] = {
   {30,  56} ,
   {56,  30} ,
 };
+static GPoint SOUTH_INFO_CENTER = { .x = 90, .y = 118 };
 #else
 static GPoint ticks_points[12][2] = {
   {{72, 0}  , {72, 7}  },
@@ -65,6 +66,7 @@ static GPoint time_points[12] = {
   {18,  47} ,
   {32,  15} ,
 };
+static GPoint SOUTH_INFO_CENTER = { .x = 72, .y = 112 };
 #endif
 
 typedef enum { Hour, Minute } TimeType;
@@ -108,7 +110,6 @@ static const int MINUTE_HAND_RADIUS = 52;
 static const int ICON_OFFSET = -18;
 static const int TICK_STROKE = 2;
 static const int TICK_LENGTH = 6;
-static const int DATE_Y_OFFSET = 28;
 
 static Window * s_main_window;
 static Layer * s_root_layer;
@@ -318,8 +319,8 @@ static void display_time(GContext * ctx, const int hour, const int minute){
 
 static void display_date(GContext * ctx, const int day){
   set_text_color(ctx, config_get_color(s_config, ConfigColorKeyDate));
-  const GRect box = get_display_box(s_center, "00");
-  display_number(ctx, grect_translated(box, 0, DATE_Y_OFFSET), day, false);
+  const GRect box = get_display_box(SOUTH_INFO_CENTER, "00");
+  display_number(ctx, box, day, false);
 }
 
 static void time_layer_update_callback(Layer * layer, GContext *ctx){
