@@ -195,32 +195,61 @@ static Weather s_weather;
 
 static bool s_bt_connected;
 
-static AppTimer * s_weather_timer;
+static AppTimer * s_weather_request_timer;
+static int s_weather_request_timeout;
 
-static int s_weather_failure_count;
-static int s_can_send_request;
 static int s_js_ready;
 
 static GFont s_font;
 
 static void update_info_layer();
 
-static void try_send_weather_request();
-static void send_weather_request();
+static void schedule_weather_request(int timeout);
 
 static void send_weather_request_callback(void * context){
-  try_send_weather_request();
+  s_weather_request_timer = NULL;
+  const int timeout = config_get_int(s_config, ConfigIntKeyRefreshRate) * 60;
+  const int expiration =  s_weather.timestamp + timeout;
+  const bool almost_expired = time(NULL) > expiration;
+  const bool can_update_weather = almost_expired && s_js_ready;
+  if(can_update_weather){
+    if(config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
+      DictionaryIterator *out_iter;
+      AppMessageResult result = app_message_outbox_begin(&out_iter);
+      if(result == APP_MSG_OK) {
+        const int value = 1;
+        dict_write_int(out_iter, AppKeyWeatherRequest, &value, sizeof(int), true);
+        result = app_message_outbox_send();
+        if(result != APP_MSG_OK) {
+          schedule_weather_request(1000);
+          e("Error sending the outbox: %d", (int)result);
+        }
+      } else {
+        schedule_weather_request(1000);
+        e("Error preparing the outbox: %d", (int)result);
+      }
+    }
+  }
 }
 
 static void schedule_weather_request(int timeout){
-  s_weather_timer = app_timer_register(timeout, send_weather_request_callback, NULL);
+  if(s_weather_request_timer){
+    int expiration = time(NULL) + timeout;
+    if(expiration < s_weather_request_timeout){
+      s_weather_request_timeout = expiration;
+      app_timer_reschedule(s_weather_request_timer, timeout);
+    }
+  }else{
+    s_weather_request_timer = app_timer_register(timeout, send_weather_request_callback, NULL);
+  }
 }
-
 static void config_updated_callback();
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple * tuple = dict_read_first(iter);
   bool config_message = false;
+  Tuple * icon_tuple;
+  Tuple * temp_tuple;
   while (tuple) {
     if(tuple->key < AppKeyWeatherTemperature){
       config_message = true;
@@ -228,20 +257,14 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     switch (tuple->key) {
     case AppKeyJsReady:
       s_js_ready = true;
-      try_send_weather_request();
+      schedule_weather_request(0);
       break;
     case AppKeyWeatherFailed:
-      s_can_send_request = true;
-      s_weather_failure_count++;
-      if(s_weather_failure_count < 5){
-        schedule_weather_request(1000);
-      }
+      schedule_weather_request(60000);
       break;
     case AppKeyWeatherTemperature:
-      d("temp");
-      s_can_send_request = true;
-      Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);
-      Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
+      icon_tuple = dict_find(iter, AppKeyWeatherIcon);
+      temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
       if(icon_tuple && temp_tuple){
         s_weather.timestamp = time(NULL);
         s_weather.icon = icon_tuple->value->int8;
@@ -292,7 +315,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   if(config_message){
     config_save(s_config, PersistKeyConfig);
     config_updated_callback();
-    send_weather_request();
+    schedule_weather_request(0);
   }
 }
 
@@ -334,19 +357,19 @@ static void update_times(){
 }
 
 static void hands_update_time_changed(){
- if(s_hour_hand_layer){
-   layer_mark_dirty(s_hour_hand_layer);
- }
- if(s_minute_hand_layer){
-   layer_mark_dirty(s_minute_hand_layer);
- }
- if(s_rainbow_hand_layer){
-   const Time current_time = get_current_time();
-   const float hand_angle = angle(current_time.minute, 60);
-   const bool rainbow_mode = config_get_bool(s_config, ConfigBoolKeyRainbowMode);
-   rot_bitmap_layer_set_angle(s_rainbow_hand_layer, hand_angle);
-   layer_set_hidden((Layer*)s_rainbow_hand_layer, !rainbow_mode);
- }
+  if(s_hour_hand_layer){
+    layer_mark_dirty(s_hour_hand_layer);
+  }
+  if(s_minute_hand_layer){
+    layer_mark_dirty(s_minute_hand_layer);
+  }
+  if(s_rainbow_hand_layer){
+    const Time current_time = get_current_time();
+    const float hand_angle = angle(current_time.minute, 60);
+    const bool rainbow_mode = config_get_bool(s_config, ConfigBoolKeyRainbowMode);
+    rot_bitmap_layer_set_angle(s_rainbow_hand_layer, hand_angle);
+    layer_set_hidden((Layer*)s_rainbow_hand_layer, !rainbow_mode);
+  }
 }
 
 static void hands_update_minute_hand_config_changed(){
@@ -487,12 +510,9 @@ static void update_info_layer(){
       strncat(info_buffer, "Z", 2);
     }
   }
-  const int timeout = config_get_int(s_config, ConfigIntKeyRefreshRate) * 60;
-  d("timeout %d", timeout);
+  const int timeout = (config_get_int(s_config, ConfigIntKeyRefreshRate) + 5) * 60;
   const int expiration =  s_weather.timestamp + timeout;
-  d("expiration %d", expiration);
   const bool weather_valid = time(NULL) < expiration;
-  d("waether valid %d", weather_valid);
   if(weather_valid && config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
     int temp = s_weather.temperature;
     if(config_get_int(s_config, ConfigIntKeyTemperatureUnit) == Fahrenheit){
@@ -511,36 +531,6 @@ static void bt_handler(bool connected){
   update_info_layer();
 }
 
-static void send_weather_request(){
-  if(config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
-    DictionaryIterator *out_iter;
-    AppMessageResult result = app_message_outbox_begin(&out_iter);
-    if(result == APP_MSG_OK) {
-      s_can_send_request = false;
-      const int value = 1;
-      dict_write_int(out_iter, AppKeyWeatherRequest, &value, sizeof(int), true);
-      result = app_message_outbox_send();
-      if(result != APP_MSG_OK) {
-        s_can_send_request = true;
-        schedule_weather_request(100);
-        e("Error sending the outbox: %d", (int)result);
-      }
-    } else {
-      schedule_weather_request(100);
-      e("Error preparing the outbox: %d", (int)result);
-    }
-  }
-}
-
-static void try_send_weather_request(){
-  const int timeout = (config_get_int(s_config, ConfigIntKeyRefreshRate) - 1) * 60;
-  const int expiration =  s_weather.timestamp + timeout;
-  const bool almost_expired = time(NULL) > expiration;
-  const bool can_update_weather = almost_expired && s_can_send_request && s_js_ready;
-  if(can_update_weather){
-    send_weather_request();
-  }
-}
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   schedule_weather_request(100);
@@ -605,9 +595,8 @@ static void main_window_unload(Window *window) {
 }
 
 static void init() {
-  s_weather_failure_count = 0;
+  s_weather_request_timeout = 0;
   s_js_ready = false;
-  s_can_send_request = true;
   s_config = config_load(PersistKeyConfig);
   if(persist_exists(PersistKeyWeather)){
     persist_read_data(PersistKeyWeather, &s_weather, sizeof(Weather));
@@ -617,8 +606,8 @@ static void init() {
 
   s_main_window = window_create();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
-    .load = main_window_load,
-    .unload = main_window_unload
+      .load = main_window_load,
+      .unload = main_window_unload
   });
   window_stack_push(s_main_window, true);
 }
