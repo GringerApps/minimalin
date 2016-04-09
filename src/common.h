@@ -18,7 +18,7 @@ typedef enum { Celsius = 0, Fahrenheit } TemperatureUnit;
 #define draw_line(clx, p1, p2)  graphics_draw_line(ctx, p1, p2)
 #define fill_circle(ctx, center, radius)  graphics_fill_circle(ctx, center, radius
 #define set_text_color(ctx, color)  graphics_context_set_text_color(ctx, color)
-#define draw_text(ctx, text, font, rect) graphics_draw_text(ctx, text, font, rect, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL)
+#define draw_text(ctx, text, font, rect)
 
 GRect grect_translated(const GRect rect, const int x, const int y);
 GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius);
