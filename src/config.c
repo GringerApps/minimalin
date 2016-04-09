@@ -1,135 +1,72 @@
 #include <pebble.h>
+#include <stdlib.h>
 #include "config.h"
-#include "common.h"
 
-static Config * config_create(){
+static Config * config_create(const int32_t size){
   Config *conf =  (Config *) malloc(sizeof(Config));
-  *conf = (Config){
-    .minute_hand_color = 0xffffff,
-    .hour_hand_color   = 0xff0000,
-    .background_color  = 0x000000,
-    .date_color        = 0x555555,
-    .time_color        = 0xAAAAAA,
-    .info_color        = 0x555555,
-    .date_displayed    = true,
-    .bluetooth_icon    = Bluetooth,
-    .temperature_unit  = Celsius,
-    .rainbow_mode      = false,
-    .weather_enabled   = true,
-    .refresh_rate      = 20,
-  };
+  conf->data = (ConfValue *) malloc(size * sizeof(ConfValue));
+  conf->size = size;
   return conf;
 }
 
-bool config_get_bool(const Config * conf, const ConfigBoolKey key){
-  switch(key){
-  case ConfigBoolKeyRainbowMode:
-    return conf->rainbow_mode;
-  case ConfigBoolKeyDateDisplayed:
-    return conf->date_displayed;
-  default:
-    return conf->weather_enabled;
+static ConfValue * value_for_key(const Config * conf, const int32_t key){
+  for(int32_t i = 0; i < conf->size; i++){
+    ConfValue * v = &conf->data[i];
+    if(v->key == key){
+      return v;
+    }
+  }
+  return NULL;
+}
+
+int8_t config_get_bool(const Config * conf, const int32_t key){
+  ConfValue * v = value_for_key(conf, key);
+  if(v){
+    return v->value.boolean;
+  }
+  return false;
+}
+
+void config_set_bool(Config * conf, const int32_t key, const int8_t value){
+  ConfValue * v = value_for_key(conf, key);
+  if(v){
+    v->value.boolean = value;
   }
 }
 
-void config_set_bool(Config * conf, const ConfigBoolKey key, const bool value){
-  switch(key){
-  case ConfigBoolKeyRainbowMode:
-    conf->rainbow_mode = value;
-    break;
-  case ConfigBoolKeyDateDisplayed:
-    conf->date_displayed = value;
-    break;
-  default:
-    conf->weather_enabled = value;
+GColor config_get_color(const Config * conf, const int32_t key){
+  return GColorFromHEX(config_get_int(conf, key));
+}
+
+int32_t config_get_int(const Config * conf, const int32_t key){
+  ConfValue * v = value_for_key(conf, key);
+  if(v){
+    return v->value.integer;
+  }
+  return 0;
+}
+
+void config_set_int(Config * conf, const int32_t key, const int32_t value){
+  ConfValue * v = value_for_key(conf, key);
+  if(v){
+    v->value.integer = value;
   }
 }
 
-GColor config_get_color(const Config * conf, const ConfigColorKey key){
-  int color = 0;
-  switch(key){
-  case ConfigColorKeyMinuteHand:
-    color = conf->minute_hand_color;
-    break;
-  case ConfigColorKeyHourHand:
-    color = conf->hour_hand_color;
-    break;
-  case ConfigColorKeyBackground:
-    color = conf->background_color;
-    break;
-  case ConfigColorKeyDate:
-    color = conf->date_color;
-    break;
-  case ConfigColorKeyTime:
-    color = conf->time_color;
-    break;
-  case ConfigColorKeyInfo:
-    color = conf->info_color;
-    break;
-  }
-  return GColorFromHEX(color);
-}
-
-void config_set_color(Config * conf, const ConfigColorKey key, const int value){
-  switch(key){
-  case ConfigColorKeyMinuteHand:
-    conf->minute_hand_color = value;
-    break;
-  case ConfigColorKeyHourHand:
-    conf->hour_hand_color = value;
-    break;
-  case ConfigColorKeyBackground:
-    conf->background_color = value;
-    break;
-  case ConfigColorKeyDate:
-    conf->date_color = value;
-    break;
-  case ConfigColorKeyTime:
-    conf->time_color = value;
-    break;
-  case ConfigColorKeyInfo:
-    conf->info_color = value;
-    break;
-  }
-}
-
-int config_get_int(const Config * conf, const ConfigIntKey key){
-  switch(key){
-  case ConfigIntKeyBluetoothIcon:
-    return conf->bluetooth_icon;
-  case ConfigIntKeyRefreshRate:
-    return conf->refresh_rate;
-  default:
-    return conf->temperature_unit;
-  }
-}
-
-void config_set_int(Config * conf, const ConfigIntKey key, const int value){
-  switch(key){
-  case ConfigIntKeyBluetoothIcon:
-    conf->bluetooth_icon = value;
-    break;
-  case ConfigIntKeyRefreshRate:
-    conf->refresh_rate = value;
-    break;
-  default:
-    conf->temperature_unit = value;
-  }
-}
-
-Config * config_load(const int persist_key){
-  Config * conf = config_create();
-  if(persist_exists(persist_key)){
-    persist_read_data(persist_key, conf, sizeof(Config));
+Config * config_load(const int32_t persist_key, int32_t size, const ConfValue * defaults){
+  Config * conf = config_create(size);
+  if(persist_read_data(persist_key, conf->data, size * sizeof(ConfValue)) == E_DOES_NOT_EXIST){
+    memcpy(conf->data, defaults, size * sizeof(ConfValue));
   }
   return conf;
 }
 
-void config_save(Config * conf, const int persist_key){
-  persist_write_data(persist_key, conf, sizeof(Config));
+void config_save(Config * conf, const int32_t persist_key){
+  persist_write_data(persist_key, conf->data, conf->size * sizeof(ConfValue));
 }
 
 Config * config_destroy(Config * conf){
+  free(conf->data);
   free(conf);
   return NULL;
 }

@@ -100,6 +100,21 @@ typedef enum {
   PersistKeyWeather
 } PersistKey;
 
+typedef enum {
+  ConfigKeyMinuteHandColor = 0,
+  ConfigKeyHourHandColor,
+  ConfigKeyBackgroundColor,
+  ConfigKeyDateColor,
+  ConfigKeyTimeColor,
+  ConfigKeyInfoColor,
+  ConfigKeyRefreshRate,
+  ConfigKeyTemperatureUnit,
+  ConfigKeyBluetoothIcon,
+  ConfigKeyWeatherEnabled,
+  ConfigKeyRainbowMode,
+  ConfigKeyDateDisplayed
+} ConfigKey;
+
 typedef struct {
   int32_t timestamp;
   int8_t icon;
@@ -114,6 +129,21 @@ static const int MINUTE_HAND_RADIUS = 52;
 static const int ICON_OFFSET = -18;
 static const int TICK_STROKE = 2;
 static const int TICK_LENGTH = 6;
+#define CONF_SIZE 12
+static ConfValue CONF_DEFAULTS[CONF_SIZE] = {
+  { .key = ConfigKeyMinuteHandColor, .type = ColorConf, .value = { .integer = 0xffffff } },
+  { .key = ConfigKeyHourHandColor, .type = ColorConf, .value = { .integer = 0xff0000 } },
+  { .key = ConfigKeyBackgroundColor, .type = ColorConf, .value = { .integer = 0x000000 } },
+  { .key = ConfigKeyDateColor, .type = ColorConf, .value = { .integer = 0x555555 } },
+  { .key = ConfigKeyTimeColor, .type = ColorConf, .value = { .integer = 0xaaaaaa } },
+  { .key = ConfigKeyInfoColor, .type = ColorConf, .value = { .integer = 0x555555 } },
+  { .key = ConfigKeyBluetoothIcon, .type = IntConf, .value = { .integer = Bluetooth } },
+  { .key = ConfigKeyTemperatureUnit, .type = IntConf, .value = { .integer = Celsius } },
+  { .key = ConfigKeyRefreshRate, .type = IntConf, .value = { .integer = 20 } },
+  { .key = ConfigKeyDateDisplayed, .type = BoolConf, .value = { .boolean = true } },
+  { .key = ConfigKeyRainbowMode, .type = BoolConf, .value = { .boolean = false } },
+  { .key = ConfigKeyWeatherEnabled, .type = BoolConf, .value = { .boolean = true } }
+};
 
 static Window * s_main_window;
 static Layer * s_root_layer;
@@ -151,12 +181,12 @@ static void schedule_weather_request(int timeout);
 
 static void send_weather_request_callback(void * context){
   s_weather_request_timer = NULL;
-  const int timeout = config_get_int(s_config, ConfigIntKeyRefreshRate) * 60;
+  const int timeout = config_get_int(s_config, ConfigKeyRefreshRate) * 60;
   const int expiration =  s_weather.timestamp + timeout;
   const bool almost_expired = time(NULL) > expiration;
   const bool can_update_weather = almost_expired && s_js_ready;
   if(can_update_weather){
-    if(config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
+    if(config_get_bool(s_config, ConfigKeyWeatherEnabled)){
       DictionaryIterator *out_iter;
       AppMessageResult result = app_message_outbox_begin(&out_iter);
       if(result == APP_MSG_OK) {
@@ -217,41 +247,41 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
       update_info_layer();
       break;
     case AppKeyInfoColor:
-      s_config->info_color = tuple->value->int32;
+      config_set_int(s_config, ConfigKeyInfoColor, tuple->value->int32);
       break;
     case AppKeyRefreshRate:
-      config_set_int(s_config, ConfigIntKeyRefreshRate, tuple->value->int32);
+      config_set_int(s_config, ConfigKeyRefreshRate, tuple->value->int32);
       break;
     case AppKeyTemperatureUnit:
-      config_set_int(s_config, ConfigIntKeyTemperatureUnit, tuple->value->int32);
+      config_set_int(s_config, ConfigKeyTemperatureUnit, tuple->value->int32);
       break;
     case AppKeyBluetoothIcon:
-      config_set_int(s_config, ConfigIntKeyBluetoothIcon, tuple->value->int32);
+      config_set_int(s_config, ConfigKeyBluetoothIcon, tuple->value->int32);
       break;
     case AppKeyDateDisplayed:
-      config_set_bool(s_config, ConfigBoolKeyDateDisplayed, tuple->value->int8);
+      config_set_bool(s_config, ConfigKeyDateDisplayed, tuple->value->int8);
       text_block_set_visible(s_south_info, tuple->value->int8);
       break;
     case AppKeyRainbowMode:
-      config_set_bool(s_config, ConfigBoolKeyRainbowMode, tuple->value->int8);
+      config_set_bool(s_config, ConfigKeyRainbowMode, tuple->value->int8);
       break;
     case AppKeyBackgroundColor:
-      config_set_color(s_config, ConfigColorKeyBackground, tuple->value->int32);
+      config_set_int(s_config, ConfigKeyBackgroundColor, tuple->value->int32);
       break;
     case AppKeyTimeColor:
-      config_set_color(s_config, ConfigColorKeyTime, tuple->value->int32);
+      config_set_int(s_config, ConfigKeyTimeColor, tuple->value->int32);
       break;
     case AppKeyDateColor:
-      config_set_color(s_config, ConfigColorKeyDate, tuple->value->int32);
+      config_set_int(s_config, ConfigKeyDateColor, tuple->value->int32);
       break;
     case AppKeyHourHandColor:
-      config_set_color(s_config, ConfigColorKeyHourHand, tuple->value->int32);
+      config_set_int(s_config, ConfigKeyHourHandColor, tuple->value->int32);
       break;
     case AppKeyMinuteHandColor:
-      config_set_color(s_config, ConfigColorKeyMinuteHand, tuple->value->int32);
+      config_set_int(s_config, ConfigKeyMinuteHandColor, tuple->value->int32);
       break;
     case AppKeyWeatherEnabled:
-      config_set_bool(s_config, ConfigBoolKeyWeatherEnabled, tuple->value->int8);
+      config_set_bool(s_config, ConfigKeyWeatherEnabled, tuple->value->int8);
     }
     tuple = dict_read_next(iter);
   }
@@ -267,7 +297,7 @@ static void update_times(){
   Time current_time = get_current_time();
   int hour = current_time.hour;
   int minute = current_time.minute;
-  GColor color = config_get_color(s_config, ConfigColorKeyTime);
+  GColor color = config_get_color(s_config, ConfigKeyTimeColor);
   char buffer[] = "00:00";
   GPoint hour_box_center   = time_points[hour % 12];
   GPoint minute_box_center = time_points[minute / 5];
@@ -291,8 +321,8 @@ static void update_times(){
   }
   text_block_move(s_hour_text, hour_box_center);
   text_block_move(s_minute_text, minute_box_center);
-  if(config_get_bool(s_config, ConfigBoolKeyDateDisplayed)){
-    const GColor date_color = config_get_color(s_config, ConfigColorKeyDate);
+  if(config_get_bool(s_config, ConfigKeyDateDisplayed)){
+    const GColor date_color = config_get_color(s_config, ConfigKeyDateColor);
     char buffer[] = "00";
     snprintf(buffer, sizeof(buffer), "%d", current_time.day);
     text_block_set_text(s_south_info, buffer, date_color);
@@ -309,7 +339,7 @@ static void hands_update_time_changed(){
   if(s_rainbow_hand_layer){
     const Time current_time = get_current_time();
     const float hand_angle = angle(current_time.minute, 60);
-    const bool rainbow_mode = config_get_bool(s_config, ConfigBoolKeyRainbowMode);
+    const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
     rot_bitmap_layer_set_angle(s_rainbow_hand_layer, hand_angle);
     layer_set_hidden((Layer*)s_rainbow_hand_layer, !rainbow_mode);
   }
@@ -330,7 +360,7 @@ static void hands_update_hour_hand_config_changed(){
 static void hands_update_rainbow_mode_config_changed(){
   const Time current_time = get_current_time();
   const float hand_angle = angle(current_time.minute, 60);
-  const bool rainbow_mode = config_get_bool(s_config, ConfigBoolKeyRainbowMode);
+  const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
   if(s_minute_hand_layer){
     layer_set_hidden(s_minute_hand_layer, rainbow_mode);
     layer_mark_dirty(s_minute_hand_layer);
@@ -350,7 +380,7 @@ static void update_minute_hand_layer(Layer *layer, GContext * ctx){
   const float hand_angle = angle(current_time.minute, 60);
   const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
   set_stroke_width(ctx, MINUTE_HAND_STROKE);
-  set_stroke_color(ctx, config_get_color(s_config, ConfigColorKeyMinuteHand));
+  set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
   draw_line(ctx, s_center, hand_end);
 }
 
@@ -359,15 +389,15 @@ static void update_hour_hand_layer(Layer * layer, GContext * ctx){
   const float hand_angle = angle(current_time.hour * 50 + current_time.minute * 50 / 60, 600);
   const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
   set_stroke_width(ctx, HOUR_HAND_STROKE);
-  set_stroke_color(ctx, config_get_color(s_config, ConfigColorKeyHourHand));
+  set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
   draw_line(ctx, s_center, hand_end);
 }
 
 static void update_center_circle_layer(Layer * layer, GContext * ctx){
-  if(config_get_bool(s_config, ConfigBoolKeyRainbowMode)){
+  if(config_get_bool(s_config, ConfigKeyRainbowMode)){
     graphics_context_set_fill_color(ctx, GColorVividViolet);
   }else{
-    graphics_context_set_fill_color(ctx, config_get_color(s_config, ConfigColorKeyHourHand));
+    graphics_context_set_fill_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
   }
   graphics_fill_circle(ctx, s_center, HOUR_CIRCLE_RADIUS);
 }
@@ -415,7 +445,7 @@ static void draw_tick(GContext *ctx, const int index){
 
 static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
   const Time current_time = get_current_time();
-  set_stroke_color(ctx, config_get_color(s_config, ConfigColorKeyTime));
+  set_stroke_color(ctx, config_get_color(s_config, ConfigKeyTimeColor));
   set_stroke_width(ctx, TICK_STROKE);
   const int hour_tick_index = current_time.hour % 12;
   draw_tick(ctx, hour_tick_index);
@@ -445,7 +475,7 @@ static void mark_dirty_tick_layer(){
 
 static void update_info_layer(){
   char info_buffer[10] = {0};
-  const BluetoothIcon new_icon = config_get_int(s_config, ConfigIntKeyBluetoothIcon);
+  const BluetoothIcon new_icon = config_get_int(s_config, ConfigKeyBluetoothIcon);
   if(!s_bt_connected){
     if(new_icon == Bluetooth){
       strncat(info_buffer, "z", 2);
@@ -453,19 +483,19 @@ static void update_info_layer(){
       strncat(info_buffer, "Z", 2);
     }
   }
-  const int timeout = (config_get_int(s_config, ConfigIntKeyRefreshRate) + 5) * 60;
+  const int timeout = (config_get_int(s_config, ConfigKeyRefreshRate) + 5) * 60;
   const int expiration =  s_weather.timestamp + timeout;
   const bool weather_valid = time(NULL) < expiration;
-  if(weather_valid && config_get_bool(s_config, ConfigBoolKeyWeatherEnabled)){
+  if(weather_valid && config_get_bool(s_config, ConfigKeyWeatherEnabled)){
     int temp = s_weather.temperature;
-    if(config_get_int(s_config, ConfigIntKeyTemperatureUnit) == Fahrenheit){
+    if(config_get_int(s_config, ConfigKeyTemperatureUnit) == Fahrenheit){
       temp = tempToF(temp);
     }
     char temp_buffer[6];
     snprintf(temp_buffer, 6, "%c%d°", s_weather.icon, temp);
     strcat(info_buffer, temp_buffer);
   }
-  const GColor info_color = config_get_color(s_config, ConfigColorKeyInfo);
+  const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
   text_block_set_text(s_north_info, info_buffer, info_color);
 }
 
@@ -492,7 +522,7 @@ static void config_updated_callback(){
   hands_update_rainbow_mode_config_changed();
   hands_update_minute_hand_config_changed();
   hands_update_hour_hand_config_changed();
-  window_set_background_color(s_main_window, config_get_color(s_config, ConfigColorKeyBackground));
+  window_set_background_color(s_main_window, config_get_color(s_config, ConfigKeyBackgroundColor));
 }
 
 static void main_window_load(Window *window) {
@@ -500,12 +530,12 @@ static void main_window_load(Window *window) {
   s_root_layer_bounds = layer_get_bounds(s_root_layer);
   s_center = grect_center_point(&s_root_layer_bounds);
   update_current_time();
-  window_set_background_color(window, config_get_color(s_config, ConfigColorKeyBackground));
+  window_set_background_color(window, config_get_color(s_config, ConfigKeyBackgroundColor));
 
   s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_NUPE_23));
 
   s_south_info = text_block_create(s_root_layer, SOUTH_INFO_CENTER, s_font);
-  text_block_set_visible(s_south_info, config_get_bool(s_config, ConfigBoolKeyDateDisplayed));
+  text_block_set_visible(s_south_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
 
   s_north_info = text_block_create(s_root_layer, NORTH_INFO_CENTER, s_font);
   bluetooth_connection_service_subscribe(bt_handler);
@@ -540,7 +570,8 @@ static void main_window_unload(Window *window) {
 static void init() {
   s_weather_request_timeout = 0;
   s_js_ready = false;
-  s_config = config_load(PersistKeyConfig);
+
+  s_config = config_load(PersistKeyConfig, CONF_SIZE, CONF_DEFAULTS);
   if(persist_exists(PersistKeyWeather)){
     persist_read_data(PersistKeyWeather, &s_weather, sizeof(Weather));
   }
