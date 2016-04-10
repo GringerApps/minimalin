@@ -78,6 +78,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   saveInt(dict, 'TemperatureUnit', configData.temperature_unit);
   saveInt(dict, 'RefreshRate', configData.refresh_rate);
   saveBool(dict, 'RainbowMode', configData.rainbow_mode);
+  dict['AppKeyConfig'] = 1;
   localStorage.setItem("Location", configData.location);
   Pebble.sendAppMessage(dict, function() {
     console.log('Send successful: ' + JSON.stringify(dict));
