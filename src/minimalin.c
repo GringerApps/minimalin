@@ -1,5 +1,4 @@
 #include <pebble.h>
-#include "common.h"
 #include "config.h"
 #include "text_block.h"
 #include "messenger.h"
@@ -73,7 +72,6 @@ static GPoint SOUTH_INFO_CENTER = { .x = 72, .y = 112 };
 static GPoint NORTH_INFO_CENTER = { .x = 72, .y = 56 };
 #endif
 
-
 typedef enum { Hour, Minute } TimeType;
 
 typedef enum {
@@ -116,6 +114,15 @@ typedef enum {
   ConfigKeyRainbowMode,
   ConfigKeyDateDisplayed
 } ConfigKey;
+
+typedef struct {
+  int hour;
+  int minute;
+  int day;
+} Time;
+
+typedef enum { NoIcon = 0, Bluetooth , Heart } BluetoothIcon;
+typedef enum { Celsius = 0, Fahrenheit } TemperatureUnit;
 
 typedef struct {
   int32_t timestamp;
@@ -178,12 +185,46 @@ static int s_js_ready;
 
 static GFont s_font;
 
-static void update_info_layer();
+static Time s_current_time;
 
+static void update_info_layer();
 static void schedule_weather_request(int timeout);
 static void update_times();
 static void update_date();
 
+void update_current_time() {
+  const time_t temp = time(NULL);
+  const struct tm *tick_time = localtime(&temp);
+  int hour = tick_time->tm_hour;
+  if(hour > 12){
+    hour -= 12;
+  }else if(hour == 0){
+    hour = 12;
+  }
+  s_current_time.hour   = hour;
+  s_current_time.minute = tick_time->tm_min;
+  s_current_time.day    = tick_time->tm_mday;
+}
+
+GRect grect_translated(const GRect rect, const int x, const int y){
+  return (GRect) {
+    .origin = GPoint(rect.origin.x + x, rect.origin.y + y),
+    .size   = rect.size
+  };
+}
+
+GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius){
+  const int diameter = radius * 2;
+  const GRect grect_for_polar = GRect(center.x - radius + 1, center.y - radius + 1, diameter, diameter);
+  return gpoint_from_polar(grect_for_polar, GOvalScaleModeFitCircle, angle);
+}
+
+float angle(int time, int max){
+  if(time == 0 || time == max){
+    return 0;
+  }
+  return TRIG_MAX_ANGLE * time / max;
+}
 static void send_weather_request_callback(void * context){
   s_weather_request_timer = NULL;
   const int timeout = config_get_int(s_config, ConfigKeyRefreshRate) * 60;
@@ -312,9 +353,8 @@ static void messenger_callback(DictionaryIterator * iter){
 
 // Hands
 static void update_times(){
-  Time current_time = get_current_time();
-  int hour = current_time.hour;
-  int minute = current_time.minute;
+  int hour = s_current_time.hour;
+  int minute = s_current_time.minute;
   GColor color = config_get_color(s_config, ConfigKeyTimeColor);
   char buffer[] = "00:00";
   GPoint hour_box_center   = time_points[hour % 12];
@@ -332,9 +372,9 @@ static void update_times(){
       hour_box_center.y -= 12;
       minute_box_center.y += 12;
     }
-    snprintf(buffer, 3, "%d", current_time.hour);
+    snprintf(buffer, 3, "%d", s_current_time.hour);
     text_block_set_text(s_hour_text, buffer, color);
-    snprintf(buffer, 3, "%02d", current_time.minute);
+    snprintf(buffer, 3, "%02d", s_current_time.minute);
     text_block_set_text(s_minute_text, buffer, color);
   }
   text_block_move(s_hour_text, hour_box_center);
@@ -342,40 +382,36 @@ static void update_times(){
 }
 
 static void update_date(){
-  Time current_time = get_current_time();
   if(config_get_bool(s_config, ConfigKeyDateDisplayed)){
     const GColor date_color = config_get_color(s_config, ConfigKeyDateColor);
     char buffer[] = "00";
-    snprintf(buffer, sizeof(buffer), "%d", current_time.day);
+    snprintf(buffer, sizeof(buffer), "%d", s_current_time.day);
     text_block_set_text(s_south_info, buffer, date_color);
   }
 }
 
 static void mark_dirty_minute_hand_layer(){
   layer_mark_dirty(s_minute_hand_layer);
-  const Time current_time = get_current_time();
-  const float hand_angle = angle(current_time.minute, 60);
+  const float hand_angle = angle(s_current_time.minute, 60);
   const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
   rot_bitmap_layer_set_angle(s_rainbow_hand_layer, hand_angle);
   layer_set_hidden((Layer*)s_rainbow_hand_layer, !rainbow_mode);
 }
 
 static void update_minute_hand_layer(Layer *layer, GContext * ctx){
-  const Time current_time = get_current_time();
-  const float hand_angle = angle(current_time.minute, 60);
+  const float hand_angle = angle(s_current_time.minute, 60);
   const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
-  set_stroke_width(ctx, MINUTE_HAND_STROKE);
-  set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
-  draw_line(ctx, s_center, hand_end);
+  graphics_context_set_stroke_width(ctx, MINUTE_HAND_STROKE);
+  graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
+  graphics_draw_line(ctx, s_center, hand_end);
 }
 
 static void update_hour_hand_layer(Layer * layer, GContext * ctx){
-  const Time current_time = get_current_time();
-  const float hand_angle = angle(current_time.hour * 50 + current_time.minute * 50 / 60, 600);
+  const float hand_angle = angle(s_current_time.hour * 50 + s_current_time.minute * 50 / 60, 600);
   const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
-  set_stroke_width(ctx, HOUR_HAND_STROKE);
-  set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
-  draw_line(ctx, s_center, hand_end);
+  graphics_context_set_stroke_width(ctx, HOUR_HAND_STROKE);
+  graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
+  graphics_draw_line(ctx, s_center, hand_end);
 }
 
 static void update_center_circle_layer(Layer * layer, GContext * ctx){
@@ -386,16 +422,15 @@ static void update_center_circle_layer(Layer * layer, GContext * ctx){
 
 // Ticks
 static void draw_tick(GContext *ctx, const int index){
-  draw_line(ctx, ticks_points[index][0], ticks_points[index][1]);
+  graphics_draw_line(ctx, ticks_points[index][0], ticks_points[index][1]);
 }
 
 static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
-  const Time current_time = get_current_time();
-  set_stroke_color(ctx, config_get_color(s_config, ConfigKeyTimeColor));
-  set_stroke_width(ctx, TICK_STROKE);
-  const int hour_tick_index = current_time.hour % 12;
+  graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyTimeColor));
+  graphics_context_set_stroke_width(ctx, TICK_STROKE);
+  const int hour_tick_index = s_current_time.hour % 12;
   draw_tick(ctx, hour_tick_index);
-  const int minute_tick_index = current_time.minute / 5;
+  const int minute_tick_index = s_current_time.minute / 5;
   if(hour_tick_index != minute_tick_index){
     draw_tick(ctx, minute_tick_index);
   }
@@ -419,7 +454,7 @@ static void update_info_layer(){
   if(weather_valid && config_get_bool(s_config, ConfigKeyWeatherEnabled)){
     int temp = s_weather.temperature;
     if(config_get_int(s_config, ConfigKeyTemperatureUnit) == Fahrenheit){
-      temp = tempToF(temp);
+      temp = temp * 9 / 5 + 32;
     }
     char temp_buffer[6];
     snprintf(temp_buffer, 6, "%c%d°", s_weather.icon, temp);

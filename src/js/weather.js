@@ -65,7 +65,7 @@ function fetchWeather(query) {
 
 function locationSuccess(pos) {
   var coordinates = pos.coords;
-  fetchWeatherFromCoordinates(coordinates.latitude, coordinates.longitude);
+  fetchWeatherForCoordinates(coordinates.latitude, coordinates.longitude);
 }
 
 function locationError(err) {
