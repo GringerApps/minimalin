@@ -193,7 +193,7 @@ static void update_times();
 static void update_date();
 static void mark_dirty_minute_hand_layer();
 
-void update_current_time() {
+static void update_current_time() {
   const time_t temp = time(NULL);
   const struct tm *tick_time = localtime(&temp);
   int hour = tick_time->tm_hour;
@@ -207,25 +207,26 @@ void update_current_time() {
   s_current_time.day    = tick_time->tm_mday;
 }
 
-GRect grect_translated(const GRect rect, const int x, const int y){
+static GRect grect_translated(const GRect rect, const int x, const int y){
   return (GRect) {
     .origin = GPoint(rect.origin.x + x, rect.origin.y + y),
     .size   = rect.size
   };
 }
 
-GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius){
+static GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius){
   const int diameter = radius * 2;
   const GRect grect_for_polar = GRect(center.x - radius + 1, center.y - radius + 1, diameter, diameter);
   return gpoint_from_polar(grect_for_polar, GOvalScaleModeFitCircle, angle);
 }
 
-float angle(int time, int max){
+static float angle(int time, int max){
   if(time == 0 || time == max){
     return 0;
   }
   return TRIG_MAX_ANGLE * time / max;
 }
+
 static void send_weather_request_callback(void * context){
   s_weather_request_timer = NULL;
   const int timeout = config_get_int(s_config, ConfigKeyRefreshRate) * 60;
@@ -241,11 +242,11 @@ static void send_weather_request_callback(void * context){
         dict_write_int(out_iter, AppKeyWeatherRequest, &value, sizeof(int), true);
         result = app_message_outbox_send();
         if(result != APP_MSG_OK) {
-          schedule_weather_request(1000);
+          schedule_weather_request(5000);
           e("Error sending the outbox: %d", (int)result);
         }
       } else {
-        schedule_weather_request(1000);
+        schedule_weather_request(5000);
         e("Error preparing the outbox: %d", (int)result);
       }
     }
@@ -349,6 +350,7 @@ static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple)
 static void messenger_callback(DictionaryIterator * iter){
   if(dict_find(iter, AppKeyConfig)){
     config_save(s_config, PersistKeyConfig);
+    s_weather.timestamp = 0;
     schedule_weather_request(0);
   }
   layer_mark_dirty(s_root_layer);
@@ -473,7 +475,7 @@ static void bt_handler(bool connected){
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
-  schedule_weather_request(100);
+  schedule_weather_request(10000);
   update_current_time();
   layer_mark_dirty(s_hour_hand_layer);
   mark_dirty_minute_hand_layer();
