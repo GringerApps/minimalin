@@ -4,9 +4,9 @@
 #include "messenger.h"
 
 #define HOUR_HAND_COLOR GColorRed
-#define d(string, ...) APP_LOG (APP_LOG_LEVEL_DEBUG, string, ##__VA_ARGS__)
-#define e(string, ...) APP_LOG (APP_LOG_LEVEL_ERROR, string, ##__VA_ARGS__)
-#define i(string, ...) APP_LOG (APP_LOG_LEVEL_INFO, string, ##__VA_ARGS__)
+// #define d(string, ...) APP_LOG (APP_LOG_LEVEL_DEBUG, string, ##__VA_ARGS__)
+// #define e(string, ...) APP_LOG (APP_LOG_LEVEL_ERROR, string, ##__VA_ARGS__)
+// #define i(string, ...) APP_LOG (APP_LOG_LEVEL_INFO, string, ##__VA_ARGS__)
 
 #ifdef PBL_ROUND
 static GPoint ticks_points[12][2] = {
@@ -243,24 +243,25 @@ static void send_weather_request_callback(void * context){
         result = app_message_outbox_send();
         if(result != APP_MSG_OK) {
           schedule_weather_request(5000);
-          e("Error sending the outbox: %d", (int)result);
+          // e("Error sending the outbox: %d", (int)result);
         }
       } else {
         schedule_weather_request(5000);
-        e("Error preparing the outbox: %d", (int)result);
+        // e("Error preparing the outbox: %d", (int)result);
       }
     }
   }
 }
 
 static void schedule_weather_request(int timeout){
+  int expiration = time(NULL) + timeout;
   if(s_weather_request_timer){
-    int expiration = time(NULL) + timeout;
     if(expiration < s_weather_request_timeout){
       s_weather_request_timeout = expiration;
       app_timer_reschedule(s_weather_request_timer, timeout);
     }
   }else{
+    s_weather_request_timeout = expiration;
     s_weather_request_timer = app_timer_register(timeout, send_weather_request_callback, NULL);
   }
 }
@@ -337,7 +338,6 @@ static void weather_failed_callback(DictionaryIterator * iter, Tuple * tuple){
 static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple){
   Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);;
   Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);;
-  schedule_weather_request(60000);
   if(icon_tuple && temp_tuple){
     s_weather.timestamp = time(NULL);
     s_weather.icon = icon_tuple->value->int8;

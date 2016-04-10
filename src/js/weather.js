@@ -50,10 +50,10 @@ function fetchWeather(query) {
           "AppKeyWeatherIcon": icon,
           "AppKeyWeatherTemperature": temperature
         };
-        console.log("weather sent: " + JSON.stringify(data));
+        // console.log("weather sent: " + JSON.stringify(data));
         Pebble.sendAppMessage(data);
       } else {
-        console.warn("weather error (" + req.code + ")");
+        // console.warn("weather error (" + req.code + ")");
         Pebble.sendAppMessage({
           "AppKeyWeatherFailed": 1
         });
@@ -69,7 +69,7 @@ function locationSuccess(pos) {
 }
 
 function locationError(err) {
-  console.warn("location error (" + err.code + "): " + err.message);
+  // console.warn("location error (" + err.code + "): " + err.message);
   Pebble.sendAppMessage({
     "AppKeyWeatherFailed": 0
   });
