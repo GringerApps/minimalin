@@ -404,11 +404,13 @@ static void mark_dirty_minute_hand_layer(){
 }
 
 static void update_minute_hand_layer(Layer *layer, GContext * ctx){
-  const float hand_angle = angle(s_current_time.minute, 60);
-  const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
-  graphics_context_set_stroke_width(ctx, MINUTE_HAND_STROKE);
-  graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
-  graphics_draw_line(ctx, s_center, hand_end);
+  if(!config_get_bool(s_config, ConfigKeyRainbowMode)){
+    const float hand_angle = angle(s_current_time.minute, 60);
+    const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
+    graphics_context_set_stroke_width(ctx, MINUTE_HAND_STROKE);
+    graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
+    graphics_draw_line(ctx, s_center, hand_end);
+  }
 }
 
 static void update_hour_hand_layer(Layer * layer, GContext * ctx){
