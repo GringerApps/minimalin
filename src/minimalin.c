@@ -24,18 +24,18 @@ static GPoint ticks_points[12][2] = {
   {{45, 12} , {48, 18}  }
 };
 static GPoint time_points[12] = {
-  {90,  21} ,
-  {124, 30} ,
-  {150, 56} ,
-  {159, 90} ,
-  {150, 124},
-  {124, 150},
+  {90,  17} ,
+  {124, 28} ,
+  {150, 50} ,
+  {161, 86} ,
+  {148, 124},
+  {124, 146},
   {90,  159},
-  {56,  150},
-  {30,  124},
-  {21,  90} ,
-  {30,  56} ,
-  {56,  30} ,
+  {54,  147},
+  {29,  124},
+  {18,  87} ,
+  {30,  52} ,
+  {54,  28} ,
 };
 static GPoint SOUTH_INFO_CENTER = { .x = 90, .y = 118 };
 static GPoint NORTH_INFO_CENTER = { .x = 90, .y = 62 };
@@ -372,8 +372,8 @@ static void update_times(){
     text_block_set_visible(s_minute_text, true);
     bool vertical_display = time_conflicts && ((hour > 1 && hour < 5) || (hour > 7 && hour < 11));
     if(vertical_display){
-      hour_box_center.y -= 12;
-      minute_box_center.y += 12;
+      hour_box_center.y -= 10;
+      minute_box_center.y += 10;
     }
     snprintf(buffer, 3, "%d", s_current_time.hour);
     text_block_set_text(s_hour_text, buffer, color);
