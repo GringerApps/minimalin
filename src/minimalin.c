@@ -191,6 +191,7 @@ static void update_info_layer();
 static void schedule_weather_request(int timeout);
 static void update_times();
 static void update_date();
+static void mark_dirty_minute_hand_layer();
 
 void update_current_time() {
   const time_t temp = time(NULL);
@@ -291,7 +292,7 @@ static void config_hour_hand_color_updated(DictionaryIterator * iter, Tuple * tu
 
 static void config_minute_hand_color_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyMinuteHandColor, tuple->value->int32);
-  layer_mark_dirty(s_minute_hand_layer);
+  mark_dirty_minute_hand_layer();
 }
 
 static void config_refresh_rate_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -315,10 +316,12 @@ static void config_date_displayed_updated(DictionaryIterator * iter, Tuple * tup
 
 static void config_rainbow_mode_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyRainbowMode, tuple->value->int8);
+  mark_dirty_minute_hand_layer();
 }
 
 static void config_weather_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyWeatherEnabled, tuple->value->int8);
+  update_info_layer();
 }
 
 static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
