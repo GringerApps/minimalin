@@ -22,8 +22,8 @@
   "capabilities": [
     "configurable"
   ],
-  "companyName": "yohan.robert@outlook.fr",
-  "longName": "minimalin",
+  "companyName": "Gringer Apps",
+  "longName": "Minimalin",
   "projectType": "native",
   "resources": {
     "media": [
@@ -57,13 +57,13 @@
     ]
   },
   "sdkVersion": "3",
-  "shortName": "minimalin",
+  "shortName": "Minimalin",
   "targetPlatforms": [
     "basalt",
     "chalk"
   ],
   "uuid": "341a9f39-53b5-4db9-ae50-78e7dd68e544",
-  "versionLabel": "0.22",
+  "versionLabel": "1.0",
   "watchapp": {
     "watchface": true
   }
