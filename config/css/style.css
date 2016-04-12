@@ -1,0 +1,113 @@
+ @font-face{
+   font-family:"Nupe-CondensedRegular";
+   src:url("../fonts/Nupe.ttf") format("truetype");
+   font-weight:normal;
+   font-style:normal;
+   font-variant:normal;
+ }
+
+ * {
+   font-family: sans-serif;
+ }
+
+ #content {
+   margin-top: 10px;
+   padding-bottom: 40px;
+ }
+
+ .hidden {
+   visibility: hidden;
+ }
+
+ .section {
+   background-color: #eaeaea;
+   height: 30px;
+ }
+
+ .section div {
+   margin-top: 25px;
+   margin-left: 10px;
+   font-size: 14pt;
+   font-weight: bold;
+ }
+
+ .subsection {
+   height: 50px;
+ }
+
+ .subsection div {
+   background: #F7F7F7;
+   height: 100%;
+   padding-top: 20px;
+   padding-left: 10px;
+   font-size: 14pt;
+   font-weight: bold;
+ }
+
+ .item-container {
+   margin-top: 0px;
+ }
+
+ .donation {
+   padding: 10px 10px 0px 10px;
+   font-size: 0.7em;
+ }
+
+ #reset_button_container {
+   padding: 10px;
+ }
+
+ #reset_button {
+   width: 100%;
+   color: black;
+   background-color: #c1c1c1;
+   height: 40px;
+ }
+
+ #preview {
+   position: fixed;
+   z-index: 999;
+   top:      0;
+   left:     0;
+   width:    100%;
+   background-color: rgb(234, 234, 234);
+   border-bottom: 1px solid #dedede;
+   box-shadow: 0px 5px 5px rgba(0,0,0,0.12);
+   padding: 10px 0px;
+ }
+
+ #preview svg {
+   display:      block;
+   margin:       0px;
+   margin-left:  auto;
+   margin-right: auto;
+   width:        50%;
+   max-width:    355px;
+   max-height:   355px;
+ }
+
+ #preview_spacer {
+   padding: 10px 0px;
+   width: 50vw;
+   height: 50vw;
+   max-width:    355px;
+   max-height:   355px;
+ }
+
+ #footer {
+   position: fixed;
+   z-index: 999;
+   bottom: 0;
+   left:0;
+   width: 100%;
+   box-shadow: 0px -3px 3px rgba(0,0,0,0.12);
+ }
+
+ #footer input {
+   height: 40px;
+ }
+
+ #footer input {
+   width: 100%;
+   border-radius: 0;
+ }
