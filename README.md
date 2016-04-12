@@ -9,9 +9,17 @@ Some key features of Minimalin:
 * Bluetooth disconnected icon (pick your favorite)
 * Rainbow hand, and more great and fun features to come!
 
+Go and grab it [here](https://apps.getpebble.com/en_US/application/56f93a5361a01637e5000036).
 
 ![Preview](design/minimalin_preview.png)
 
 ## License
 
-MIT License, see [LICENSE](./LICENSE)
+[MIT](LICENSE.md) for the code.
+[OFL](design/font/LICENSE.md) for the Nupe font.
+
+## Credits
+
+Thanks to [OpenWeatherMap](http://openweathermap.org/) for providing us with a free API.
+
+![banner](design/store/marketing-banner.png)
