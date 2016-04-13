@@ -1,96 +1,106 @@
- Ractive.DEBUG = false;
-     var query = function(variable, defaultVariable) {
-       var query = location.search.substring(1);
-       var vars = query.split('&');
-       for (var i = 0; i < vars.length; i++) {
-         var pair = vars[i].split('=');
-         if (pair[0] === variable) {
-           return decodeURIComponent(pair[1]);
-         }
-       }
-       return defaultVariable || null;
-     };
+//-------------------------------------------
+// Main variables
+//-------------------------------------------
 
-     var bool = function(name, defaultValue){
-       var val = (query(name) || '').toLowerCase();
-       switch(val){
-         case 'true':
-           return true;
-         case 'false':
-           return false;
-         default:
-           return defaultValue;
-       }
-     };
+var toRefreshRate = {
+   0: 5,
+   1: 20,
+   2: 40
+};
 
-     var color = function(name, defaultValue){
-       var val = query(name, defaultValue);
-       if(val.match(/(?:#|0x)[0-9a-fA-F]{6}/)){
-         return val;
-       }
-       return defaultValue;
-     };
+var fromRefreshRate = {
+   5: 0,
+   20: 1,
+   40: 2
+};
 
-     var queryIn = function(name, authorizedValues, defaultValue){
-       var val = query(name, defaultValue);
-       for(var i in authorizedValues){
-         if(authorizedValues[i] == val){
-           return authorizedValues[i];
-         }
-       }
-       return defaultValue;
-     };
+var defaults = {
+ minute_hand_color: '#FFFFFF',
+ hour_hand_color:  '#FF0000',
+ date_displayed:  true,
+ bluetooth_icon: 1,
+ rainbow_mode: false,
+ background_color: '#000000',
+ date_color: '#555555',
+ time_color: '#AAAAAA',
+ info_color: '#555555',
+ temperature_unit: 0,
+ refresh_rate: fromRefreshRate[20],
+ weather_enabled: true,
+ location: ''
+};
 
-     var toRefreshRate = {
-         0: 5,
-         1: 20,
-         2: 40
-     };
+var data = {
+ defaults: defaults,
+ minute_hand_color: color('minute_hand_color', defaults.minute_hand_color),
+ hour_hand_color:  color('hour_hand_color', defaults.hour_hand_color),
+ date_displayed:  bool('date_displayed', defaults.date_displayed),
+ bluetooth_icon: queryIn('bluetooth_icon', [0,1,2], defaults.bluetooth_icon),
+ temperature_unit: queryIn('temperature_unit', [0,1], defaults.temperature_unit),
+ refresh_rate: fromRefreshRate[queryIn('refresh_rate', [5,20,40], defaults.refresh_rate)],
+ rainbow_mode: bool('rainbow_mode', defaults.rainbow_mode),
+ background_color: color('background_color', defaults.background_color),
+ date_color: color('date_color', defaults.date_color),
+ time_color: color('time_color', defaults.time_color),
+ info_color: color('info_color', defaults.info_color),
+ weather_enabled: bool('weather_enabled', defaults.weather_enabled),
+ location: query('location',defaults.location),
+ platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
+};
 
-     var fromRefreshRate = {
-         5: 0,
-         20: 1,
-         40: 2
-     };
 
-     var defaults = {
-       minute_hand_color: '#FFFFFF',
-       hour_hand_color:  '#FF0000',
-       date_displayed:  true,
-       bluetooth_icon: 1,
-       rainbow_mode: false,
-       background_color: '#000000',
-       date_color: '#555555',
-       time_color: '#AAAAAA',
-       info_color: '#555555',
-       temperature_unit: 0,
-       refresh_rate: fromRefreshRate[20],
-       weather_enabled: true,
-       location: ''
-     };
+//-------------------------------------------
+// Main program
+//-------------------------------------------
 
-     var data = {
-       defaults: defaults,
-       minute_hand_color: color('minute_hand_color', defaults.minute_hand_color),
-       hour_hand_color:  color('hour_hand_color', defaults.hour_hand_color),
-       date_displayed:  bool('date_displayed', defaults.date_displayed),
-       bluetooth_icon: queryIn('bluetooth_icon', [0,1,2], defaults.bluetooth_icon),
-       temperature_unit: queryIn('temperature_unit', [0,1], defaults.temperature_unit),
-       refresh_rate: fromRefreshRate[queryIn('refresh_rate', [5,20,40], defaults.refresh_rate)],
-       rainbow_mode: bool('rainbow_mode', defaults.rainbow_mode),
-       background_color: color('background_color', defaults.background_color),
-       date_color: color('date_color', defaults.date_color),
-       time_color: color('time_color', defaults.time_color),
-       info_color: color('info_color', defaults.info_color),
-       weather_enabled: bool('weather_enabled', defaults.weather_enabled),
-       location: query('location',defaults.location),
-       platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
-     };
+var Minimalin = {
+  config:null,
+  previewWindow: document.null,
 
+  init:function() {
+     console.log("Start Minimalin !");
+     this.loadReactive();
+  },
+
+  start:function() {
+    this.setDiv();
+    this.bindEvents();
+  },
+
+  setDiv:function() {
+    this.previewWindow = document.getElementById("preview");
+  },
+
+  bindEvents:function() {
+    var that = this;
+    window.addEventListener("resize", function() {
+      that.fixHeader(that);
+    });
+    this.fixHeader(that);
+  },
+
+  //Each time the window is resizeed, check the size and "stick" the header
+  fixHeader:function(that) {
+    var h = window.outerHeight;
+    var ph = that.previewWindow.clientHeight;
+    if(ph > h/2.5) {
+      document.body.classList.add("sticky");
+    } else {
+       document.body.classList.remove("sticky");
+    }
+  },
+
+  //Load Reactive
+  loadReactive:function() {
+     var that = this;
+     Ractive.DEBUG = false;
      Ractive.load('template/ConfigView.html').then(function(ConfigView) {
        new ConfigView({
          el: 'body',
          data: data,
+         onrender: function(){
+           Minimalin.start();
+         },
          oninit: function(){
            this.on('save', function() {
              var response_data = {
@@ -114,3 +124,6 @@
          }
        });
      });
+  }
+};
+
