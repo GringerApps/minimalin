@@ -1,5 +1,6 @@
 {
   "appKeys": {
+    "AppKeyMilitaryTime": 19,
     "AppKeyVibrateOnTheHour": 18,
     "AppKeyJsReady": 17,
     "AppKeyWeatherRequest": 16,

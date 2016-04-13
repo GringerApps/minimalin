@@ -16,10 +16,11 @@ typedef enum {
   ConfigKeyWeatherEnabled,
   ConfigKeyRainbowMode,
   ConfigKeyDateDisplayed,
-  ConfigKeyVibrateOnTheHour
+  ConfigKeyVibrateOnTheHour,
+  ConfigKeyMilitaryTime,
 } ConfigKey;
 
-#define CONF_SIZE 13
+#define CONF_SIZE 14
 
 #if defined(PBL_COLOR)
 ConfValue CONF_DEFAULTS[CONF_SIZE] = {
@@ -35,7 +36,8 @@ ConfValue CONF_DEFAULTS[CONF_SIZE] = {
   { .key = ConfigKeyDateDisplayed, .type = BoolConf, .value = { .boolean = true } },
   { .key = ConfigKeyRainbowMode, .type = BoolConf, .value = { .boolean = false } },
   { .key = ConfigKeyWeatherEnabled, .type = BoolConf, .value = { .boolean = true } },
-  { .key = ConfigKeyVibrateOnTheHour, .type = BoolConf, .value = { .boolean = false } }
+  { .key = ConfigKeyVibrateOnTheHour, .type = BoolConf, .value = { .boolean = false } },
+  { .key = ConfigKeyMilitaryTime, .type = BoolConf, .value = { .boolean = false } }
 };
 #elif defined(PBL_BW)
 ConfValue CONF_DEFAULTS[CONF_SIZE] = {
@@ -51,6 +53,7 @@ ConfValue CONF_DEFAULTS[CONF_SIZE] = {
   { .key = ConfigKeyDateDisplayed, .type = BoolConf, .value = { .boolean = true } },
   { .key = ConfigKeyRainbowMode, .type = BoolConf, .value = { .boolean = false } },
   { .key = ConfigKeyWeatherEnabled, .type = BoolConf, .value = { .boolean = true } },
-  { .key = ConfigKeyVibrateOnTheHour, .type = BoolConf, .value = { .boolean = false } }
+  { .key = ConfigKeyVibrateOnTheHour, .type = BoolConf, .value = { .boolean = false } },
+  { .key = ConfigKeyMilitaryTime, .type = BoolConf, .value = { .boolean = false } }
 };
 #endif

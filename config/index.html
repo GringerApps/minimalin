@@ -2,12 +2,12 @@
 <html>
   <head>
     <title>Minimalin Configuration</title>
-    <link rel="stylesheet" type="text/css" href="css/slate.min.css">
-    <script type="text/javascript" src="js/ractive.min.js"></script>
-    <script type="text/javascript" src="//cdn.jsdelivr.net/ractive.load/latest/ractive-load.min.js"></script>
+    <link rel='stylesheet' type='text/css' href='css/slate.min.css'>
+    <script type='text/javascript' src='js/ractive.min.js'></script>
+    <script type='text/javascript' src='//cdn.jsdelivr.net/ractive.load/latest/ractive-load.min.js'></script>
   </head>
   <body>
-    <script type="text/javascript">
+    <script type='text/javascript'>
      Ractive.DEBUG = false;
      var query = function(variable, defaultVariable) {
        var query = location.search.substring(1);
@@ -39,7 +39,7 @@
          return val;
        }
        if(val.match(/^[0-9a-fA-F]{6}$/)){
-         return "#" + val;
+         return '#' + val;
        }
        return defaultValue;
      };
@@ -81,7 +81,8 @@
        weather_enabled: true,
        location: '',
        dark_mode: true,
-       vibrate_on_the_hour: false
+       vibrate_on_the_hour: false,
+       military_time: false
      };
 
      var data = {
@@ -102,6 +103,7 @@
        location: query('location',defaults.location),
        platform: queryIn('platform', ['basalt', 'chalk', 'aplite'], 'basalt'),
        vibrate_on_the_hour: bool('vibrate_on_the_hour', defaults.vibrate_on_the_hour),
+       military_time: bool('military_time', defaults.military_time)
      };
 
      Ractive.load('template/ConfigView.html').then(function(ConfigView) {
@@ -110,10 +112,10 @@
          data: data,
          oninit: function(){
            this.on('save', function() {
-             var dark_mode = this.get("dark_mode") == 0;
-             var aplite = this.get("platform") == "aplite";
-             var dark = "#000000";
-             var light = "#FFFFFF";
+             var dark_mode = this.get('dark_mode') == 0;
+             var aplite = this.get('platform') == 'aplite';
+             var dark = '#000000';
+             var light = '#FFFFFF';
              var foreground = function(){
                return dark_mode ? light : dark;
              }
@@ -125,35 +127,37 @@
                var response_data = {
                  minute_hand_color: foreground(),
                  hour_hand_color: foreground(),
-                 date_displayed: this.get("date_displayed"),
-                 bluetooth_icon: this.get("bluetooth_icon"),
+                 date_displayed: this.get('date_displayed'),
+                 bluetooth_icon: this.get('bluetooth_icon'),
                  background_color: background(),
                  date_color: foreground(),
                  time_color: foreground(),
                  info_color: foreground(),
-                 weather_enabled: this.get("weather_enabled"),
-                 refresh_rate: toRefreshRate[this.get("refresh_rate")],
-                 temperature_unit: this.get("temperature_unit"),
-                 vibrate_on_the_hour: this.get("vibrate_on_the_hour"),
+                 weather_enabled: this.get('weather_enabled'),
+                 refresh_rate: toRefreshRate[this.get('refresh_rate')],
+                 temperature_unit: this.get('temperature_unit'),
+                 vibrate_on_the_hour: this.get('vibrate_on_the_hour'),
                  dark_mode: dark_mode,
-                 location: this.get("location") || ""
+                 location: this.get('location') || '',
+                 military_time: this.get('military_time')
                };
              }else{
                var response_data = {
-                 minute_hand_color: this.get("minute_hand_color"),
-                 hour_hand_color: this.get("hour_hand_color"),
-                 date_displayed: this.get("date_displayed"),
-                 bluetooth_icon: this.get("bluetooth_icon"),
-                 background_color: this.get("background_color"),
-                 date_color: this.get("date_color"),
-                 time_color: this.get("time_color"),
-                 info_color: this.get("info_color"),
-                 weather_enabled: this.get("weather_enabled"),
-                 rainbow_mode: this.get("rainbow_mode"),
-                 refresh_rate: toRefreshRate[this.get("refresh_rate")],
-                 temperature_unit: this.get("temperature_unit"),
-                 vibrate_on_the_hour: this.get("vibrate_on_the_hour"),
-                 location: this.get("location") || ""
+                 minute_hand_color: this.get('minute_hand_color'),
+                 hour_hand_color: this.get('hour_hand_color'),
+                 date_displayed: this.get('date_displayed'),
+                 bluetooth_icon: this.get('bluetooth_icon'),
+                 background_color: this.get('background_color'),
+                 date_color: this.get('date_color'),
+                 time_color: this.get('time_color'),
+                 info_color: this.get('info_color'),
+                 weather_enabled: this.get('weather_enabled'),
+                 rainbow_mode: this.get('rainbow_mode'),
+                 refresh_rate: toRefreshRate[this.get('refresh_rate')],
+                 temperature_unit: this.get('temperature_unit'),
+                 vibrate_on_the_hour: this.get('vibrate_on_the_hour'),
+                 location: this.get('location') || '',
+                 military_time: this.get('military_time')
                };
              }
              console.log(response_data);

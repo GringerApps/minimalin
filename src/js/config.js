@@ -44,7 +44,8 @@ Pebble.addEventListener('showConfiguration', function() {
     refresh_rate: getSavedInt('RefreshRate'),
     location: getSaved('Location'),
     platform: Pebble.getActiveWatchInfo().platform,
-    vibrate_on_the_hour: getSavedBool('VibrateOnTheHour')
+    vibrate_on_the_hour: getSavedBool('VibrateOnTheHour'),
+    military_time: getSavedBool('MilitaryTime')
   };
   url += toQueryString(params);
   // console.log('Showing configuration page: ' + url);
@@ -82,6 +83,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     saveInt(dict, 'RefreshRate', configData.refresh_rate);
     saveBool(dict, 'RainbowMode', configData.rainbow_mode);
     saveBool(dict, 'VibrateOnTheHour', configData.vibrate_on_the_hour);
+    saveBool(dict, 'MilitaryTime', configData.military_time);
     localStorage.setItem('DarkMode_bool', configData.dark_mode);
     dict['AppKeyConfig'] = 1;
     localStorage.setItem("Location", configData.location);

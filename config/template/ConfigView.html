@@ -78,6 +78,7 @@
   <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
   <ItemColor color="{{ background_color }}" label="Background color"/>
   <Toggle label="Vibrate every full hour" value="{{ vibrate_on_the_hour }}" footer="Disabled during sleep tracked with Pebble Health" />
+  <Toggle label="Use 24h format" value="{{ military_time }}"/>
   <div class="section">
     <div>Date</div>
   </div>
@@ -276,6 +277,12 @@
          { label: "5 min" },
          { label: "20 min" },
          { label: "40 min" }
+       ];
+     },
+     time_format_source: function(){
+       return [
+         { label: "12 hour" },
+         { label: "24 hour" }
        ];
      },
      _hour_hand_color: function(){

@@ -91,7 +91,8 @@ typedef enum {
   AppKeyWeatherFailed,
   AppKeyWeatherRequest,
   AppKeyJsReady,
-  AppKeyVibrateOnTheHour
+  AppKeyVibrateOnTheHour,
+  AppKeyMilitaryTime
 } AppKey;
 
 typedef enum {
@@ -142,7 +143,7 @@ static int s_js_ready;
 
 static GFont s_font;
 
-static Time s_current_time;
+static tm * s_current_time;
 
 static void update_info_layer();
 static void schedule_weather_request(int timeout);
@@ -152,24 +153,21 @@ static void mark_dirty_minute_hand_layer();
 
 static void update_current_time() {
   const time_t temp = time(NULL);
-  const struct tm *tick_time = localtime(&temp);
-  int hour = tick_time->tm_hour;
-  if(hour > 12){
-    hour -= 12;
-  }else if(hour == 0){
-    hour = 12;
-  }
-  s_current_time.hour   = hour;
-  s_current_time.minute = tick_time->tm_min;
-  s_current_time.day    = tick_time->tm_mday;
+  s_current_time = localtime(&temp);
 }
 
-static GRect grect_translated(const GRect rect, const int x, const int y){
-  return (GRect) {
-    .origin = GPoint(rect.origin.x + x, rect.origin.y + y),
-    .size   = rect.size
-  };
+static int index_hour(){
+  return s_current_time->tm_hour % 12;
 }
+
+static int index_minute(){
+  return s_current_time->tm_min / 5;
+}
+
+static bool time_conflicts(){
+  return index_hour() == index_minute();
+}
+
 
 static GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius){
   const int diameter = radius * 2;
@@ -182,6 +180,18 @@ static float angle(int time, int max){
     return 0;
   }
   return TRIG_MAX_ANGLE * time / max;
+}
+
+static float angle_hour(const bool with_delta){
+  const int hour = s_current_time->tm_hour % 12;
+  if(with_delta){
+    return angle(hour * 50 + s_current_time->tm_min * 50 / 60, 600);
+  }
+  return angle(hour, 12);
+}
+
+static float angle_minute(){
+  return angle(s_current_time->tm_min, 60);
 }
 
 static void send_weather_request_callback(void * context){
@@ -287,13 +297,15 @@ static void config_hourly_vibrate_updated(DictionaryIterator * iter, Tuple * tup
   config_set_bool(s_config, ConfigKeyVibrateOnTheHour, tuple->value->int8);
 }
 
+static void config_military_time_updated(DictionaryIterator * iter, Tuple * tuple){
+  config_set_bool(s_config, ConfigKeyMilitaryTime, tuple->value->int8);
+  layer_mark_dirty(s_tick_layer);
+  update_times();
+}
+
 static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
   s_js_ready = true;
   schedule_weather_request(0);
-}
-
-static void weather_failed_callback(DictionaryIterator * iter, Tuple * tuple){
-  schedule_weather_request(60000);
 }
 
 static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple){
@@ -319,28 +331,35 @@ static void messenger_callback(DictionaryIterator * iter){
 
 // Hands
 static void update_times(){
-  int hour = s_current_time.hour;
-  int minute = s_current_time.minute;
   GColor color = config_get_color(s_config, ConfigKeyTimeColor);
   char buffer[] = "00:00";
-  GPoint hour_box_center   = time_points[hour % 12];
-  GPoint minute_box_center = time_points[minute / 5];
-  const bool time_conflicts = hour % 12 == minute / 5;
-  const bool horizontal_display = time_conflicts && (hour <= 1 || hour >= 11 || (hour >= 5 && hour <= 7));
+  GPoint hour_box_center   = time_points[index_hour()];
+  GPoint minute_box_center = time_points[index_minute()];
+  const int hour_12 = index_hour();
+  const bool conflicts = time_conflicts();
+  const bool horizontal_display = conflicts && (hour_12 <= 1 || hour_12 >= 11 || (hour_12 >= 5 && hour_12 <= 7));
   if(horizontal_display){
-    snprintf(buffer, sizeof(buffer), "%02d:%02d", hour, minute);
+    clock_copy_time_string(buffer, sizeof(buffer));
     text_block_set_text(s_hour_text, buffer, color);
     text_block_set_visible(s_minute_text, false);
   }else{
     text_block_set_visible(s_minute_text, true);
-    bool vertical_display = time_conflicts && ((hour > 1 && hour < 5) || (hour > 7 && hour < 11));
+    bool vertical_display = conflicts && ((hour_12 > 1 && hour_12 < 5) || (hour_12 > 7 && hour_12 < 11));
     if(vertical_display){
       hour_box_center.y -= 10;
       minute_box_center.y += 10;
     }
-    snprintf(buffer, 3, "%d", s_current_time.hour);
+    int h = s_current_time->tm_hour;
+    if(!config_get_bool(s_config, ConfigKeyMilitaryTime)){
+      if (h > 12) {
+        h -= 12;
+      }else if(h == 0){
+        h = 12;
+      }
+    }
+    snprintf(buffer, sizeof(buffer), "%d", h);
     text_block_set_text(s_hour_text, buffer, color);
-    snprintf(buffer, 3, "%02d", s_current_time.minute);
+    snprintf(buffer, sizeof(buffer), "%02d", s_current_time->tm_min);
     text_block_set_text(s_minute_text, buffer, color);
   }
   text_block_move(s_hour_text, hour_box_center);
@@ -351,23 +370,21 @@ static void update_date(){
   if(config_get_bool(s_config, ConfigKeyDateDisplayed)){
     const GColor date_color = config_get_color(s_config, ConfigKeyDateColor);
     char buffer[] = "00";
-    snprintf(buffer, sizeof(buffer), "%d", s_current_time.day);
+    snprintf(buffer, sizeof(buffer), "%d", s_current_time->tm_mday);
     text_block_set_text(s_south_info, buffer, date_color);
   }
 }
 
 static void mark_dirty_minute_hand_layer(){
   layer_mark_dirty(s_minute_hand_layer);
-  const float hand_angle = angle(s_current_time.minute, 60);
   const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
-  rot_bitmap_layer_set_angle(s_rainbow_hand_layer, hand_angle);
+  rot_bitmap_layer_set_angle(s_rainbow_hand_layer, angle_minute());
   layer_set_hidden((Layer*)s_rainbow_hand_layer, !rainbow_mode);
 }
 
 static void update_minute_hand_layer(Layer *layer, GContext * ctx){
   if(!config_get_bool(s_config, ConfigKeyRainbowMode)){
-    const float hand_angle = angle(s_current_time.minute, 60);
-    const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, 52);
+    const GPoint hand_end = gpoint_on_circle(s_center, angle_minute(), 52);
     graphics_context_set_stroke_width(ctx, 6);
     graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
     graphics_draw_line(ctx, s_center, hand_end);
@@ -375,8 +392,7 @@ static void update_minute_hand_layer(Layer *layer, GContext * ctx){
 }
 
 static void update_hour_hand_layer(Layer * layer, GContext * ctx){
-  const float hand_angle = angle(s_current_time.hour * 50 + s_current_time.minute * 50 / 60, 600);
-  const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, 39);
+  const GPoint hand_end = gpoint_on_circle(s_center, angle_hour(true), 39);
   graphics_context_set_stroke_width(ctx, 6);
   graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
   graphics_draw_line(ctx, s_center, hand_end);
@@ -396,11 +412,9 @@ static void draw_tick(GContext *ctx, const int index){
 static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
   graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyTimeColor));
   graphics_context_set_stroke_width(ctx, 2);
-  const int hour_tick_index = s_current_time.hour % 12;
-  draw_tick(ctx, hour_tick_index);
-  const int minute_tick_index = s_current_time.minute / 5;
-  if(hour_tick_index != minute_tick_index){
-    draw_tick(ctx, minute_tick_index);
+  draw_tick(ctx, index_hour());
+  if(!time_conflicts()){
+    draw_tick(ctx, index_minute());
   }
 }
 
@@ -520,9 +534,10 @@ static void main_window_load(Window *window) {
     { AppKeyTemperatureUnit, config_temperature_unit_updated },
     { AppKeyWeatherEnabled, config_weather_enabled_updated },
     { AppKeyWeatherTemperature, weather_requested_callback },
-    { AppKeyVibrateOnTheHour, config_hourly_vibrate_updated }
+    { AppKeyVibrateOnTheHour, config_hourly_vibrate_updated },
+    { AppKeyMilitaryTime, config_military_time_updated }
   };
-  s_messenger = messenger_create(15, messenger_callback, messages);
+  s_messenger = messenger_create(16, messenger_callback, messages);
 }
 
 static void main_window_unload(Window *window) {
