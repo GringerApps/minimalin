@@ -17,7 +17,9 @@
     "AppKeyBluetoothIcon": 3,
     "AppKeyDateDisplayed": 2,
     "AppKeyHourHandColor": 1,
-    "AppKeyMinuteHandColor": 0
+    "AppKeyMinuteHandColor": 0,
+    "AppKeyBatteryDisplayed": 18,
+    "AppKeyBatteryColor": 19
   },
   "capabilities": [
     "configurable"

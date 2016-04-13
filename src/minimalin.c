@@ -92,7 +92,9 @@ typedef enum {
   AppKeyWeatherIcon,
   AppKeyWeatherFailed,
   AppKeyWeatherRequest,
-  AppKeyJsReady
+  AppKeyJsReady,
+  AppKeyBatteryDisplayed,
+  AppKeyBatteryColor
 } AppKey;
 
 typedef enum {
@@ -112,7 +114,9 @@ typedef enum {
   ConfigKeyBluetoothIcon,
   ConfigKeyWeatherEnabled,
   ConfigKeyRainbowMode,
-  ConfigKeyDateDisplayed
+  ConfigKeyDateDisplayed,
+  ConfigKeyBatteryDisplayed,
+  ConfigKeyBatteryColor
 } ConfigKey;
 
 typedef struct {
@@ -138,7 +142,7 @@ static const int MINUTE_HAND_RADIUS = 52;
 static const int ICON_OFFSET = -18;
 static const int TICK_STROKE = 2;
 static const int TICK_LENGTH = 6;
-#define CONF_SIZE 12
+#define CONF_SIZE 14
 static ConfValue CONF_DEFAULTS[CONF_SIZE] = {
   { .key = ConfigKeyMinuteHandColor, .type = ColorConf, .value = { .integer = 0xffffff } },
   { .key = ConfigKeyHourHandColor, .type = ColorConf, .value = { .integer = 0xff0000 } },
@@ -151,7 +155,9 @@ static ConfValue CONF_DEFAULTS[CONF_SIZE] = {
   { .key = ConfigKeyRefreshRate, .type = IntConf, .value = { .integer = 20 } },
   { .key = ConfigKeyDateDisplayed, .type = BoolConf, .value = { .boolean = true } },
   { .key = ConfigKeyRainbowMode, .type = BoolConf, .value = { .boolean = false } },
-  { .key = ConfigKeyWeatherEnabled, .type = BoolConf, .value = { .boolean = true } }
+  { .key = ConfigKeyWeatherEnabled, .type = BoolConf, .value = { .boolean = true } },
+  { .key = ConfigKeyBatteryDisplayed, .type = BoolConf, .value = { .boolean = false }},
+  { .key = ConfigKeyBatteryColor, .type = ColorConf, .value = { .integer = 0x00aa00 }}
 };
 
 static Window * s_main_window;
@@ -171,12 +177,14 @@ static Layer * s_minute_hand_layer;
 static Layer * s_hour_hand_layer;
 static RotBitmapLayer * s_rainbow_hand_layer;
 static Layer * s_center_circle_layer;
+static Layer* s_battery_layer;
 
 static Config * s_config;
 static Messenger * s_messenger;
 static Weather s_weather;
 
 static bool s_bt_connected;
+static uint8_t s_charge_percent;
 
 static AppTimer * s_weather_request_timer;
 static int s_weather_request_timeout;
@@ -192,6 +200,7 @@ static void schedule_weather_request(int timeout);
 static void update_times();
 static void update_date();
 static void mark_dirty_minute_hand_layer();
+static void batt_handler(BatteryChargeState charge);
 
 static void update_current_time() {
   const time_t temp = time(NULL);
@@ -326,6 +335,24 @@ static void config_weather_enabled_updated(DictionaryIterator * iter, Tuple * tu
   update_info_layer();
 }
 
+static void config_battery_displayed_updated(DictionaryIterator * iter, Tuple * tuple){
+    bool enabled = tuple->value->int8;
+    config_set_bool(s_config, ConfigKeyBatteryDisplayed, enabled);
+    layer_set_hidden(s_battery_layer, !enabled);
+    layer_mark_dirty(s_battery_layer);
+    if (enabled) {
+        battery_state_service_subscribe(batt_handler);
+        batt_handler(battery_state_service_peek());
+    } else {
+        battery_state_service_unsubscribe();
+    }
+}
+
+static void config_battery_color_updated(DictionaryIterator * iter, Tuple *tuple){
+    config_set_int(s_config, ConfigKeyBatteryColor, tuple->value->int32);
+    layer_mark_dirty(s_battery_layer);
+}
+
 static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
   s_js_ready = true;
   schedule_weather_request(0);
@@ -427,6 +454,14 @@ static void update_center_circle_layer(Layer * layer, GContext * ctx){
   graphics_fill_circle(ctx, s_center, HOUR_CIRCLE_RADIUS);
 }
 
+static void update_battery_layer(Layer * layer, GContext * ctx) {
+    GRect bounds = grect_inset(layer_get_bounds(layer), GEdgeInsets(PBL_IF_ROUND_ELSE(76, 70)));
+    GColor color = config_get_color(s_config, ConfigKeyBatteryColor);
+    graphics_context_set_fill_color(ctx, color);
+    int32_t batt_angle = TRIG_MAX_ANGLE * s_charge_percent / 100;
+    graphics_fill_radial(ctx, bounds, GOvalScaleModeFillCircle, 100, 0, batt_angle);
+}
+
 // Ticks
 static void draw_tick(GContext *ctx, const int index){
   graphics_draw_line(ctx, ticks_points[index][0], ticks_points[index][1]);
@@ -489,6 +524,11 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   update_info_layer();
 }
 
+static void batt_handler(BatteryChargeState charge) {
+    s_charge_percent = charge.charge_percent;
+    layer_mark_dirty(s_battery_layer);
+}
+
 static void main_window_load(Window *window) {
   s_root_layer = window_get_root_layer(window);
   s_root_layer_bounds = layer_get_bounds(s_root_layer);
@@ -496,6 +536,15 @@ static void main_window_load(Window *window) {
   update_current_time();
   window_set_background_color(window, config_get_color(s_config, ConfigKeyBackgroundColor));
 
+  s_battery_layer = layer_create(s_root_layer_bounds);
+  layer_set_update_proc(s_battery_layer, update_battery_layer);
+  layer_add_child(s_root_layer, s_battery_layer);
+  if (config_get_bool(s_config, ConfigKeyBatteryDisplayed)) {
+    battery_state_service_subscribe(batt_handler);
+    batt_handler(battery_state_service_peek());
+  } else {
+    layer_set_hidden(s_battery_layer, true);
+  }
 
   s_south_info = text_block_create(s_root_layer, SOUTH_INFO_CENTER, s_font);
   text_block_set_visible(s_south_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
@@ -549,9 +598,11 @@ static void main_window_load(Window *window) {
     { AppKeyRefreshRate, config_refresh_rate_updated },
     { AppKeyTemperatureUnit, config_temperature_unit_updated },
     { AppKeyWeatherEnabled, config_weather_enabled_updated },
-    { AppKeyWeatherTemperature, weather_requested_callback }
+    { AppKeyWeatherTemperature, weather_requested_callback },
+    { AppKeyBatteryDisplayed, config_battery_displayed_updated },
+    { AppKeyBatteryColor, config_battery_color_updated }
   };
-  s_messenger = messenger_create(14, messenger_callback, messages);
+  s_messenger = messenger_create(16, messenger_callback, messages);
 }
 
 static void main_window_unload(Window *window) {
@@ -569,6 +620,9 @@ static void main_window_unload(Window *window) {
   bluetooth_connection_service_unsubscribe();
   text_block_destroy(s_south_info);
   text_block_destroy(s_north_info);
+
+  battery_state_service_unsubscribe();
+  layer_destroy(s_battery_layer);
 }
 
 static void init() {

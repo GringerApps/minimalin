@@ -10,6 +10,7 @@
     <text xmlns="http://www.w3.org/2000/svg" id="XMLID_311_" transform="matrix(1 0 0 1 104.2214 138.7009)" style="fill:#555555;font-family:'Nupe-CondensedRegular';font-size:46;/* visibility: hidden; */" class="">z b18°</text>"">
     <g class="{{ platform == 'basalt' ? '' : 'hidden' }}">
       <rect fill="{{background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
+      <circle class="{{ battery_displayed ? '' : 'hidden' }}" fill="{{ battery_color }}" cx="177.5" cy="177.5" r="30"/>
       <path fill="{{time_color}}" d="M33.635,177.709h13c1.105,0,2,0.895,2,2s-0.895,2-2,2h-13"/>
       <path fill="{{time_color}}" d="M309.588,255.042l11.777,6.802v-4.599l-9.779-5.664c-0.314-0.181-0.658-0.267-0.997-0.267
 				     c-0.691,0-1.362,0.357-1.733,0.999C308.304,253.268,308.632,254.49,309.588,255.042z"/>
@@ -23,6 +24,7 @@
     </g>
     <g class="{{ platform == 'chalk' ? '' : 'hidden' }}">
       <circle fill="{{background_color}}" cx="177.5" cy="177.5" r="177.5"/>
+      <circle class="{{ battery_displayed ? '' : 'hidden' }}" fill="{{ battery_color }}" cx="177.5" cy="177.5" r="30"/>
       <path fill="{{time_color}}" d="M318.588,260.24l12.087,6.979c0.671-1.143,1.329-2.295,1.975-3.454l-12.064-6.987
 				     c-0.314-0.181-0.658-0.267-0.997-0.267c-0.691,0-1.362,0.357-1.733,0.999C317.304,258.466,317.632,259.688,318.588,260.24z"/>
       <path fill="{{time_color}}" d="M13,177.709H0.003c0.001,1.337,0.02,2.67,0.051,4H13c1.105,0,2-0.895,2-2
@@ -68,6 +70,10 @@
     <div>Date</div>
   </div>
   <ToggleWithItemColor toggleLabel="Show date" toggleValue="{{ date_displayed }}" colorItemValue="{{ date_color }}" colorItemLabel="Date color" inverted/>
+  <div class="subsection">
+    <div>Battery</div>
+  </div>
+  <ToggleWithItemColor toggleLabel="Show battery" toggleValue="{{ battery_displayed }}" colorItemLabel="Battery color" colorItemValue="{{ battery_color }}" inverted/>
   <div class="section">
     <div>Additional data</div>
   </div>

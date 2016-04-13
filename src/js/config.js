@@ -42,6 +42,8 @@ Pebble.addEventListener('showConfiguration', function() {
     info_color: getSavedColor('Info'),
     refresh_rate: getSavedInt('RefreshRate'),
     location: getSaved('Location'),
+    battery_displayed: getSavedBool('BatteryDisplayed'),
+    battery_color: getSavedColor('Battery'),
     platform: Pebble.getActiveWatchInfo().platform
   };
   url += toQueryString(params);
@@ -81,6 +83,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
     saveBool(dict, 'RainbowMode', configData.rainbow_mode);
     dict['AppKeyConfig'] = 1;
     localStorage.setItem("Location", configData.location);
+    saveBool(dict, 'BatteryDisplayed', configData.battery_displayed);
+    saveColor(dict, 'Battery', configData.battery_color);
     Pebble.sendAppMessage(dict, function() {
       // console.log('Send successful: ' + JSON.stringify(dict));
     }, function() {
