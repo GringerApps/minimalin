@@ -20,6 +20,8 @@ Go and grab it [here](https://apps.getpebble.com/en_US/application/56f93a5361a01
 
 ## Credits
 
-Thanks to [OpenWeatherMap](http://openweathermap.org/) for providing us with a free API.
+Thanks to [OpenWeatherMap](http://openweathermap.org/) for providing us with a free API key.
+
+Many thanks to [RawGit](https://rawgit.com/) for providing a free CDN for projects hosted on Github. You're awesome!
 
 ![banner](design/store/marketing-banner.png)
