@@ -76,7 +76,9 @@
        temperature_unit: 0,
        refresh_rate: fromRefreshRate[20],
        weather_enabled: true,
-       location: ''
+       location: '',
+       battery_displayed: false,
+       battery_color: '#00AA00'
      };
 
      var data = {
@@ -94,6 +96,8 @@
        info_color: color('info_color', defaults.info_color),
        weather_enabled: bool('weather_enabled', defaults.weather_enabled),
        location: query('location',defaults.location),
+       battery_displayed: bool('battery_displayed', defaults.battery_displayed),
+       battery_color: color('battery_color', defaults.battery_color),
        platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
      };
 
@@ -116,6 +120,8 @@
                weather_enabled: this.get("weather_enabled"),
                refresh_rate: toRefreshRate[this.get("refresh_rate")],
                temperature_unit: this.get("temperature_unit"),
+               battery_displayed: this.get('battery_displayed'),
+               battery_color: this.get('battery_color'),
                location: this.get("location") || ""
              };
              var return_to = query('return_to', 'pebblejs://close#');

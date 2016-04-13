@@ -27,7 +27,8 @@ Pebble.addEventListener('showConfiguration', function() {
     return localStorage.getItem(attr);
   }
 
-  var url = 'https://cdn.rawgit.com/groyoh/minimalin/541865350c890f027b743d5ff777e8c516f369a5/config/index.html?';
+  //var url = 'https://cdn.rawgit.com/groyoh/minimalin/541865350c890f027b743d5ff777e8c516f369a5/config/index.html?';
+  var url = 'http://localhost:8000/index.html?';
   var params = {
     minute_hand_color: getSavedColor('MinuteHand'),
     hour_hand_color: getSavedColor('HourHand'),
@@ -42,6 +43,8 @@ Pebble.addEventListener('showConfiguration', function() {
     info_color: getSavedColor('Info'),
     refresh_rate: getSavedInt('RefreshRate'),
     location: getSaved('Location'),
+    battery_displayed: getSavedBool('BatteryDisplayed'),
+    battery_color: getSavedColor('Battery'),
     platform: Pebble.getActiveWatchInfo().platform
   };
   url += toQueryString(params);
@@ -81,6 +84,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
     saveBool(dict, 'RainbowMode', configData.rainbow_mode);
     dict['AppKeyConfig'] = 1;
     localStorage.setItem("Location", configData.location);
+    saveBool(dict, 'BatteryDisplayed', configData.battery_displayed);
+    saveColor(dict, 'Battery', configData.battery_color);
     Pebble.sendAppMessage(dict, function() {
       // console.log('Send successful: ' + JSON.stringify(dict));
     }, function() {
