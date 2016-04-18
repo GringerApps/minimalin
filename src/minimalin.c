@@ -138,6 +138,7 @@ static const int MINUTE_HAND_RADIUS = 52;
 static const int ICON_OFFSET = -18;
 static const int TICK_STROKE = 2;
 static const int TICK_LENGTH = 6;
+
 #define CONF_SIZE 12
 static ConfValue CONF_DEFAULTS[CONF_SIZE] = {
   { .key = ConfigKeyMinuteHandColor, .type = ColorConf, .value = { .integer = 0xffffff } },

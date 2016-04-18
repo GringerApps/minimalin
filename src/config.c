@@ -53,10 +53,16 @@ void config_set_int(Config * conf, const int32_t key, const int32_t value){
   }
 }
 
-Config * config_load(const int32_t persist_key, int32_t size, const ConfValue * defaults){
+Config * config_load(const int32_t persist_key, const int32_t size, const ConfValue * defaults){
   Config * conf = config_create(size);
-  if(persist_read_data(persist_key, conf->data, size * sizeof(ConfValue)) == E_DOES_NOT_EXIST){
+  const int read_size = persist_read_data(persist_key, conf->data, size * sizeof(ConfValue));
+  if(read_size == E_DOES_NOT_EXIST){
     memcpy(conf->data, defaults, size * sizeof(ConfValue));
+  }else{
+    const int config_size = read_size / sizeof(ConfValue);
+    for(int i = config_size; i < size; i++){
+      conf->data[i] = defaults[i];
+    }
   }
   return conf;
 }

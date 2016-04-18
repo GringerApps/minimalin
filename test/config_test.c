@@ -25,7 +25,7 @@ int __wrap_persist_read_data(const uint32_t key, void * buffer, const size_t buf
   if(return_value == E_DOES_NOT_EXIST){
     return return_value;
   }
-  memcpy(buffer, mock_ptr_type(void *), buffer_size);
+  memcpy(buffer, mock_ptr_type(void *), return_value);
   return return_value;
 }
 
@@ -36,7 +36,6 @@ GColor __wrap_GColorFromHEX(int hex){
 static void test_config_load_without_existing_config(void **state){
   will_return(__wrap_persist_read_data, E_DOES_NOT_EXIST);
   Config * conf = config_load(0, CONF_SIZE, CONF_DEFAULTS);
-
   assert_int_equal(conf->size, CONF_SIZE);
   ConfValue first_value = conf->data[0];
   assert_int_equal(first_value.key, 0);
@@ -77,6 +76,43 @@ static void test_config_load_with_existing_config(void **state){
   assert_int_equal(third_value.key, 0);
   assert_int_equal(third_value.type, BoolConf);
   assert_false(third_value.value.boolean);
+
+  config_destroy(conf);
+}
+
+static void test_config_load_with_new_default(void **state){
+  ConfValue persisted_value[CONF_SIZE] = {
+    { .key = 2, .type = ColorConf, .value = 0x111111 },
+    { .key = 1, .type = IntConf, .value = 10 },
+    { .key = 0, .type = BoolConf, .value = false }
+  };
+  will_return(__wrap_persist_read_data, CONF_SIZE * sizeof(ConfValue));
+  will_return(__wrap_persist_read_data, persisted_value);
+  const ConfValue conf_with_extra_value[CONF_SIZE + 1] = {
+    { .key = 0, .type = ColorConf, .value = 0xffffff },
+    { .key = 1, .type = IntConf, .value = 20 },
+    { .key = 2, .type = BoolConf, .value = true },
+    { .key = 3, .type = IntConf, .value = 10 }
+  };
+  Config * conf = config_load(1, CONF_SIZE + 1, conf_with_extra_value);
+
+  assert_int_equal(conf->size, CONF_SIZE);
+  ConfValue first_value = conf->data[0];
+  assert_int_equal(first_value.key, 2);
+  assert_int_equal(first_value.type, ColorConf);
+  assert_int_equal(first_value.value.integer, 0x111111);
+  ConfValue second_value = conf->data[1];
+  assert_int_equal(second_value.key, 1);
+  assert_int_equal(second_value.type, IntConf);
+  assert_int_equal(second_value.value.integer, 10);
+  ConfValue third_value = conf->data[2];
+  assert_int_equal(third_value.key, 0);
+  assert_int_equal(third_value.type, BoolConf);
+  assert_false(third_value.value.boolean);
+  ConfValue fourth_value = conf->data[3];
+  assert_int_equal(fourth_value.key, 3);
+  assert_int_equal(fourth_value.type, IntConf);
+  assert_int_equal(fourth_value.value.integer, 10);
 
   config_destroy(conf);
 }
