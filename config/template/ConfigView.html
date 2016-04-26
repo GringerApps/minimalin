@@ -7,40 +7,48 @@
 <div id="preview">
   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
        viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
-    <text xmlns="http://www.w3.org/2000/svg" id="XMLID_311_" transform="matrix(1 0 0 1 104.2214 138.7009)" style="fill:#555555;font-family:'Nupe-CondensedRegular';font-size:46;/* visibility: hidden; */" class="">z b18°</text>"">
-    <g class="{{ platform == 'basalt' ? '' : 'hidden' }}">
-      <rect fill="{{background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
-      <path fill="{{time_color}}" d="M33.635,177.709h13c1.105,0,2,0.895,2,2s-0.895,2-2,2h-13"/>
-      <path fill="{{time_color}}" d="M309.588,255.042l11.777,6.802v-4.599l-9.779-5.664c-0.314-0.181-0.658-0.267-0.997-0.267
-				     c-0.691,0-1.362,0.357-1.733,0.999C308.304,253.268,308.632,254.49,309.588,255.042z"/>
-      <path fill="{{time_color}}" d="M67.379,163.604v1.887h1.887v28.437h-1.887v1.887H57.9v-1.887h-1.887v-5.705h3.773v3.796h5.705
-				     v-9.456H57.9v-1.909h-1.887V165.49H57.9v-1.887H67.379z M59.787,178.766h5.705v-11.366h-5.705V178.766z"/>
-      <path fill="{{time_color}}" d="M286.283,230.795h1.887v1.909v11.366v1.887h-1.887v1.909h-7.592v9.456h9.479v3.796h-13.252
-				     v-13.252v-1.909h1.887v-1.887h1.887h5.705v-11.366h-5.705v3.796h-3.773v-5.705h1.887v-1.887h9.479V230.795z"/>
-      <path fill="{{time_color}}" d="M303.219,228.93v1.909h1.887v28.392h-1.887v1.887h-9.479v-1.887h-1.887v-26.527v-1.864h1.887
-				     v-1.909H303.219z M301.332,257.322v-24.596h-5.705v24.596H301.332z"/>
-
+    {{#if platform == 'basalt' || platform == "aplite"}}
+    <g>
+      <rect fill="{{_background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
+      <g fill="{{_time_color}}">
+        <path d="M33.635,177.709h13c1.105,0,2,0.895,2,2s-0.895,2-2,2h-13"/>
+        <path d="M309.588,255.042l11.777,6.802v-4.599l-9.779-5.664c-0.314-0.181-0.658-0.267-0.997-0.267
+		 c-0.691,0-1.362,0.357-1.733,0.999C308.304,253.268,308.632,254.49,309.588,255.042z"/>
+        <path d="M67.379,163.604v1.887h1.887v28.437h-1.887v1.887H57.9v-1.887h-1.887v-5.705h3.773v3.796h5.705
+		 v-9.456H57.9v-1.909h-1.887V165.49H57.9v-1.887H67.379z M59.787,178.766h5.705v-11.366h-5.705V178.766z"/>
+        <path d="M286.283,230.795h1.887v1.909v11.366v1.887h-1.887v1.909h-7.592v9.456h9.479v3.796h-13.252
+		 v-13.252v-1.909h1.887v-1.887h1.887h5.705v-11.366h-5.705v3.796h-3.773v-5.705h1.887v-1.887h9.479V230.795z"/>
+        <path d="M303.219,228.93v1.909h1.887v28.392h-1.887v1.887h-9.479v-1.887h-1.887v-26.527v-1.864h1.887
+		 v-1.909H303.219z M301.332,257.322v-24.596h-5.705v24.596H301.332z"/>
+      </g>
     </g>
-    <g class="{{ platform == 'chalk' ? '' : 'hidden' }}">
-      <circle fill="{{background_color}}" cx="177.5" cy="177.5" r="177.5"/>
-      <path fill="{{time_color}}" d="M318.588,260.24l12.087,6.979c0.671-1.143,1.329-2.295,1.975-3.454l-12.064-6.987
-				     c-0.314-0.181-0.658-0.267-0.997-0.267c-0.691,0-1.362,0.357-1.733,0.999C317.304,258.466,317.632,259.688,318.588,260.24z"/>
-      <path fill="{{time_color}}" d="M13,177.709H0.003c0.001,1.337,0.02,2.67,0.051,4H13c1.105,0,2-0.895,2-2
-			S14.105,177.709,13,177.709z"/>
-      <path fill="{{time_color}}" d="M33.744,163.604v1.887h1.887v28.437h-1.887v1.887h-9.479v-1.887h-1.887v-5.705h3.773v3.796h5.705
-				v-9.456h-7.592v-1.909h-1.887V165.49h1.887v-1.887H33.744z M26.152,178.766h5.705v-11.366h-5.705V178.766z"/>
-      <path fill="{{time_color}}" d="M294.366,235.409h1.887v1.909v11.366v1.887h-1.887v1.909h-7.592v9.456h9.479v3.796h-13.252V252.48
-				v-1.909h1.887v-1.887h1.887h5.705v-11.366h-5.705v3.796h-3.773v-5.705h1.887v-1.887h9.479V235.409z"/>
-      <path fill="{{time_color}}" d="M311.301,233.545v1.909h1.887v28.392h-1.887v1.887h-9.479v-1.887h-1.887v-26.527v-1.864h1.887
-				v-1.909H311.301z M309.415,261.936V237.34h-5.705v24.596H309.415z"/>
+    {{/if}}
+    {{#if platform == 'chalk' }}
+    <g>
+      <circle fill="{{_background_color}}" cx="177.5" cy="177.5" r="177.5"/>
+      <g fill="{{_time_color}}">
+      <path d="M318.588,260.24l12.087,6.979c0.671-1.143,1.329-2.295,1.975-3.454l-12.064-6.987
+	       c-0.314-0.181-0.658-0.267-0.997-0.267c-0.691,0-1.362,0.357-1.733,0.999C317.304,258.466,317.632,259.688,318.588,260.24z"/>
+      <path d="M13,177.709H0.003c0.001,1.337,0.02,2.67,0.051,4H13c1.105,0,2-0.895,2-2
+	       S14.105,177.709,13,177.709z"/>
+      <path d="M33.744,163.604v1.887h1.887v28.437h-1.887v1.887h-9.479v-1.887h-1.887v-5.705h3.773v3.796h5.705
+	       v-9.456h-7.592v-1.909h-1.887V165.49h1.887v-1.887H33.744z M26.152,178.766h5.705v-11.366h-5.705V178.766z"/>
+      <path d="M294.366,235.409h1.887v1.909v11.366v1.887h-1.887v1.909h-7.592v9.456h9.479v3.796h-13.252V252.48
+	       v-1.909h1.887v-1.887h1.887h5.705v-11.366h-5.705v3.796h-3.773v-5.705h1.887v-1.887h9.479V235.409z"/>
+      <path d="M311.301,233.545v1.909h1.887v28.392h-1.887v1.887h-9.479v-1.887h-1.887v-26.527v-1.864h1.887
+	       v-1.909H311.301z M309.415,261.936V237.34h-5.705v24.596H309.415z"/>
     </g>
-    <text text-anchor="middle" x="177.5" y="123" fill="{{ info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:46;">{{ info_text }}</text>
-    <path fill="{{hour_hand_color}}" d="M178.826,172.512l-79.34-5.741c-3.301-0.24-6.173,2.244-6.411,5.546
+    {{/if}}
+    <text text-anchor="middle" x="177.5" y="123" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:46;">{{ info_text }}</text>
+    <path fill="{{_hour_hand_color}}" d="M178.826,172.512l-79.34-5.741c-3.301-0.24-6.173,2.244-6.411,5.546
 		c-0.24,3.302,2.243,6.172,5.546,6.411l79.135,5.726C178.007,184.844,179.132,172.162,178.826,172.512z"/>
-    <path class="{{ rainbow_mode ? 'hidden' : ''}}" fill="{{minute_hand_color}}" d="M171.237,179.985c-0.413-1.477-0.263-3.113,0.55-4.555c1.624-2.885,5.279-3.907,8.163-2.283
-		                                                                    l90.541,50.972c2.885,1.623,3.908,5.28,2.283,8.163c-1.624,2.885-5.279,3.907-8.163,2.283l-90.541-50.972
-		                                                                    C172.627,182.782,171.65,181.462,171.237,179.985z"/>
-    <g class="{{ rainbow_mode ? '' : 'hidden' }}">
+    {{#if !rainbow_mode}}
+      <path fill="{{_minute_hand_color}}" d="M171.237,179.985c-0.413-1.477-0.263-3.113,0.55-4.555c1.624-2.885,5.279-3.907,8.163-2.283
+		                             l90.541,50.972c2.885,1.623,3.908,5.28,2.283,8.163c-1.624,2.885-5.279,3.907-8.163,2.283l-90.541-50.972
+		                             C172.627,182.782,171.65,181.462,171.237,179.985z"/>
+    {{/if}}
+    {{#if rainbow_mode}}
+    <g>
       <path style="fill:#FF0000;" d="M249.613,224.159c-0.412-1.477-0.261-3.113,0.552-4.554c1.625-2.884,5.281-3.905,8.164-2.278
 				     l12.136,6.841c2.884,1.624,3.905,5.282,2.278,8.164c-1.625,2.884-5.281,3.905-8.164,2.278l-12.136-6.841
 				     C251.002,226.957,250.026,225.637,249.613,224.159z"/>
@@ -49,17 +57,22 @@
       <rect x="204.992" y="186.893" transform="matrix(-0.491 0.8711 -0.8711 -0.491 486.6548 110.7089)" style="fill:#00AA00;" width="11.987" height="21.257"/>
       <rect x="184.363" y="172.842" transform="matrix(-0.491 0.8711 -0.8711 -0.491 445.7671 111.3428)" style="fill:#0055FF;" width="11.987" height="26.104"/>
     </g>
-    <circle fill="{{ rainbow_mode ? '#AA00FF' : hour_hand_color }}" cx="177.5" cy="178.499" r="9.991"/>
-
-    <g class="{{ date_displayed ? '' : 'hidden'}}">
-      <path fill="{{date_color}}" d="M173.774,215.148v1.885h1.885v1.907v9.447h-1.885v3.792h1.885v11.355v1.907h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7V232.18h-5.7v-3.792h5.7v-9.447h-5.7v3.792h-3.77v-5.7h1.885v-1.885H173.774z"/>
-      <path fill="{{date_color}}"  d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
+    {{/if}}
+    <circle fill="{{ rainbow_mode ? '#AA00FF' : _hour_hand_color }}" cx="177.5" cy="178.499" r="9.991"/>
+    {{#if date_displayed}}
+    <g fill="{{_date_color}}">
+      <path d="M173.774,215.148v1.885h1.885v1.907v9.447h-1.885v3.792h1.885v11.355v1.907h-1.885v1.885h-9.47v-1.885h-1.885v-5.7h3.77v3.792h5.7V232.18h-5.7v-3.792h5.7v-9.447h-5.7v3.792h-3.77v-5.7h1.885v-1.885H173.774z"/>
+      <path d="M181.202,215.148h7.585v32.179h-3.792v-28.386h-3.792V215.148z"/>
     </g>
-
+    {{/if}}
   </svg>
 </div>
 <div id="preview_spacer"></div>
 <div id="content">
+  {{#if platform == 'aplite'}}
+    <Tabs source="{{ dark_mode_source }}" active_tab="{{ dark_mode }}" header="Color theme"/>
+  {{/if}}
+  {{#if platform != 'aplite'}}
   <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
   <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand" toggleFirst/>
   <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
@@ -67,11 +80,18 @@
   <div class="section">
     <div>Date</div>
   </div>
+  {{/if}}
+  {{#if platform == 'aplite'}}
+  <Toggle label="Show date" value="{{ date_displayed }}" inverted/>
+  {{else}}
   <ToggleWithItemColor toggleLabel="Show date" toggleValue="{{ date_displayed }}" colorItemValue="{{ date_color }}" colorItemLabel="Date color" inverted/>
+  {{/if}}
   <div class="section">
     <div>Additional data</div>
   </div>
+  {{#if platform != 'aplite'}}
   <ItemColor color="{{ info_color }}" label="Bluetooth and weather color"/>
+  {{/if}}
   <div class="subsection">
     <div>Bluetooth</div>
   </div>
@@ -80,7 +100,7 @@
     <div>Weather</div>
   </div>
   <Toggle value="{{ weather_enabled }}" label="Show weather"/>
-  <Input header="Fixed location (empty to use phone location)" placeholder="Location" value="{{ location }}"/>
+  <Input header="Fixed location (empty to use phone location)" placeholder="Ex: Dublin,Ireland" value="{{ location }}"/>
   <Tabs source="{{ temperature_unit_source }}" active_tab="{{ temperature_unit }}" header="Temperature unit"/>
   <Tabs source="{{ refresh_rate_source }}" active_tab="{{ refresh_rate }}" header="Refresh rate"/>
   <div class="donation">
@@ -234,6 +254,9 @@
        }
        return info;
      },
+     dark_mode_source: function(){
+       return [{ label: "Dark"}, { label: "Light"}]
+     },
      bluetooth_source: function(){
        return [
          { label: "No icon" },
@@ -253,7 +276,55 @@
          { label: "20 min" },
          { label: "40 min" }
        ];
+     },
+     _hour_hand_color: function(){
+       if(this.get("platform") != "aplite"){
+           return this.get("hour_hand_color");
+       }
+       return this.foregroundColor();
+     },
+     _minute_hand_color: function(){
+       if(this.get("platform") != "aplite"){
+           return this.get("minute_hand_color");
+       }
+       return this.foregroundColor();
+     },
+     _info_color: function(){
+       if(this.get("platform") != "aplite"){
+           return this.get("info_color");
+       }
+       return this.foregroundColor();
+     },
+     _date_color: function(){
+       if(this.get("platform") != "aplite"){
+           return this.get("date_color");
+       }
+       return this.foregroundColor();
+     },
+     _time_color: function(){
+       if(this.get("platform") != "aplite"){
+           return this.get("time_color");
+       }
+       return this.foregroundColor();
+     },
+     _background_color: function(){
+       if(this.get("platform") != "aplite"){
+           return this.get("background_color");
+       }
+       return this.backgroundColor();
      }
+   },
+   backgroundColor: function(){
+     if(this.get("dark_mode") == 0){
+       return "#000000";
+     }
+     return "#FFFFFF";
+   },
+   foregroundColor: function(){
+     if(this.get("dark_mode") == 0){
+         return "#FFFFFF";
+     }
+     return "#000000";
    },
    onrender: function(){
      this.on('reset-defaults', function() {

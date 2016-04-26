@@ -35,8 +35,11 @@
 
      var color = function(name, defaultValue){
        var val = query(name, defaultValue);
-       if(val.match(/(?:#|0x)[0-9a-fA-F]{6}/)){
+       if(val.match(/^#[0-9a-fA-F]{6}$/)){
          return val;
+       }
+       if(val.match(/^[0-9a-fA-F]{6}$/)){
+         return "#" + val;
        }
        return defaultValue;
      };
@@ -74,9 +77,10 @@
        time_color: '#AAAAAA',
        info_color: '#555555',
        temperature_unit: 0,
-       refresh_rate: fromRefreshRate[20],
+       refresh_rate: 20,
        weather_enabled: true,
-       location: ''
+       location: '',
+       dark_mode: true
      };
 
      var data = {
@@ -88,13 +92,14 @@
        temperature_unit: queryIn('temperature_unit', [0,1], defaults.temperature_unit),
        refresh_rate: fromRefreshRate[queryIn('refresh_rate', [5,20,40], defaults.refresh_rate)],
        rainbow_mode: bool('rainbow_mode', defaults.rainbow_mode),
+       dark_mode: bool('dark_mode', defaults.dark_mode) ? 0 : 1,
        background_color: color('background_color', defaults.background_color),
        date_color: color('date_color', defaults.date_color),
        time_color: color('time_color', defaults.time_color),
        info_color: color('info_color', defaults.info_color),
        weather_enabled: bool('weather_enabled', defaults.weather_enabled),
        location: query('location',defaults.location),
-       platform: queryIn('platform', ['basalt', 'chalk'], 'basalt')
+       platform: queryIn('platform', ['basalt', 'chalk', 'aplite'], 'basalt')
      };
 
      Ractive.load('template/ConfigView.html').then(function(ConfigView) {
@@ -103,21 +108,50 @@
          data: data,
          oninit: function(){
            this.on('save', function() {
-             var response_data = {
-               minute_hand_color: this.get("minute_hand_color"),
-               hour_hand_color: this.get("hour_hand_color"),
-               date_displayed: this.get("date_displayed"),
-               bluetooth_icon: this.get("bluetooth_icon"),
-               rainbow_mode: this.get("rainbow_mode"),
-               background_color: this.get("background_color"),
-               date_color: this.get("date_color"),
-               time_color: this.get("time_color"),
-               info_color: this.get("info_color"),
-               weather_enabled: this.get("weather_enabled"),
-               refresh_rate: toRefreshRate[this.get("refresh_rate")],
-               temperature_unit: this.get("temperature_unit"),
-               location: this.get("location") || ""
-             };
+             var dark_mode = this.get("dark_mode") == 0;
+             var aplite = this.get("platform") == "aplite";
+             var dark = "#000000";
+             var light = "#FFFFFF";
+             var foreground = function(){
+               return dark_mode ? light : dark;
+             }
+             var background = function(){
+               return dark_mode ? dark : light;
+             }
+             var response_data;
+             if(aplite){
+               var response_data = {
+                 minute_hand_color: foreground(),
+                 hour_hand_color: foreground(),
+                 date_displayed: this.get("date_displayed"),
+                 bluetooth_icon: this.get("bluetooth_icon"),
+                 background_color: background(),
+                 date_color: foreground(),
+                 time_color: foreground(),
+                 info_color: foreground(),
+                 weather_enabled: this.get("weather_enabled"),
+                 refresh_rate: toRefreshRate[this.get("refresh_rate")],
+                 temperature_unit: this.get("temperature_unit"),
+                 dark_mode: dark_mode,
+                 location: this.get("location") || ""
+               };
+             }else{
+               var response_data = {
+                 minute_hand_color: this.get("minute_hand_color"),
+                 hour_hand_color: this.get("hour_hand_color"),
+                 date_displayed: this.get("date_displayed"),
+                 bluetooth_icon: this.get("bluetooth_icon"),
+                 background_color: this.get("background_color"),
+                 date_color: this.get("date_color"),
+                 time_color: this.get("time_color"),
+                 info_color: this.get("info_color"),
+                 weather_enabled: this.get("weather_enabled"),
+                 refresh_rate: toRefreshRate[this.get("refresh_rate")],
+                 temperature_unit: this.get("temperature_unit"),
+                 location: this.get("location") || ""
+               };
+             }
+             console.log(response_data);
              var return_to = query('return_to', 'pebblejs://close#');
              document.location = return_to + encodeURIComponent(JSON.stringify(response_data));
            });
