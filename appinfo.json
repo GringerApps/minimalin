@@ -34,16 +34,6 @@
         "type": "png"
       },
       {
-        "file": "images/bluetooth.png",
-        "name": "ICN_BLUETOOTH",
-        "type": "png"
-      },
-      {
-        "file": "images/heart.png",
-        "name": "ICN_HEART",
-        "type": "png"
-      },
-      {
         "file": "images/rainbow_hand.png",
         "name": "IMG_RAINBOW_HAND",
         "type": "png"
@@ -60,7 +50,8 @@
   "shortName": "Minimalin",
   "targetPlatforms": [
     "basalt",
-    "chalk"
+    "chalk",
+    "aplite"
   ],
   "uuid": "341a9f39-53b5-4db9-ae50-78e7dd68e544",
   "versionLabel": "1.0",

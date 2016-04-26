@@ -27,7 +27,7 @@ Pebble.addEventListener('showConfiguration', function() {
     return localStorage.getItem(attr);
   }
 
-  var url = 'https://cdn.rawgit.com/groyoh/minimalin/ee4f091ebcb22d0915fe4b0fb23fc1015b814200/config/index.html?';
+  var url = 'https://cdn.rawgit.com/groyoh/minimalin/df99c1475a46e234ade4840b7c2e2a9279548740/config/index.html?';
   var params = {
     minute_hand_color: getSavedColor('MinuteHand'),
     hour_hand_color: getSavedColor('HourHand'),
@@ -36,6 +36,7 @@ Pebble.addEventListener('showConfiguration', function() {
     weather_enabled: getSavedInt('WeatherEnabled'),
     temperature_unit: getSavedInt('TemperatureUnit'),
     rainbow_mode: getSavedBool('RainbowMode'),
+    dark_mode: getSavedBool('DarkMode'),
     background_color: getSavedColor('Background'),
     date_color: getSavedColor('Date'),
     time_color: getSavedColor('Time'),
@@ -79,6 +80,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     saveInt(dict, 'TemperatureUnit', configData.temperature_unit);
     saveInt(dict, 'RefreshRate', configData.refresh_rate);
     saveBool(dict, 'RainbowMode', configData.rainbow_mode);
+    localStorage.setItem('DarkMode_bool', configData.dark_mode);
     dict['AppKeyConfig'] = 1;
     localStorage.setItem("Location", configData.location);
     Pebble.sendAppMessage(dict, function() {

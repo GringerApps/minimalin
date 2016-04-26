@@ -26,7 +26,7 @@ Messenger * messenger_create(const int32_t size, MessengerCallback callback, Mes
   messenger->size = size;
   app_message_set_context(messenger);
   app_message_register_inbox_received(inbox_received_handler);
-  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());;
+  app_message_open(2048, 2048);
   return messenger;
 }
 

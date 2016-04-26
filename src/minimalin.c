@@ -2,8 +2,8 @@
 #include "config.h"
 #include "text_block.h"
 #include "messenger.h"
+#include "minimalin.h"
 
-#define HOUR_HAND_COLOR GColorRed
 // #define d(string, ...) APP_LOG (APP_LOG_LEVEL_DEBUG, string, ##__VA_ARGS__)
 // #define e(string, ...) APP_LOG (APP_LOG_LEVEL_ERROR, string, ##__VA_ARGS__)
 // #define i(string, ...) APP_LOG (APP_LOG_LEVEL_INFO, string, ##__VA_ARGS__)
@@ -72,8 +72,6 @@ static GPoint SOUTH_INFO_CENTER = { .x = 72, .y = 112 };
 static GPoint NORTH_INFO_CENTER = { .x = 72, .y = 56 };
 #endif
 
-typedef enum { Hour, Minute } TimeType;
-
 typedef enum {
   AppKeyMinuteHandColor = 0,
   AppKeyHourHandColor,
@@ -100,60 +98,17 @@ typedef enum {
   PersistKeyWeather
 } PersistKey;
 
-typedef enum {
-  ConfigKeyMinuteHandColor = 0,
-  ConfigKeyHourHandColor,
-  ConfigKeyBackgroundColor,
-  ConfigKeyDateColor,
-  ConfigKeyTimeColor,
-  ConfigKeyInfoColor,
-  ConfigKeyRefreshRate,
-  ConfigKeyTemperatureUnit,
-  ConfigKeyBluetoothIcon,
-  ConfigKeyWeatherEnabled,
-  ConfigKeyRainbowMode,
-  ConfigKeyDateDisplayed
-} ConfigKey;
-
 typedef struct {
   int hour;
   int minute;
   int day;
 } Time;
 
-typedef enum { NoIcon = 0, Bluetooth , Heart } BluetoothIcon;
-typedef enum { Celsius = 0, Fahrenheit } TemperatureUnit;
-
 typedef struct {
   int32_t timestamp;
   int8_t icon;
   int8_t temperature;
 } __attribute__((__packed__)) Weather;
-
-static const int HOUR_CIRCLE_RADIUS = 5;
-static const int HOUR_HAND_STROKE = 6;
-static const int HOUR_HAND_RADIUS = 39;
-static const int MINUTE_HAND_STROKE = 6;
-static const int MINUTE_HAND_RADIUS = 52;
-static const int ICON_OFFSET = -18;
-static const int TICK_STROKE = 2;
-static const int TICK_LENGTH = 6;
-
-#define CONF_SIZE 12
-static ConfValue CONF_DEFAULTS[CONF_SIZE] = {
-  { .key = ConfigKeyMinuteHandColor, .type = ColorConf, .value = { .integer = 0xffffff } },
-  { .key = ConfigKeyHourHandColor, .type = ColorConf, .value = { .integer = 0xff0000 } },
-  { .key = ConfigKeyBackgroundColor, .type = ColorConf, .value = { .integer = 0x000000 } },
-  { .key = ConfigKeyDateColor, .type = ColorConf, .value = { .integer = 0x555555 } },
-  { .key = ConfigKeyTimeColor, .type = ColorConf, .value = { .integer = 0xaaaaaa } },
-  { .key = ConfigKeyInfoColor, .type = ColorConf, .value = { .integer = 0x555555 } },
-  { .key = ConfigKeyBluetoothIcon, .type = IntConf, .value = { .integer = Bluetooth } },
-  { .key = ConfigKeyTemperatureUnit, .type = IntConf, .value = { .integer = Celsius } },
-  { .key = ConfigKeyRefreshRate, .type = IntConf, .value = { .integer = 20 } },
-  { .key = ConfigKeyDateDisplayed, .type = BoolConf, .value = { .boolean = true } },
-  { .key = ConfigKeyRainbowMode, .type = BoolConf, .value = { .boolean = false } },
-  { .key = ConfigKeyWeatherEnabled, .type = BoolConf, .value = { .boolean = true } }
-};
 
 static Window * s_main_window;
 static Layer * s_root_layer;
@@ -407,8 +362,8 @@ static void mark_dirty_minute_hand_layer(){
 static void update_minute_hand_layer(Layer *layer, GContext * ctx){
   if(!config_get_bool(s_config, ConfigKeyRainbowMode)){
     const float hand_angle = angle(s_current_time.minute, 60);
-    const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
-    graphics_context_set_stroke_width(ctx, MINUTE_HAND_STROKE);
+    const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, 52);
+    graphics_context_set_stroke_width(ctx, 6);
     graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
     graphics_draw_line(ctx, s_center, hand_end);
   }
@@ -416,8 +371,8 @@ static void update_minute_hand_layer(Layer *layer, GContext * ctx){
 
 static void update_hour_hand_layer(Layer * layer, GContext * ctx){
   const float hand_angle = angle(s_current_time.hour * 50 + s_current_time.minute * 50 / 60, 600);
-  const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
-  graphics_context_set_stroke_width(ctx, HOUR_HAND_STROKE);
+  const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, 39);
+  graphics_context_set_stroke_width(ctx, 6);
   graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
   graphics_draw_line(ctx, s_center, hand_end);
 }
@@ -425,7 +380,7 @@ static void update_hour_hand_layer(Layer * layer, GContext * ctx){
 static void update_center_circle_layer(Layer * layer, GContext * ctx){
   GColor color = config_get_bool(s_config, ConfigKeyRainbowMode) ? GColorVividViolet : config_get_color(s_config, ConfigKeyHourHandColor);
   graphics_context_set_fill_color(ctx, color);
-  graphics_fill_circle(ctx, s_center, HOUR_CIRCLE_RADIUS);
+  graphics_fill_circle(ctx, s_center, 5);
 }
 
 // Ticks
@@ -435,7 +390,7 @@ static void draw_tick(GContext *ctx, const int index){
 
 static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
   graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyTimeColor));
-  graphics_context_set_stroke_width(ctx, TICK_STROKE);
+  graphics_context_set_stroke_width(ctx, 2);
   const int hour_tick_index = s_current_time.hour % 12;
   draw_tick(ctx, hour_tick_index);
   const int minute_tick_index = s_current_time.minute / 5;
