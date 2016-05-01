@@ -153,11 +153,18 @@ static void update_current_time() {
   const time_t temp = time(NULL);
   const struct tm *tick_time = localtime(&temp);
   int hour = tick_time->tm_hour;
+  int minutes = tick_time->tm_min;
+  bool shouldVibrateOnTheHour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
   if(hour > 12){
     hour -= 12;
   }else if(hour == 0){
     hour = 12;
   }
+
+  if(shouldVibrateOnTheHour && minutes == 0){
+    vibes_short_pulse();
+  }
+
   s_current_time.hour   = hour;
   s_current_time.minute = tick_time->tm_min;
   s_current_time.day    = tick_time->tm_mday;
