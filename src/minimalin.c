@@ -90,7 +90,8 @@ typedef enum {
   AppKeyWeatherIcon,
   AppKeyWeatherFailed,
   AppKeyWeatherRequest,
-  AppKeyJsReady
+  AppKeyJsReady,
+  AppKeyVibrateOnTheHour
 } AppKey;
 
 typedef enum {
@@ -287,6 +288,10 @@ static void config_rainbow_mode_updated(DictionaryIterator * iter, Tuple * tuple
 static void config_weather_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyWeatherEnabled, tuple->value->int8);
   update_info_layer();
+}
+
+static void config_hourly_vibrate_updated(DictionaryIterator * iter, Tuple * tuple){
+  config_set_int(s_config, ConfigKeyVibrateOnTheHour, tuple->value->int8);
 }
 
 static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
@@ -512,9 +517,10 @@ static void main_window_load(Window *window) {
     { AppKeyRefreshRate, config_refresh_rate_updated },
     { AppKeyTemperatureUnit, config_temperature_unit_updated },
     { AppKeyWeatherEnabled, config_weather_enabled_updated },
-    { AppKeyWeatherTemperature, weather_requested_callback }
+    { AppKeyWeatherTemperature, weather_requested_callback },
+    { AppKeyVibrateOnTheHour, config_hourly_vibrate_updated }
   };
-  s_messenger = messenger_create(14, messenger_callback, messages);
+  s_messenger = messenger_create(15, messenger_callback, messages);
 }
 
 static void main_window_unload(Window *window) {

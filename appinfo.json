@@ -1,6 +1,6 @@
 {
   "appKeys": {
-    "AppVibrateOnTheHour": 18,
+    "AppKeyVibrateOnTheHour": 18,
     "AppKeyJsReady": 17,
     "AppKeyWeatherRequest": 16,
     "AppKeyWeatherFailed": 15,
