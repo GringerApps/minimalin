@@ -155,15 +155,10 @@ static void update_current_time() {
   const struct tm *tick_time = localtime(&temp);
   int hour = tick_time->tm_hour;
   int minutes = tick_time->tm_min;
-  bool should_vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
   if(hour > 12){
     hour -= 12;
   }else if(hour == 0){
     hour = 12;
-  }
-
-  if(should_vibrate_on_the_hour && minutes == 0){
-    vibes_short_pulse();
   }
 
   s_current_time.hour   = hour;
@@ -445,6 +440,12 @@ static void bt_handler(bool connected){
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
+  if(HOUR_UNIT & units_changed){
+    bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
+    if(vibrate_on_the_hour){
+      vibes_short_pulse();
+    }
+  }
   schedule_weather_request(10000);
   update_current_time();
   layer_mark_dirty(s_hour_hand_layer);
