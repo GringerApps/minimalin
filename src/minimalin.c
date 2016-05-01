@@ -155,14 +155,14 @@ static void update_current_time() {
   const struct tm *tick_time = localtime(&temp);
   int hour = tick_time->tm_hour;
   int minutes = tick_time->tm_min;
-  bool shouldVibrateOnTheHour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
+  bool should_vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
   if(hour > 12){
     hour -= 12;
   }else if(hour == 0){
     hour = 12;
   }
 
-  if(shouldVibrateOnTheHour && minutes == 0){
+  if(should_vibrate_on_the_hour && minutes == 0){
     vibes_short_pulse();
   }
 
@@ -291,7 +291,7 @@ static void config_weather_enabled_updated(DictionaryIterator * iter, Tuple * tu
 }
 
 static void config_hourly_vibrate_updated(DictionaryIterator * iter, Tuple * tuple){
-  config_set_int(s_config, ConfigKeyVibrateOnTheHour, tuple->value->int8);
+  config_set_bool(s_config, ConfigKeyVibrateOnTheHour, tuple->value->int8);
 }
 
 static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
