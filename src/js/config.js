@@ -27,7 +27,7 @@ Pebble.addEventListener('showConfiguration', function() {
     return localStorage.getItem(attr);
   }
 
-  var url = 'https://cdn.rawgit.com/groyoh/minimalin/b06b28a9018d610fb31abf4c7ca410883bf7f23d/config/index.html?';
+  var url = 'https://cdn.rawgit.com/groyoh/minimalin/dbf2fd8fa48551b2cd28a688c9f64740167070b9/config/index.html?';
   var params = {
     minute_hand_color: getSavedColor('MinuteHand'),
     hour_hand_color: getSavedColor('HourHand'),
