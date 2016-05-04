@@ -22,7 +22,8 @@
     "AppKeyMinuteHandColor": 0
   },
   "capabilities": [
-    "configurable"
+    "configurable",
+    "health"
   ],
   "companyName": "Gringer Apps",
   "longName": "Minimalin",
