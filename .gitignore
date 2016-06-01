@@ -34,3 +34,7 @@
 # Build
 build/
 .lock-waf*
+
+config/tmp
+config/node_modules
+config/bower_components
