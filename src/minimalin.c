@@ -458,15 +458,20 @@ static void bt_handler(bool connected){
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
-  if(health_enabled & HOUR_UNIT & units_changed){
-    HealthActivity activity = health_service_peek_current_activities();
-    if(activity == HealthActivityNone){
-      bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
-      if(vibrate_on_the_hour){
-        vibes_short_pulse();
-      }
-    }
+  if(HOUR_UNIT & units_changed){
+    bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
+	if (vibrate_on_the_hour) {
+	  if (health_enabled) {
+		HealthActivity activity = health_service_peek_current_activities();
+		if(activity == HealthActivityNone) {
+		  vibes_short_pulse();
+		}
+	  } else {
+		vibes_short_pulse();
+	  }
+	}
   }
+  
   schedule_weather_request(10000);
   update_current_time();
   layer_mark_dirty(s_hour_hand_layer);
