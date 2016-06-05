@@ -72,6 +72,12 @@ static GPoint SOUTH_INFO_CENTER = { .x = 72, .y = 112 };
 static GPoint NORTH_INFO_CENTER = { .x = 72, .y = 56 };
 #endif
 
+#ifdef PBL_HEALTH
+  static bool health_enabled = true;
+#else
+  static bool health_enabled = false;
+#endif
+
 typedef enum {
   AppKeyMinuteHandColor = 0,
   AppKeyHourHandColor,
@@ -452,8 +458,7 @@ static void bt_handler(bool connected){
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
-  if(HOUR_UNIT & units_changed){
-	#if defined(PBL_HEALTH)
+  if(health_enabled & HOUR_UNIT & units_changed){
     HealthActivity activity = health_service_peek_current_activities();
     if(activity == HealthActivityNone){
       bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
@@ -461,7 +466,6 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
         vibes_short_pulse();
       }
     }
-	#endif
   }
   schedule_weather_request(10000);
   update_current_time();
