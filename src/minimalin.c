@@ -453,6 +453,7 @@ static void bt_handler(bool connected){
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   if(HOUR_UNIT & units_changed){
+	#if defined(PBL_HEALTH)
     HealthActivity activity = health_service_peek_current_activities();
     if(activity == HealthActivityNone){
       bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
@@ -460,6 +461,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
         vibes_short_pulse();
       }
     }
+	#endif
   }
   schedule_weather_request(10000);
   update_current_time();
