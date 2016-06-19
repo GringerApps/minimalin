@@ -42,7 +42,7 @@
         "type": "png"
       },
       {
-        "characterRegex": "[0-9:°a-izA-IZ\u2212]",
+        "characterRegex": "[0-9:°a-izA-IZ\\-]",
         "file": "fonts/nupe.ttf",
         "name": "FONT_NUPE_23",
         "type": "font"
