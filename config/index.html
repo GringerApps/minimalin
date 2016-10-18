@@ -78,7 +78,7 @@
        time_color: '#AAAAAA',
        info_color: '#555555',
        temperature_unit: 0,
-       refresh_rate: fromRefreshRate[20],
+       refresh_rate: 20,
        weather_enabled: true,
        location: '',
        dark_mode: true,
@@ -102,7 +102,7 @@
        info_color: color('info_color', defaults.info_color),
        weather_enabled: bool('weather_enabled', defaults.weather_enabled),
        location: query('location',defaults.location),
-       platform: queryIn('platform', ['basalt', 'chalk', 'aplite'], 'basalt'),
+       platform: queryIn('platform', ['basalt', 'chalk', 'aplite', 'diorite'], 'basalt'),
        vibrate_on_the_hour: bool('vibrate_on_the_hour', defaults.vibrate_on_the_hour),
        military_time: bool('military_time', defaults.military_time)
      };
@@ -114,7 +114,7 @@
          oninit: function(){
            this.on('save', function() {
              var dark_mode = this.get('dark_mode') == 0;
-             var aplite = this.get('platform') == 'aplite';
+             var aplite = this.get('platform') == 'aplite' || this.get('platform') == 'diorite';
              var dark = '#000000';
              var light = '#FFFFFF';
              var foreground = function(){

@@ -7,7 +7,7 @@
 <div id="preview">
   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
        viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
-    {{#if platform == 'basalt' || platform == "aplite"}}
+    {{#if platform == 'basalt' || platform == "aplite" || platform == "diorite"}}
     <g>
       <rect fill="{{_background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
       <g fill="{{_time_color}}">
@@ -69,21 +69,20 @@
 </div>
 <div id="preview_spacer"></div>
 <div id="content">
-  {{#if platform == 'aplite'}}
+  {{#if platform == 'aplite' || platform == 'diorite'}}
     <Tabs source="{{ dark_mode_source }}" active_tab="{{ dark_mode }}" header="Color theme"/>
-  {{/if}}
-  {{#if platform != 'aplite'}}
+  {{else}}
   <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
   <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand" toggleFirst/>
   <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
   <ItemColor color="{{ background_color }}" label="Background color"/>
+  {{/if}}
   <Toggle label="Vibrate every full hour" value="{{ vibrate_on_the_hour }}" footer="Off during sleep tracked with Pebble Health" />
   <Toggle label="Use 24h format" value="{{ military_time }}"/>
   <div class="section">
     <div>Date</div>
   </div>
-  {{/if}}
-  {{#if platform == 'aplite'}}
+  {{#if platform == 'aplite' || platform == 'diorite'}}
   <Toggle label="Show date" value="{{ date_displayed }}" inverted/>
   {{else}}
   <ToggleWithItemColor toggleLabel="Show date" toggleValue="{{ date_displayed }}" colorItemValue="{{ date_color }}" colorItemLabel="Date color" inverted/>
@@ -91,7 +90,7 @@
   <div class="section">
     <div>Additional data</div>
   </div>
-  {{#if platform != 'aplite'}}
+  {{#if platform != 'aplite' && platform != 'diorite'}}
   <ItemColor color="{{ info_color }}" label="Bluetooth and weather color"/>
   {{/if}}
   <div class="subsection">
@@ -286,37 +285,37 @@
        ];
      },
      _hour_hand_color: function(){
-       if(this.get("platform") != "aplite"){
+       if(!this.is_bw()){
            return this.get("hour_hand_color");
        }
        return this.foregroundColor();
      },
      _minute_hand_color: function(){
-       if(this.get("platform") != "aplite"){
+       if(!this.is_bw()){
            return this.get("minute_hand_color");
        }
        return this.foregroundColor();
      },
      _info_color: function(){
-       if(this.get("platform") != "aplite"){
+       if(!this.is_bw()){
            return this.get("info_color");
        }
        return this.foregroundColor();
      },
      _date_color: function(){
-       if(this.get("platform") != "aplite"){
+       if(!this.is_bw()){
            return this.get("date_color");
        }
        return this.foregroundColor();
      },
      _time_color: function(){
-       if(this.get("platform") != "aplite"){
+       if(!this.is_bw()){
            return this.get("time_color");
        }
        return this.foregroundColor();
      },
      _background_color: function(){
-       if(this.get("platform") != "aplite"){
+       if(!this.is_bw()){
            return this.get("background_color");
        }
        return this.backgroundColor();
@@ -333,6 +332,10 @@
          return "#FFFFFF";
      }
      return "#000000";
+   },
+   is_bw: function(){
+     return this.get("platform") == "aplite" || 
+       this.get("platform") == "diorite";
    },
    onrender: function(){
      this.on('reset-defaults', function() {
