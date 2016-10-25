@@ -6,6 +6,8 @@
 #
 
 import os.path
+import os
+
 try:
     from sh import CommandNotFound, jshint, cat, ErrorReturnCode_2
     hint = jshint
@@ -15,10 +17,22 @@ except (ImportError, CommandNotFound):
 top = '.'
 out = 'build'
 
+def fetch_conf(ctx, name):
+    if os.environ.has_key(name):
+        ctx.define(name, os.environ[name], quote=False)
+
 def options(ctx):
     ctx.load('pebble_sdk')
 
 def configure(ctx):
+    fetch_conf(ctx, 'SCREENSHOT')
+    fetch_conf(ctx, 'NO_BT')
+    fetch_conf(ctx, 'CONFIG_BLUETOOTH_ICON')
+    fetch_conf(ctx, 'CONFIG_DATE_DISPLAYED')
+    fetch_conf(ctx, 'CONFIG_RAINBOW_MODE')
+    fetch_conf(ctx, 'CONFIG_WEATHER_ENABLED')
+    fetch_conf(ctx, 'CONFIG_TEMPERATURE_UNIT')
+    fetch_conf(ctx, 'CONFIG_MILITARY_TIME')
     ctx.load('pebble_sdk')
 
 def build(ctx):

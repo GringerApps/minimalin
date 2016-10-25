@@ -152,8 +152,13 @@ static void update_date();
 static void mark_dirty_minute_hand_layer();
 
 static void update_current_time() {
+#ifdef SCREENSHOT
+  time_t screenshot_time = 1454278942;
+  s_current_time = gmtime(&screenshot_time);
+#else
   const time_t temp = time(NULL);
   s_current_time = localtime(&temp);
+#endif
 }
 
 static int index_hour(){
@@ -309,8 +314,8 @@ static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
 }
 
 static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple){
-  Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);;
-  Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);;
+  Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);
+  Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
   if(icon_tuple && temp_tuple){
     s_weather.timestamp = time(NULL);
     s_weather.icon = icon_tuple->value->int8;
@@ -423,13 +428,17 @@ static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
 static void update_info_layer(){
   char info_buffer[10] = {0};
   const BluetoothIcon new_icon = config_get_int(s_config, ConfigKeyBluetoothIcon);
+#ifndef NO_BT
   if(!s_bt_connected){
+#endif
     if(new_icon == Bluetooth){
       strncat(info_buffer, "z", 2);
     }else if(new_icon == Heart){
       strncat(info_buffer, "Z", 2);
     }
+#ifndef NO_BT
   }
+#endif
   const int timeout = (config_get_int(s_config, ConfigKeyRefreshRate) + 5) * 60;
   const int expiration =  s_weather.timestamp + timeout;
   const bool weather_valid = time(NULL) < expiration;
@@ -576,6 +585,7 @@ static void init() {
 static void deinit() {
   tick_timer_service_unsubscribe();
   app_message_deregister_callbacks();
+  window_stack_remove(s_main_window, true);
   window_destroy(s_main_window);
   config_destroy(s_config);
   fonts_unload_custom_font(s_font);
