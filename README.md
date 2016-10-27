@@ -1,4 +1,4 @@
-# minimalin
+# minimalin ![Travis build](https://api.travis-ci.org/groyoh/minimalin.svg?branch=master)
 
 ![banner](design/store/marketing-banner.png)
 
