@@ -462,10 +462,11 @@ static void bt_handler(bool connected){
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   if(HOUR_UNIT & units_changed){
-    HealthActivity activity = health_service_peek_current_activities();
-    if(activity == HealthActivityNone){
-      bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
-      if(vibrate_on_the_hour){
+    bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
+    if (vibrate_on_the_hour) {
+      if( PBL_IF_HEALTH_ELSE(true, false)  ||
+          !(health_service_peek_current_activities() &
+            (HealthActivitySleep | HealthActivityRestfulSleep)) ){
         vibes_short_pulse();
       }
     }
@@ -576,8 +577,8 @@ static void init() {
   }
   s_main_window = window_create();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
-      .load = main_window_load,
-      .unload = main_window_unload
+    .load = main_window_load,
+    .unload = main_window_unload
   });
   window_stack_push(s_main_window, true);
 }
