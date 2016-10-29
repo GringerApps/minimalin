@@ -37,8 +37,10 @@ static GPoint time_points[12] = {
   {30,  52} ,
   {54,  28} ,
 };
-static GPoint SOUTH_INFO_CENTER = { .x = 90, .y = 118 };
-static GPoint NORTH_INFO_CENTER = { .x = 90, .y = 62 };
+static GPoint SOUTH_INFO_CENTER = { .x = 90, .y = 122 };
+static GPoint NORTH_INFO_CENTER = { .x = 90, .y = 58 };
+static GPoint EAST_INFO_CENTER = { .x = 130, .y = 86 };
+static GPoint WEST_INFO_CENTER = { .x = 50, .y = 86 };
 #else
 static GPoint ticks_points[12][2] = {
   {{72, 0}  , {72, 7}  },
@@ -70,6 +72,8 @@ static GPoint time_points[12] = {
 };
 static GPoint SOUTH_INFO_CENTER = { .x = 72, .y = 112 };
 static GPoint NORTH_INFO_CENTER = { .x = 72, .y = 56 };
+static GPoint EAST_INFO_CENTER = { .x = 108, .y = 82 };
+static GPoint WEST_INFO_CENTER = { .x = 36, .y = 82 };
 #endif
 
 typedef enum {
@@ -100,6 +104,13 @@ typedef enum {
   PersistKeyWeather
 } PersistKey;
 
+typedef enum {
+  North = 0,
+  East,
+  South,
+  West
+} Position;
+
 typedef struct {
   int hour;
   int minute;
@@ -117,10 +128,13 @@ static Layer * s_root_layer;
 static GRect s_root_layer_bounds;
 static GPoint s_center;
 
-static TextBlock * s_north_info;
-static TextBlock * s_south_info;
+static TextBlock * s_weather_info;
+static TextBlock * s_date_info;
 static TextBlock * s_hour_text;
 static TextBlock * s_minute_text;
+
+static Position s_weather_position;
+static Position s_date_position;
 
 static Layer * s_tick_layer;
 
@@ -173,6 +187,90 @@ static bool time_conflicts(){
   return index_hour() == index_minute();
 }
 
+typedef enum { Min = 0, Hour } TmMember;
+typedef struct {
+  int lower_bound;
+  int upper_bound;
+} Range;
+typedef enum { IndexWeather, IndexDate } BlockIndex;
+
+
+static Position s_block_positions[2] = { North, South };
+
+static bool position_any_block_at(BlockIndex index, Position position){
+  for(int i=0; i<2; i++){
+    if(i != index && s_block_positions[i] == position){
+      return true;
+    }
+  }
+  return false;
+}
+
+#define RANGE(lower, upper) (Range) { .lower_bound=lower, .upper_bound=upper }
+
+static int tm_member_value(tm * time, TmMember member){
+  if(member == Min){
+    return time->tm_min;
+  }
+  return time->tm_hour % 12;
+}
+
+static bool tm_in_range(tm * time, Range range, TmMember member){
+  int member_value = tm_member_value(time, member);
+  int upper_bound = range.upper_bound;
+  int lower_bound = range.lower_bound;
+  if(upper_bound < lower_bound) {
+    return member_value <= upper_bound || member_value >= lower_bound;
+  }
+  return member_value <= upper_bound && member_value >= lower_bound;
+}
+
+static bool position_free(BlockIndex index, Position position){
+  if(position_any_block_at(index, position)){
+    return false;
+  }
+  if( position == North &&
+    ( tm_in_range(s_current_time, RANGE(51, 8), Min) ||
+      tm_in_range(s_current_time, RANGE(10, 1), Hour) )
+    ){
+    return false;
+  }
+  if( position == South &&
+    ( tm_in_range(s_current_time, RANGE(20, 39), Min) ||
+      tm_in_range(s_current_time, RANGE(4, 7), Hour ) )
+    ){
+    return false;
+  }
+  if( position == East &&
+    ( tm_in_range(s_current_time, RANGE(9, 19), Min) ||
+      tm_in_range(s_current_time, RANGE(2, 3), Hour ) )
+    ) {
+    return false;
+  }
+  if( position == West &&
+    ( tm_in_range(s_current_time, RANGE(40, 50), Min) ||
+      tm_in_range(s_current_time, RANGE(8, 9), Hour ) )
+    ) {
+    return false;
+  }
+return true;
+}
+
+static void text_block_move_to_free_position(TextBlock * text_block, BlockIndex index, Position priorities[4]){
+  GPoint points[4] = {
+    [North] = NORTH_INFO_CENTER,
+    [East] = EAST_INFO_CENTER,
+    [South] = SOUTH_INFO_CENTER,
+    [West] = WEST_INFO_CENTER
+  };
+  for(int i=0; i<4; i++){
+    Position position = priorities[i];
+    if(position_free(index, position)){
+      s_block_positions[index] = position;
+      text_block_move(text_block, points[position]);
+    }
+  }
+}
 
 static GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius){
   const int diameter = radius * 2;
@@ -285,7 +383,8 @@ static void config_bluetooth_icon_updated(DictionaryIterator * iter, Tuple * tup
 
 static void config_date_displayed_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyDateDisplayed, tuple->value->int8);
-  text_block_set_visible(s_south_info, tuple->value->int8);
+  text_block_set_visible(s_date_info
+  , tuple->value->int8);
 }
 
 static void config_rainbow_mode_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -376,7 +475,9 @@ static void update_date(){
     const GColor date_color = config_get_color(s_config, ConfigKeyDateColor);
     char buffer[] = "00";
     snprintf(buffer, sizeof(buffer), "%d", s_current_time->tm_mday);
-    text_block_set_text(s_south_info, buffer, date_color);
+    Position priorities[4] = { South, East, West, North };
+    text_block_move_to_free_position(s_date_info, IndexDate, priorities);
+    text_block_set_text(s_date_info, buffer, date_color);
   }
 }
 
@@ -452,7 +553,9 @@ static void update_info_layer(){
     strcat(info_buffer, temp_buffer);
   }
   const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
-  text_block_set_text(s_north_info, info_buffer, info_color);
+  Position priorities[4] = { South, East, West, North };
+  text_block_move_to_free_position(s_weather_info, IndexWeather, priorities);
+  text_block_set_text(s_weather_info, info_buffer, info_color);
 }
 
 static void bt_handler(bool connected){
@@ -476,9 +579,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   layer_mark_dirty(s_hour_hand_layer);
   mark_dirty_minute_hand_layer();
   update_times();
-  if(DAY_UNIT & units_changed){
-    update_date();
-  }
+  update_date();
   layer_mark_dirty(s_tick_layer);
   update_info_layer();
 }
@@ -490,11 +591,10 @@ static void main_window_load(Window *window) {
   update_current_time();
   window_set_background_color(window, config_get_color(s_config, ConfigKeyBackgroundColor));
 
+  s_date_info = text_block_create(s_root_layer, SOUTH_INFO_CENTER, s_font);
+  text_block_set_visible(s_date_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
 
-  s_south_info = text_block_create(s_root_layer, SOUTH_INFO_CENTER, s_font);
-  text_block_set_visible(s_south_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
-
-  s_north_info = text_block_create(s_root_layer, NORTH_INFO_CENTER, s_font);
+  s_weather_info = text_block_create(s_root_layer, NORTH_INFO_CENTER, s_font);
   bluetooth_connection_service_subscribe(bt_handler);
   bt_handler(connection_service_peek_pebble_app_connection());
 
@@ -563,8 +663,8 @@ static void main_window_unload(Window *window) {
   layer_destroy(s_tick_layer);
 
   bluetooth_connection_service_unsubscribe();
-  text_block_destroy(s_south_info);
-  text_block_destroy(s_north_info);
+  text_block_destroy(s_date_info);
+  text_block_destroy(s_weather_info);
 }
 
 static void init() {
