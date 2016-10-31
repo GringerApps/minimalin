@@ -50,6 +50,7 @@ void text_block_set_text(TextBlock * text_block, const char * text, const GColor
 
 void text_block_set_visible(TextBlock * text_block, const bool visible){
   layer_set_hidden(text_block->layer, !visible);
+  layer_mark_dirty(text_block->layer);
 }
 
 bool text_block_get_visible(TextBlock * text_block){

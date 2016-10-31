@@ -32,13 +32,13 @@ Pebble.addEventListener('showConfiguration', function() {
     minute_hand_color: getSavedColor('MinuteHand'),
     hour_hand_color: getSavedColor('HourHand'),
     date_displayed: getSavedBool('DateDisplayed'),
+    health_enabled: getSavedBool('HealthEnabled'),
     bluetooth_icon: getSavedInt('BluetoothIcon'),
-    weather_enabled: getSavedInt('WeatherEnabled'),
+    weather_enabled: getSavedBool('WeatherEnabled'),
     temperature_unit: getSavedInt('TemperatureUnit'),
     rainbow_mode: getSavedBool('RainbowMode'),
     dark_mode: getSavedBool('DarkMode'),
     background_color: getSavedColor('Background'),
-    date_color: getSavedColor('Date'),
     time_color: getSavedColor('Time'),
     info_color: getSavedColor('Info'),
     refresh_rate: getSavedInt('RefreshRate'),
@@ -73,11 +73,11 @@ Pebble.addEventListener('webviewclosed', function(e) {
     saveColor(dict, 'MinuteHand', configData.minute_hand_color);
     saveColor(dict, 'HourHand', configData.hour_hand_color);
     saveColor(dict, 'Background', configData.background_color);
-    saveColor(dict, 'Date', configData.date_color);
     saveColor(dict, 'Time', configData.time_color);
     saveColor(dict, 'Info', configData.info_color);
     saveBool(dict, 'DateDisplayed', configData.date_displayed);
-    saveInt(dict, 'WeatherEnabled', configData.weather_enabled);
+    saveBool(dict, 'HealthEnabled', configData.health_enabled);
+    saveBool(dict, 'WeatherEnabled', configData.weather_enabled);
     saveInt(dict, 'BluetoothIcon', configData.bluetooth_icon);
     saveInt(dict, 'TemperatureUnit', configData.temperature_unit);
     saveInt(dict, 'RefreshRate', configData.refresh_rate);

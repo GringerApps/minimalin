@@ -77,7 +77,6 @@ typedef enum {
   AppKeyBluetoothIcon,
   AppKeyRainbowMode,
   AppKeyBackgroundColor,
-  AppKeyDateColor,
   AppKeyTimeColor,
   AppKeyInfoColor,
   AppKeyTemperatureUnit,
@@ -90,7 +89,8 @@ typedef enum {
   AppKeyWeatherRequest,
   AppKeyJsReady,
   AppKeyVibrateOnTheHour,
-  AppKeyMilitaryTime
+  AppKeyMilitaryTime,
+  AppKeyHealthEnabled
 } AppKey;
 
 typedef enum {
@@ -220,8 +220,12 @@ static void schedule_weather_request(int timeout){
   }
 }
 
+static void step_handler(HealthEventType event, void *context);
+
 static void config_info_color_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyInfoColor, tuple->value->int32);
+  update_date();
+  step_handler(HealthEventSignificantUpdate, NULL);
   update_info_layer();
 }
 
@@ -234,11 +238,6 @@ static void config_time_color_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyTimeColor, tuple->value->int32);
   layer_mark_dirty(s_tick_layer);
   update_times();
-}
-
-static void config_date_color_updated(DictionaryIterator * iter, Tuple * tuple){
-  config_set_int(s_config, ConfigKeyDateColor, tuple->value->int32);
-  update_date();
 }
 
 static void config_hour_hand_color_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -290,6 +289,11 @@ static void config_military_time_updated(DictionaryIterator * iter, Tuple * tupl
   update_times();
 }
 
+static void config_health_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
+  config_set_bool(s_config, ConfigKeyHealthEnabled, tuple->value->int8);
+  text_block_set_visible(s_steps_info, tuple->value->int8);
+}
+
 static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
   s_js_ready = true;
   schedule_weather_request(0);
@@ -314,6 +318,7 @@ static void messenger_callback(DictionaryIterator * iter){
     schedule_weather_request(0);
   }
   layer_mark_dirty(s_root_layer);
+  quadrants_update(s_quadrants, s_current_time);
 }
 
 // Hands
@@ -355,7 +360,7 @@ static void update_times(){
 
 static void update_date(){
   if(config_get_bool(s_config, ConfigKeyDateDisplayed)){
-    const GColor date_color = config_get_color(s_config, ConfigKeyDateColor);
+    const GColor date_color = config_get_color(s_config, ConfigKeyInfoColor);
     char buffer[] = "00";
     snprintf(buffer, sizeof(buffer), "%d", s_current_time->tm_mday);
     text_block_set_text(s_date_info, buffer, date_color);
@@ -500,7 +505,8 @@ static void main_window_load(Window *window) {
   s_steps_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, High, s_current_time);
   health_service_events_subscribe(step_handler, NULL);
   step_handler(HealthEventSignificantUpdate, NULL);
-  
+  text_block_set_visible(s_steps_info, config_get_bool(s_config, ConfigKeyHealthEnabled));
+
   s_weather_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Head, s_current_time);
   bluetooth_connection_service_subscribe(bt_handler);
   bt_handler(connection_service_peek_pebble_app_connection());
@@ -541,7 +547,6 @@ static void main_window_load(Window *window) {
   Message messages[] = {
     { AppKeyJsReady, js_ready_callback },
     { AppKeyBackgroundColor, config_background_color_updated },
-    { AppKeyDateColor, config_date_color_updated },
     { AppKeyHourHandColor, config_hour_hand_color_updated },
     { AppKeyInfoColor, config_info_color_updated },
     { AppKeyMinuteHandColor, config_minute_hand_color_updated },
@@ -554,7 +559,8 @@ static void main_window_load(Window *window) {
     { AppKeyWeatherEnabled, config_weather_enabled_updated },
     { AppKeyWeatherTemperature, weather_requested_callback },
     { AppKeyVibrateOnTheHour, config_hourly_vibrate_updated },
-    { AppKeyMilitaryTime, config_military_time_updated }
+    { AppKeyMilitaryTime, config_military_time_updated },
+    { AppKeyHealthEnabled, config_health_enabled_updated }
   };
   s_messenger = messenger_create(16, messenger_callback, messages);
 }
