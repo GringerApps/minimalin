@@ -118,6 +118,7 @@ static GPoint s_center;
 static TextBlock * s_weather_info;
 static TextBlock * s_date_info;
 static TextBlock * s_steps_info;
+static TextBlock * s_watch_info;
 static TextBlock * s_hour_text;
 static TextBlock * s_minute_text;
 
@@ -136,6 +137,7 @@ static Messenger * s_messenger;
 static Weather s_weather;
 
 static bool s_bt_connected;
+static int s_battery_percent;
 
 static AppTimer * s_weather_request_timer;
 static int s_weather_request_timeout;
@@ -146,7 +148,7 @@ static GFont s_font;
 
 static tm * s_current_time;
 
-static void update_info_layer();
+static void update_weather_layer();
 static void schedule_weather_request(int timeout);
 static void update_times();
 static void update_date();
@@ -221,12 +223,16 @@ static void schedule_weather_request(int timeout){
 }
 
 static void step_handler(HealthEventType event, void *context);
+static void update_weather_layer();
+static void update_watch_layer();
+static void update_date();
 
 static void config_info_color_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyInfoColor, tuple->value->int32);
   update_date();
   step_handler(HealthEventSignificantUpdate, NULL);
-  update_info_layer();
+  update_weather_layer();
+  update_watch_layer();
 }
 
 static void config_background_color_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -256,17 +262,19 @@ static void config_refresh_rate_updated(DictionaryIterator * iter, Tuple * tuple
 
 static void config_temperature_unit_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyTemperatureUnit, tuple->value->int32);
-  update_info_layer();
+  update_weather_layer();
 }
 
 static void config_bluetooth_icon_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyBluetoothIcon, tuple->value->int32);
-  update_info_layer();
+  text_block_set_enabled(s_watch_info, tuple->value->int8 != 0);
+  update_watch_layer();
 }
 
 static void config_date_displayed_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyDateDisplayed, tuple->value->int8);
-  text_block_set_visible(s_date_info, tuple->value->int8);
+  text_block_set_enabled(s_date_info, tuple->value->int8);
+  update_date();
 }
 
 static void config_rainbow_mode_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -276,7 +284,8 @@ static void config_rainbow_mode_updated(DictionaryIterator * iter, Tuple * tuple
 
 static void config_weather_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyWeatherEnabled, tuple->value->int8);
-  update_info_layer();
+  text_block_set_enabled(s_weather_info, tuple->value->int8); 
+  update_weather_layer();
 }
 
 static void config_hourly_vibrate_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -291,7 +300,7 @@ static void config_military_time_updated(DictionaryIterator * iter, Tuple * tupl
 
 static void config_health_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyHealthEnabled, tuple->value->int8);
-  text_block_set_visible(s_steps_info, tuple->value->int8);
+  text_block_set_enabled(s_steps_info, tuple->value->int8);
 }
 
 static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
@@ -308,7 +317,8 @@ static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple)
     s_weather.temperature = temp_tuple->value->int8;
   }
   persist_write_data(PersistKeyWeather, &s_weather, sizeof(Weather));
-  update_info_layer();
+  update_weather_layer();
+  quadrants_update(s_quadrants, s_current_time);
 }
 
 static void messenger_callback(DictionaryIterator * iter){
@@ -317,8 +327,8 @@ static void messenger_callback(DictionaryIterator * iter){
     s_weather.timestamp = 0;
     schedule_weather_request(0);
   }
-  layer_mark_dirty(s_root_layer);
   quadrants_update(s_quadrants, s_current_time);
+  layer_mark_dirty(s_root_layer);
 }
 
 // Hands
@@ -333,9 +343,9 @@ static void update_times(){
   if(horizontal_display){
     clock_copy_time_string(buffer, sizeof(buffer));
     text_block_set_text(s_hour_text, buffer, color);
-    text_block_set_visible(s_minute_text, false);
+    text_block_set_enabled(s_minute_text, false);
   }else{
-    text_block_set_visible(s_minute_text, true);
+    text_block_set_enabled(s_minute_text, true);
     bool vertical_display = conflicts && ((hour_12 > 1 && hour_12 < 5) || (hour_12 > 7 && hour_12 < 11));
     if(vertical_display){
       hour_box_center.y -= 10;
@@ -417,20 +427,8 @@ static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
 
 // Infos: bluetooth + weather
 
-static void update_info_layer(){
-  char info_buffer[10] = {0};
-  const BluetoothIcon new_icon = config_get_int(s_config, ConfigKeyBluetoothIcon);
-#ifndef NO_BT
-  if(!s_bt_connected){
-#endif
-    if(new_icon == Bluetooth){
-      strncat(info_buffer, "z", 2);
-    }else if(new_icon == Heart){
-      strncat(info_buffer, "Z", 2);
-    }
-#ifndef NO_BT
-  }
-#endif
+static void update_weather_layer(){
+  char info_buffer[6] = {0};
   const int timeout = (config_get_int(s_config, ConfigKeyRefreshRate) + 5) * 60;
   const int expiration =  s_weather.timestamp + timeout;
   const bool weather_valid = time(NULL) < expiration;
@@ -447,9 +445,35 @@ static void update_info_layer(){
   text_block_set_text(s_weather_info, info_buffer, info_color);
 }
 
+static void update_watch_layer(){
+  char info_buffer[4] = {0};
+  if(s_battery_percent < 20){
+    strncat(info_buffer, "w", 2);
+  }
+  const BluetoothIcon new_icon = config_get_int(s_config, ConfigKeyBluetoothIcon);
+#ifndef NO_BT
+  if(!s_bt_connected){
+#endif
+    if(new_icon == Bluetooth){
+      strncat(info_buffer, "z", 2);
+    }else if(new_icon == Heart){
+      strncat(info_buffer, "Z", 2);
+    }
+#ifndef NO_BT
+  }
+#endif
+  const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
+  text_block_set_text(s_watch_info, info_buffer, info_color);
+}
+
 static void bt_handler(bool connected){
   s_bt_connected = connected;
-  update_info_layer();
+  update_watch_layer();
+}
+
+static void battery_handler(BatteryChargeState charge){
+  s_battery_percent = charge.charge_percent;
+  update_watch_layer();
 }
 
 static void step_handler(HealthEventType event, void *context){
@@ -486,7 +510,6 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   update_times();
   update_date();
   layer_mark_dirty(s_tick_layer);
-  update_info_layer();
   step_handler(HealthEventSignificantUpdate, NULL);
   quadrants_update(s_quadrants, s_current_time);
 }
@@ -500,17 +523,24 @@ static void main_window_load(Window *window) {
 
   s_quadrants = quadrants_create(s_center, HOUR_HAND_RADIUS, MINUTE_HAND_RADIUS);
   s_date_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Low, s_current_time);
-  text_block_set_visible(s_date_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
+  text_block_set_enabled(s_date_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
   
   s_steps_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, High, s_current_time);
   health_service_events_subscribe(step_handler, NULL);
   step_handler(HealthEventSignificantUpdate, NULL);
-  text_block_set_visible(s_steps_info, config_get_bool(s_config, ConfigKeyHealthEnabled));
+  text_block_set_enabled(s_steps_info, config_get_bool(s_config, ConfigKeyHealthEnabled));
 
   s_weather_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Head, s_current_time);
+  text_block_set_enabled(s_weather_info, config_get_bool(s_config, ConfigKeyWeatherEnabled));
+  update_weather_layer();
+
+  s_watch_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Tail, s_current_time);
   bluetooth_connection_service_subscribe(bt_handler);
   bt_handler(connection_service_peek_pebble_app_connection());
+  battery_state_service_subscribe(battery_handler);
+  battery_handler(battery_state_service_peek());
 
+  quadrants_ready(s_quadrants);
   quadrants_update(s_quadrants, s_current_time);
 
   s_hour_text = text_block_create(s_root_layer, time_points[6] , s_font);
@@ -585,6 +615,7 @@ static void main_window_unload(Window *window) {
   text_block_destroy(s_weather_info);
   text_block_destroy(s_date_info);
   text_block_destroy(s_steps_info);
+  text_block_destroy(s_watch_info);
 }
 
 static void init() {

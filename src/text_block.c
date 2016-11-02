@@ -5,8 +5,7 @@
 // #define DEBUG 1
 
 static void text_block_update_proc(struct Layer *layer, GContext *ctx){
-  TextBlock ** data = (TextBlock**) layer_get_data(layer);
-  TextBlock * text_block = *data;
+  TextBlock * text_block = * (TextBlock**) layer_get_data(layer);
 #ifdef DEBUG
   graphics_context_set_stroke_color(ctx, GColorRed);
   graphics_draw_rect(ctx, text_block->frame);
@@ -18,13 +17,14 @@ static void text_block_update_proc(struct Layer *layer, GContext *ctx){
 }
 
 TextBlock * text_block_create(Layer * parent_layer, const GPoint center, const GFont font){
-  TextBlock * text_block = (TextBlock *) malloc(sizeof(TextBlock));
+  TextBlock * text_block = (TextBlock *) calloc(1, sizeof(TextBlock));
   Layer * layer = layer_create_with_data(layer_get_frame(parent_layer), sizeof(TextBlock*));
   TextBlock ** data = (TextBlock**) layer_get_data(layer);
   *data = text_block;
   text_block->layer = layer;
   text_block->font = font;
   text_block->enabled = true;
+  text_block->ready = true;
   const GSize size = TEXT_BLOCK_SIZE;
   const GRect frame = (GRect) {
     .origin = GPoint(center.x - size.w / 2 , center.y - size.h / 2),
@@ -54,15 +54,23 @@ void text_block_set_visible(TextBlock * text_block, const bool visible){
 }
 
 bool text_block_get_visible(TextBlock * text_block){
-  return !layer_get_hidden(text_block->layer);
+  return text_block_get_enabled(text_block) && strlen(text_block->text) != 0 && !layer_get_hidden(text_block->layer);
 }
 
-void text_block_set_enable(TextBlock * text_block, const bool enable){
-  text_block->enabled = enable;
+void text_block_set_ready(TextBlock * text_block, const bool ready){
+  text_block->ready = ready;
 }
 
-bool text_block_get_enable(TextBlock * text_block){
-  return text_block->enabled;
+bool text_block_get_ready(TextBlock * text_block){
+  return text_block->ready;
+}
+
+void text_block_set_enabled(TextBlock * text_block, const bool enabled){
+  text_block->enabled = enabled;
+}
+
+bool text_block_get_enabled(TextBlock * text_block){
+  return text_block_get_ready(text_block) && text_block->enabled;
 }
 
 void text_block_move(TextBlock * text_block, const GPoint center){

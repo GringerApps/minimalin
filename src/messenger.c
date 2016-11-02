@@ -8,7 +8,7 @@ static void inbox_received_handler(DictionaryIterator * iter, void *context) {
   while (tuple) {
     for(int i = 0; i < messenger->size; i++){
       Message m = messenger->messages[i];
-      if(m.key == tuple->key){
+      if(m.key == tuple->key && m.callback != NULL){
         m.callback(iter, tuple);
       }
     }
