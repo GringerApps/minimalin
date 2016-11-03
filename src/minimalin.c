@@ -100,16 +100,17 @@ typedef enum {
 } PersistKey;
 
 typedef struct {
-  int hour;
-  int minute;
-  int day;
-} Time;
+  Config * config;
+  tm * time;
+} Context;
 
 typedef struct {
   int32_t timestamp;
   int8_t icon;
   int8_t temperature;
 } __attribute__((__packed__)) Weather;
+
+static Context s_context;
 
 static Window * s_main_window;
 static Layer * s_root_layer;
@@ -152,8 +153,9 @@ static tm * s_current_time;
 static void update_weather_layer();
 static void schedule_weather_request(int timeout);
 static void update_times();
-static void update_date();
 static void mark_dirty_minute_hand_layer();
+static void step_handler(HealthEventType event, void *context);
+static void update_watch_layer();
 
 static void update_current_time() {
 #ifdef SCREENSHOT
@@ -163,6 +165,7 @@ static void update_current_time() {
   const time_t temp = time(NULL);
   s_current_time = localtime(&temp);
 #endif
+  s_context.time = s_current_time;
 }
 
 static int index_hour(){
@@ -223,14 +226,9 @@ static void schedule_weather_request(int timeout){
   }
 }
 
-static void step_handler(HealthEventType event, void *context);
-static void update_weather_layer();
-static void update_watch_layer();
-static void update_date();
-
 static void config_info_color_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyInfoColor, tuple->value->int32);
-  update_date();
+  text_block_mark_dirty(s_date_info);
   step_handler(HealthEventSignificantUpdate, NULL);
   update_weather_layer();
   update_watch_layer();
@@ -279,7 +277,7 @@ static void config_battery_displayed_at_updated(DictionaryIterator * iter, Tuple
 static void config_date_displayed_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyDateDisplayed, tuple->value->int8);
   text_block_set_enabled(s_date_info, tuple->value->int8);
-  update_date();
+  text_block_mark_dirty(s_date_info);
 }
 
 static void config_rainbow_mode_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -373,12 +371,14 @@ static void update_times(){
   text_block_move(s_minute_text, minute_box_center);
 }
 
-static void update_date(){
-  if(config_get_bool(s_config, ConfigKeyDateDisplayed)){
-    const GColor date_color = config_get_color(s_config, ConfigKeyInfoColor);
+void date_info_update_proc(TextBlock * block){
+  Context * context = (Context *) text_block_get_context(block);
+  Config * config = context->config;
+  if(config_get_bool(config, ConfigKeyDateDisplayed)){
+    const GColor date_color = config_get_color(config, ConfigKeyInfoColor);
     char buffer[] = "00";
-    snprintf(buffer, sizeof(buffer), "%d", s_current_time->tm_mday);
-    text_block_set_text(s_date_info, buffer, date_color);
+    snprintf(buffer, sizeof(buffer), "%d", context->time->tm_mday);
+    text_block_set_text(block, buffer, date_color);
   }
 }
 
@@ -515,7 +515,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   layer_mark_dirty(s_hour_hand_layer);
   mark_dirty_minute_hand_layer();
   update_times();
-  update_date();
+  text_block_mark_dirty(s_date_info);
   layer_mark_dirty(s_tick_layer);
   step_handler(HealthEventSignificantUpdate, NULL);
   quadrants_update(s_quadrants, s_current_time);
@@ -531,6 +531,8 @@ static void main_window_load(Window *window) {
   s_quadrants = quadrants_create(s_center, HOUR_HAND_RADIUS, MINUTE_HAND_RADIUS);
   s_date_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Low, s_current_time);
   text_block_set_enabled(s_date_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
+  text_block_set_context(s_date_info, &s_context);
+  text_block_set_update_proc(s_date_info, date_info_update_proc);
 
   s_steps_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, High, s_current_time);
 
@@ -582,7 +584,7 @@ static void main_window_load(Window *window) {
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   update_current_time();
   update_times();
-  update_date();
+  text_block_mark_dirty(s_date_info);
   Message messages[] = {
     { AppKeyJsReady, js_ready_callback },
     { AppKeyBackgroundColor, config_background_color_updated },
@@ -635,6 +637,10 @@ static void init() {
   s_js_ready = false;
   s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_NUPE_23));
   s_config = config_load(PersistKeyConfig, CONF_SIZE, CONF_DEFAULTS);
+  s_context = (Context) {
+    .config = s_config,
+    .time = NULL
+  };
   if(persist_exists(PersistKeyWeather)){
     persist_read_data(PersistKeyWeather, &s_weather, sizeof(Weather));
   }

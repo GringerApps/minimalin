@@ -10,6 +10,9 @@ static void text_block_update_proc(struct Layer *layer, GContext *ctx){
   graphics_context_set_stroke_color(ctx, GColorRed);
   graphics_draw_rect(ctx, text_block->frame);
 #endif
+  if(text_block->update_proc != NULL){
+    text_block->update_proc(text_block);
+  }
   if(text_block->enabled){
     graphics_context_set_text_color(ctx, text_block->color);
     graphics_draw_text(ctx, text_block->text, text_block->font, text_block->frame, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
@@ -34,6 +37,14 @@ TextBlock * text_block_create(Layer * parent_layer, const GPoint center, const G
   layer_set_update_proc(layer, text_block_update_proc);
   layer_add_child(parent_layer, layer);
   return text_block;
+}
+
+void text_block_set_context(TextBlock * text_block, void * context){
+  text_block->context = context;
+}
+
+void * text_block_get_context(TextBlock * text_block){
+  return text_block->context;
 }
 
 TextBlock * text_block_destroy(TextBlock * text_block){
@@ -76,4 +87,12 @@ bool text_block_get_enabled(TextBlock * text_block){
 void text_block_move(TextBlock * text_block, const GPoint center){
   text_block->frame = grect_from_center_and_size(center, TEXT_BLOCK_SIZE);
   layer_mark_dirty(text_block->layer);
+}
+
+void text_block_mark_dirty(TextBlock * text_block){
+   layer_mark_dirty(text_block->layer);
+}
+
+void text_block_set_update_proc(TextBlock * text_block, TextBlockUpdateProc update_proc){
+   text_block->update_proc = update_proc;
 }
