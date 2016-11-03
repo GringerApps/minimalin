@@ -482,26 +482,28 @@ static void battery_handler(BatteryChargeState charge){
 }
 
 static void step_handler(HealthEventType event, void *context){
-  if(event == HealthEventSignificantUpdate){
-    char step_text[8] = {0};
-    const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
-    const int steps = (int)health_service_sum_today(HealthMetricStepCount);
-    if(steps > 10000){
-      snprintf(step_text, sizeof(step_text), "y%dk", steps / 1000);
-    }else if(steps > 1000){
-      snprintf(step_text, sizeof(step_text), "y%d.%dk", steps / 1000, (steps % 1000) / 100);
-    }else{
-      snprintf(step_text, sizeof(step_text), "y%d", steps);
-    }
-    text_block_set_text(s_steps_info, step_text, info_color);
+  if(!config_get_bool(s_config, ConfigKeyHealthEnabled) || event != HealthEventSignificantUpdate){
+    return;
   }
+  char step_text[8] = {0};
+  const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
+
+  const int steps = (int)health_service_sum_today(HealthMetricStepCount);
+  if(steps > 10000){
+    snprintf(step_text, sizeof(step_text), "y%dk", steps / 1000);
+  }else if(steps > 1000){
+    snprintf(step_text, sizeof(step_text), "y%d.%dk", steps / 1000, (steps % 1000) / 100);
+  }else{
+    snprintf(step_text, sizeof(step_text), "y%d", steps);
+  }
+  text_block_set_text(s_steps_info, step_text, info_color);
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   if(HOUR_UNIT & units_changed){
     bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
     if (vibrate_on_the_hour) {
-      if( PBL_IF_HEALTH_ELSE(true, false)  ||
+      if( PBL_IF_HEALTH_ELSE(config_get_bool(s_config, ConfigKeyHealthEnabled), false)  ||
           !(health_service_peek_current_activities() &
             (HealthActivitySleep | HealthActivityRestfulSleep)) ){
         vibes_short_pulse();
@@ -531,7 +533,9 @@ static void main_window_load(Window *window) {
   text_block_set_enabled(s_date_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
 
   s_steps_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, High, s_current_time);
+
   health_service_events_subscribe(step_handler, NULL);
+
   step_handler(HealthEventSignificantUpdate, NULL);
   text_block_set_enabled(s_steps_info, config_get_bool(s_config, ConfigKeyHealthEnabled));
 
@@ -613,7 +617,9 @@ static void main_window_unload(Window *window) {
 
   layer_destroy(s_tick_layer);
 
-  health_service_events_unsubscribe();
+  if(config_get_bool(s_config, ConfigKeyHealthEnabled)){
+    health_service_events_unsubscribe();
+  }
   bluetooth_connection_service_unsubscribe();
 
   s_quadrants = quadrants_destroy(s_quadrants);
