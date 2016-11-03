@@ -51,7 +51,8 @@
       "AppKeyJsReady": 16,
       "AppKeyVibrateOnTheHour": 17,
       "AppKeyMilitaryTime": 18,
-      "AppKeyHealthEnabled": 19
+      "AppKeyHealthEnabled": 19,
+      "AppKeyBatteryDisplayedAt": 20
     },
     "enableMultiJS": false,
     "displayName": "Minimalin",

@@ -90,7 +90,8 @@ typedef enum {
   AppKeyJsReady,
   AppKeyVibrateOnTheHour,
   AppKeyMilitaryTime,
-  AppKeyHealthEnabled
+  AppKeyHealthEnabled,
+  AppKeyBatteryDisplayedAt
 } AppKey;
 
 typedef enum {
@@ -267,7 +268,11 @@ static void config_temperature_unit_updated(DictionaryIterator * iter, Tuple * t
 
 static void config_bluetooth_icon_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyBluetoothIcon, tuple->value->int32);
-  text_block_set_enabled(s_watch_info, tuple->value->int8 != 0);
+  update_watch_layer();
+}
+
+static void config_battery_displayed_at_updated(DictionaryIterator * iter, Tuple * tuple){
+  config_set_int(s_config, ConfigKeyBatteryDisplayedAt, tuple->value->int32);
   update_watch_layer();
 }
 
@@ -284,7 +289,7 @@ static void config_rainbow_mode_updated(DictionaryIterator * iter, Tuple * tuple
 
 static void config_weather_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyWeatherEnabled, tuple->value->int8);
-  text_block_set_enabled(s_weather_info, tuple->value->int8); 
+  text_block_set_enabled(s_weather_info, tuple->value->int8);
   update_weather_layer();
 }
 
@@ -447,7 +452,7 @@ static void update_weather_layer(){
 
 static void update_watch_layer(){
   char info_buffer[4] = {0};
-  if(s_battery_percent < 20){
+  if(s_battery_percent < config_get_int(s_config, ConfigKeyBatteryDisplayedAt)){
     strncat(info_buffer, "w", 2);
   }
   const BluetoothIcon new_icon = config_get_int(s_config, ConfigKeyBluetoothIcon);
@@ -524,7 +529,7 @@ static void main_window_load(Window *window) {
   s_quadrants = quadrants_create(s_center, HOUR_HAND_RADIUS, MINUTE_HAND_RADIUS);
   s_date_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Low, s_current_time);
   text_block_set_enabled(s_date_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
-  
+
   s_steps_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, High, s_current_time);
   health_service_events_subscribe(step_handler, NULL);
   step_handler(HealthEventSignificantUpdate, NULL);
@@ -590,9 +595,10 @@ static void main_window_load(Window *window) {
     { AppKeyWeatherTemperature, weather_requested_callback },
     { AppKeyVibrateOnTheHour, config_hourly_vibrate_updated },
     { AppKeyMilitaryTime, config_military_time_updated },
-    { AppKeyHealthEnabled, config_health_enabled_updated }
+    { AppKeyHealthEnabled, config_health_enabled_updated },
+    { AppKeyBatteryDisplayedAt, config_battery_displayed_at_updated }
   };
-  s_messenger = messenger_create(16, messenger_callback, messages);
+  s_messenger = messenger_create(17, messenger_callback, messages);
 }
 
 static void main_window_unload(Window *window) {

@@ -18,10 +18,11 @@ typedef enum {
   ConfigKeyDateDisplayed,
   ConfigKeyVibrateOnTheHour,
   ConfigKeyMilitaryTime,
-  ConfigKeyHealthEnabled
+  ConfigKeyHealthEnabled,
+  ConfigKeyBatteryDisplayedAt
 } ConfigKey;
 
-#define CONF_SIZE 15
+#define CONF_SIZE 16
 
 
 #ifndef CONFIG_BLUETOOTH_ICON
@@ -58,5 +59,6 @@ ConfValue CONF_DEFAULTS[CONF_SIZE] = {
   { .key = ConfigKeyWeatherEnabled, .type = BoolConf, .value = { .boolean = CONFIG_WEATHER_ENABLED } },
   { .key = ConfigKeyVibrateOnTheHour, .type = BoolConf, .value = { .boolean = false } },
   { .key = ConfigKeyMilitaryTime, .type = BoolConf, .value = { .boolean = CONFIG_MILITARY_TIME } },
-  { .key = ConfigKeyHealthEnabled, .type = BoolConf, .value = { .boolean = false } }
+  { .key = ConfigKeyHealthEnabled, .type = BoolConf, .value = { .boolean = false } },
+  { .key = ConfigKeyBatteryDisplayedAt, .type = IntConf, .value = { .integer = -1 } }
 };

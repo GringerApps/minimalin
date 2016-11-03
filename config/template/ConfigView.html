@@ -6,53 +6,56 @@
 
 <div id="preview">
   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-       viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
-    {{#if platform == 'basalt' || platform == "aplite" || platform == "diorite"}}
-    <g>
-      <rect fill="{{_background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
-      <g fill="{{_time_color}}">
-        <path d="M271.2,11.2l-5.8,10c-0.6,1-0.2,2.2,0.7,2.7c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.7-1l6.9-12H271.2z"/>
-        <path d="M45.3,100l-11.6-6.7v4.6l9.6,5.6c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.7-1   C46.5,101.8,46.2,100.6,45.3,100z"/>
-        <text text-anchor="middle" x="260" y="65" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ military_time ? 13 : 1 }}</text>
-        <text text-anchor="middle" x="67" y="130" style="font-family:'Nupe-CondensedRegular'; font-size:42;">51</text>
-      </g>
-    </g>
-    {{/if}}
-    {{#if platform == 'chalk' }}
-    <circle fill="{{_background_color}}" cx="177.5" cy="177.5" r="177.5"/>
+  viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
+  {{#if platform == 'basalt' || platform == "aplite" || platform == "diorite"}}
+  <g>
+    <rect fill="{{_background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
     <g fill="{{_time_color}}">
-      <path d="M263.8,22.4l-4.4,7.6c-0.6,1-0.2,2.2,0.7,2.8c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.8-1l4.4-7.6   C266.2,23.7,265,23,263.8,22.4z"/>
-      <path d="M31.5,95.9c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.8-1c0.6-1,0.2-2.2-0.7-2.8l-8.9-5.1   c-0.7,1.2-1.4,2.3-2,3.5L31.5,95.9z"/>
-      <text text-anchor="middle" x="250" y="70" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ military_time ? 13 : 1 }}</text>
-      <text text-anchor="middle" x="55" y="125" style="font-family:'Nupe-CondensedRegular'; font-size:42;">51</text>
+      <path d="M271.2,11.2l-5.8,10c-0.6,1-0.2,2.2,0.7,2.7c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.7-1l6.9-12H271.2z"/>
+      <path d="M45.3,100l-11.6-6.7v4.6l9.6,5.6c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.7-1   C46.5,101.8,46.2,100.6,45.3,100z"/>
+      <text text-anchor="middle" x="260" y="65" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ military_time ? 13 : 1 }}</text>
+      <text text-anchor="middle" x="67" y="130" style="font-family:'Nupe-CondensedRegular'; font-size:42;">51</text>
     </g>
-    {{/if}}
-    <text text-anchor="middle" x="177" y="123" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ info_text }}</text>
-    {{#if date_displayed}}
-    <text text-anchor="middle" x="255" y="195.5" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">31</text>
-    {{/if}}
-    {{#if health_enabled}}
-    <text text-anchor="middle" x="177" y="250" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">y8.5k</text>
-    {{/if}}
-    <path fill="{{_hour_hand_color}}" d="M177,184.4c-1.5,0-3.1-0.6-4.2-1.8c-2.3-2.3-2.3-6.1,0-8.5l55.2-55.2c2.3-2.3,6.1-2.3,8.5,0   c2.3,2.3,2.3,6.1,0,8.5l-55.2,55.2C180.1,183.8,178.5,184.4,177,184.4z"/>
-    {{#if !rainbow_mode}}
-    <path fill="{{_minute_hand_color}}"  d="M177.5,184.3c-1.5,0.1-3.1-0.3-4.4-1.3l-80.3-66.1c-2.6-2.1-2.9-5.9-0.8-8.4c2.1-2.6,5.9-2.9,8.4-0.8   l80.3,66.1c2.6,2.1,2.9,5.9,0.8,8.4C180.5,183.4,179,184.2,177.5,184.3z"/>
-    {{else}}
-    <g>
-      <path fill="#FF0000" d="M113.3,120.5c0.1,1.5-0.3,3.1-1.3,4.4c-2.1,2.6-5.9,2.9-8.4,0.8l-10.8-8.9c-2.6-2.1-2.9-5.9-0.8-8.4     c2.1-2.6,5.9-2.9,8.4-0.8l10.8,8.9C112.5,117.5,113.2,119,113.3,120.5z"/>
-      <rect x="109.1" y="117.5" transform="matrix(-0.6358 0.7719 -0.7719 -0.6358 286.6337 119.6763)" fill="#FF5500" width="12" height="20"/>
-      <rect x="124.6" y="130.1" transform="matrix(-0.6358 0.7719 -0.7719 -0.6358 321.9594 128.6248)" fill="#FFAA00" width="12" height="20.3"/>
-      <rect x="140.7" y="142.9" transform="matrix(-0.6358 0.7719 -0.7719 -0.6358 358.4296 137.8651)" fill="#00AA00" width="12" height="21.3"/>
-      <rect x="159" y="155.5" transform="matrix(-0.6358 0.7719 -0.7719 -0.6358 399.951 148.3838)" fill="#0055FF" width="12" height="26.1"/>
-    </g>
-    {{/if}}
-    <circle fill="{{ rainbow_mode ? '#AA00FF' : _hour_hand_color }}" cx="177.5" cy="178.499" r="9.991"/>
-  </svg>
+  </g>
+  {{/if}}
+  {{#if platform == 'chalk' }}
+  <circle fill="{{_background_color}}" cx="177.5" cy="177.5" r="177.5"/>
+  <g fill="{{_time_color}}">
+    <path d="M263.8,22.4l-4.4,7.6c-0.6,1-0.2,2.2,0.7,2.8c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.8-1l4.4-7.6   C266.2,23.7,265,23,263.8,22.4z"/>
+    <path d="M31.5,95.9c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.8-1c0.6-1,0.2-2.2-0.7-2.8l-8.9-5.1   c-0.7,1.2-1.4,2.3-2,3.5L31.5,95.9z"/>
+    <text text-anchor="middle" x="250" y="70" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ military_time ? 13 : 1 }}</text>
+    <text text-anchor="middle" x="55" y="125" style="font-family:'Nupe-CondensedRegular'; font-size:42;">51</text>
+  </g>
+  {{/if}}
+  {{#if weather_enabled}}
+  <text text-anchor="middle" x="177" y="123" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">b18°</text>
+  {{/if}}
+  {{#if date_displayed}}
+  <text text-anchor="middle" x="255" y="195.5" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">31</text>
+  {{/if}}
+  {{#if health_enabled}}
+  <text text-anchor="middle" x="177" y="250" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">y8.5k</text>
+  {{/if}}
+  <text text-anchor="middle" x="100" y="195.5" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ info_text }}</text>
+  <path fill="{{_hour_hand_color}}" d="M177,184.4c-1.5,0-3.1-0.6-4.2-1.8c-2.3-2.3-2.3-6.1,0-8.5l55.2-55.2c2.3-2.3,6.1-2.3,8.5,0   c2.3,2.3,2.3,6.1,0,8.5l-55.2,55.2C180.1,183.8,178.5,184.4,177,184.4z"/>
+  {{#if !rainbow_mode}}
+  <path fill="{{_minute_hand_color}}"  d="M177.5,184.3c-1.5,0.1-3.1-0.3-4.4-1.3l-80.3-66.1c-2.6-2.1-2.9-5.9-0.8-8.4c2.1-2.6,5.9-2.9,8.4-0.8   l80.3,66.1c2.6,2.1,2.9,5.9,0.8,8.4C180.5,183.4,179,184.2,177.5,184.3z"/>
+  {{else}}
+  <g>
+    <path fill="#FF0000" d="M113.3,120.5c0.1,1.5-0.3,3.1-1.3,4.4c-2.1,2.6-5.9,2.9-8.4,0.8l-10.8-8.9c-2.6-2.1-2.9-5.9-0.8-8.4     c2.1-2.6,5.9-2.9,8.4-0.8l10.8,8.9C112.5,117.5,113.2,119,113.3,120.5z"/>
+    <rect x="109.1" y="117.5" transform="matrix(-0.6358 0.7719 -0.7719 -0.6358 286.6337 119.6763)" fill="#FF5500" width="12" height="20"/>
+    <rect x="124.6" y="130.1" transform="matrix(-0.6358 0.7719 -0.7719 -0.6358 321.9594 128.6248)" fill="#FFAA00" width="12" height="20.3"/>
+    <rect x="140.7" y="142.9" transform="matrix(-0.6358 0.7719 -0.7719 -0.6358 358.4296 137.8651)" fill="#00AA00" width="12" height="21.3"/>
+    <rect x="159" y="155.5" transform="matrix(-0.6358 0.7719 -0.7719 -0.6358 399.951 148.3838)" fill="#0055FF" width="12" height="26.1"/>
+  </g>
+  {{/if}}
+  <circle fill="{{ rainbow_mode ? '#AA00FF' : _hour_hand_color }}" cx="177.5" cy="178.499" r="9.991"/>
+</svg>
 </div>
 <div id="preview_spacer"></div>
 <div id="content">
   {{#if platform == 'aplite' || platform == 'diorite'}}
-    <Tabs source="{{ dark_mode_source }}" active_tab="{{ dark_mode }}" header="Color theme"/>
+  <Tabs source="{{ dark_mode_source }}" value="{{ dark_mode }}" header="Color theme"/>
   {{else}}
   <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
   <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand" toggleFirst/>
@@ -70,10 +73,11 @@
   <Toggle label="Show date" value="{{ date_displayed }}" inverted/>
   <Toggle value="{{ weather_enabled }}" label="Show weather"/>
   <Input header="Fixed location (empty to use phone location)" placeholder="Ex: Dublin,Ireland" value="{{ location }}"/>
-  <Tabs source="{{ temperature_unit_source }}" active_tab="{{ temperature_unit }}" header="Temperature unit"/>
-  <Tabs source="{{ refresh_rate_source }}" active_tab="{{ refresh_rate }}" header="Refresh rate"/>
+  <Tabs source="{{ temperature_unit_source }}" value="{{ temperature_unit }}" header="Temperature unit"/>
+  <Tabs source="{{ refresh_rate_source }}" value="{{ refresh_rate }}" header="Refresh rate"/>
   <Toggle value="{{ health_enabled }}" label="Steps (requires Pebble Health)"/>
-  <Tabs source="{{ bluetooth_source }}" active_tab="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show"/>
+  <Tabs source="{{ bluetooth_source }}" value="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show"/>
+  <Tabs source="{{ battery_displayed_at_source }}" value="{{ battery_displayed_at }}" header="Display a battery icon when battery goes below"/>
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
   </div>
@@ -211,76 +215,81 @@
      info_text: function(){
        var info;
        switch(this.get("bluetooth_icon")){
-       case 1:
+         case 1:
          info = "z";
          break;
-       case 2:
+         case 2:
          info = "Z";
          break;
-       default:
+         default:
          info = "";
        }
-       if(this.get("weather_enabled")){
-         info += "b18°";
+       if(this.get("battery_displayed_at") != -1){
+         info += "w";
        }
        return info;
      },
      dark_mode_source: function(){
-       return [{ label: "Dark"}, { label: "Light"}]
+       return [
+       { label: "Dark", value: true },
+       { label: "Light", value: false }
+       ];
      },
      bluetooth_source: function(){
        return [
-         { label: "No icon" },
-         { label: "Bluetooth" },
-         { label: "Broken heart" }
+       { label: "No icon", value: 0 },
+       { label: "Bluetooth", value: 1 },
+       { label: "Broken heart", value: 2 }
+       ];
+     },
+     battery_displayed_at_source: function(){
+       return [
+       { label: "Never", value: -1 },
+       { label: "10", value: 10 },
+       { label: "20", value: 20 },
+       { label: "30", value: 30 }
        ];
      },
      temperature_unit_source: function(){
        return [
-         { label: "Celsius" },
-         { label: "Fahrenheit" }
+       { label: "Celsius", value: 0 },
+       { label: "Fahrenheit", value: 1 }
        ];
      },
      refresh_rate_source: function(){
        return [
-         { label: "5 min" },
-         { label: "20 min" },
-         { label: "40 min" }
-       ];
-     },
-     time_format_source: function(){
-       return [
-         { label: "12 hour" },
-         { label: "24 hour" }
+       { label: "5 min", value: 5 },
+       { label: "20 min", value: 20 },
+       { label: "40 min", value: 40 }
        ];
      },
      _hour_hand_color: function(){
        if(!this.is_bw()){
-           return this.get("hour_hand_color");
+         return this.get("hour_hand_color");
        }
        return this.foregroundColor();
      },
      _minute_hand_color: function(){
        if(!this.is_bw()){
-           return this.get("minute_hand_color");
+         return this.get("minute_hand_color");
        }
        return this.foregroundColor();
      },
      _info_color: function(){
        if(!this.is_bw()){
-           return this.get("info_color");
+         return this.get("info_color");
        }
        return this.foregroundColor();
      },
      _time_color: function(){
        if(!this.is_bw()){
-           return this.get("time_color");
+         return this.get("time_color");
        }
        return this.foregroundColor();
      },
      _background_color: function(){
        if(!this.is_bw()){
-           return this.get("background_color");
+         return this.get("background_color");
        }
        return this.backgroundColor();
      }
@@ -293,13 +302,13 @@
    },
    foregroundColor: function(){
      if(this.get("dark_mode") == 0){
-         return "#FFFFFF";
+       return "#FFFFFF";
      }
      return "#000000";
    },
    is_bw: function(){
-     return this.get("platform") == "aplite" || 
-       this.get("platform") == "diorite";
+     return this.get("platform") == "aplite" ||
+     this.get("platform") == "diorite";
    },
    onrender: function(){
      this.on('reset-defaults', function() {

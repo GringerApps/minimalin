@@ -33,6 +33,7 @@ Pebble.addEventListener('showConfiguration', function() {
     hour_hand_color: getSavedColor('HourHand'),
     date_displayed: getSavedBool('DateDisplayed'),
     health_enabled: getSavedBool('HealthEnabled'),
+    battery_displayed_at: getSavedInt('BatteryDisplayedAt'),
     bluetooth_icon: getSavedInt('BluetoothIcon'),
     weather_enabled: getSavedBool('WeatherEnabled'),
     temperature_unit: getSavedInt('TemperatureUnit'),
@@ -79,6 +80,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
     saveBool(dict, 'HealthEnabled', configData.health_enabled);
     saveBool(dict, 'WeatherEnabled', configData.weather_enabled);
     saveInt(dict, 'BluetoothIcon', configData.bluetooth_icon);
+    saveInt(dict, 'BatteryDisplayedAt', configData.battery_displayed_at);
     saveInt(dict, 'TemperatureUnit', configData.temperature_unit);
     saveInt(dict, 'RefreshRate', configData.refresh_rate);
     saveBool(dict, 'RainbowMode', configData.rainbow_mode);

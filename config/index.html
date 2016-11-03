@@ -61,26 +61,15 @@
        return defaultValue;
      };
 
-     var toRefreshRate = {
-         0: 5,
-         1: 20,
-         2: 40
-     };
-
-     var fromRefreshRate = {
-         5: 0,
-         20: 1,
-         40: 2
-     };
-
      var defaults = {
        minute_hand_color: '#FFFFFF',
        hour_hand_color:  '#FF0000',
        date_displayed:  true,
        health_enabled: false,
        bluetooth_icon: 1,
+       battery_displayed_at: -1,
        rainbow_mode: false,
-       background_color: '#000000',    
+       background_color: '#000000',
        time_color: '#AAAAAA',
        info_color: '#555555',
        temperature_unit: 0,
@@ -97,77 +86,64 @@
        minute_hand_color: color('minute_hand_color', defaults.minute_hand_color),
        hour_hand_color:  color('hour_hand_color', defaults.hour_hand_color),
        date_displayed:  bool('date_displayed', defaults.date_displayed),
+       battery_displayed_at:  queryIn('battery_displayed_at', [-1, 10, 20, 30], defaults.battery_displayed_at),
        health_enabled:  bool('health_enabled', defaults.health_enabled),
        bluetooth_icon: queryIn('bluetooth_icon', [0,1,2], defaults.bluetooth_icon),
        temperature_unit: queryIn('temperature_unit', [0,1], defaults.temperature_unit),
-       refresh_rate: fromRefreshRate[queryIn('refresh_rate', [5,20,40], defaults.refresh_rate)],
+       refresh_rate: queryIn('refresh_rate', [5,20,40], defaults.refresh_rate),
        rainbow_mode: bool('rainbow_mode', defaults.rainbow_mode),
-       dark_mode: bool('dark_mode', defaults.dark_mode) ? 0 : 1,
+       dark_mode: bool('dark_mode', defaults.dark_mode),
        background_color: color('background_color', defaults.background_color),
        time_color: color('time_color', defaults.time_color),
        info_color: color('info_color', defaults.info_color),
        weather_enabled: bool('weather_enabled', defaults.weather_enabled),
-       location: query('location',defaults.location),
+       location: query('location', defaults.location),
        platform: queryIn('platform', ['basalt', 'chalk', 'aplite', 'diorite'], 'basalt'),
        vibrate_on_the_hour: bool('vibrate_on_the_hour', defaults.vibrate_on_the_hour),
        military_time: bool('military_time', defaults.military_time)
      };
-
      Ractive.load('template/ConfigView.html').then(function(ConfigView) {
        new ConfigView({
          el: 'body',
          data: data,
          oninit: function(){
            this.on('save', function() {
-             var dark_mode = this.get('dark_mode') == 0;
-             var aplite = this.get('platform') == 'aplite' || this.get('platform') == 'diorite';
+             var ractive = this;
+             var dark_mode = this.get('dark_mode');
+             var bw = this.get('platform') == 'aplite' || this.get('platform') == 'diorite';
              var dark = '#000000';
              var light = '#FFFFFF';
-             var foreground = function(){
-               return dark_mode ? light : dark;
+             var foreground = function(name){
+               if(bw){
+                 return dark_mode ? light : dark;
+               }
+               return ractive.get(name);
              }
-             var background = function(){
-               return dark_mode ? dark : light;
+             var background = function(name){
+               if(bw){
+                 return dark_mode ? dark : light;
+               }
+               return ractive.get(name);
              }
-             var response_data;
-             if(aplite){
-               var response_data = {
-                 minute_hand_color: foreground(),
-                 hour_hand_color: foreground(),
-                 date_displayed: this.get('date_displayed'),
-                 health_enabled: this.get('health_enabled'),
-                 bluetooth_icon: this.get('bluetooth_icon'),
-                 background_color: background(),
-                 time_color: foreground(),
-                 info_color: foreground(),
-                 weather_enabled: this.get('weather_enabled'),
-                 refresh_rate: toRefreshRate[this.get('refresh_rate')],
-                 temperature_unit: this.get('temperature_unit'),
-                 vibrate_on_the_hour: this.get('vibrate_on_the_hour'),
-                 dark_mode: dark_mode,
-                 location: this.get('location') || '',
-                 military_time: this.get('military_time')
-               };
-             }else{
-               var response_data = {
-                 minute_hand_color: this.get('minute_hand_color'),
-                 hour_hand_color: this.get('hour_hand_color'),
-                 date_displayed: this.get('date_displayed'),
-                 health_enabled: this.get('health_enabled'),
-                 bluetooth_icon: this.get('bluetooth_icon'),
-                 background_color: this.get('background_color'),
-                 time_color: this.get('time_color'),
-                 info_color: this.get('info_color'),
-                 weather_enabled: this.get('weather_enabled'),
-                 rainbow_mode: this.get('rainbow_mode'),
-                 refresh_rate: toRefreshRate[this.get('refresh_rate')],
-                 temperature_unit: this.get('temperature_unit'),
-                 vibrate_on_the_hour: this.get('vibrate_on_the_hour'),
-                 location: this.get('location') || '',
-                 military_time: this.get('military_time')
-               };
-             }
-             console.log(response_data);
+             var response_data = {
+               minute_hand_color: foreground('minute_hand_color'),
+               hour_hand_color: foreground('hour_hand_color'),
+               date_displayed: this.get('date_displayed'),
+               battery_displayed_at: this.get('battery_displayed_at'),
+               health_enabled: this.get('health_enabled'),
+               bluetooth_icon: this.get('bluetooth_icon'),
+               background_color: background('background_color'),
+               time_color: foreground('time_color'),
+               info_color: foreground('info_color'),
+               weather_enabled: this.get('weather_enabled'),
+               refresh_rate: this.get('refresh_rate'),
+               temperature_unit: this.get('temperature_unit'),
+               vibrate_on_the_hour: this.get('vibrate_on_the_hour'),
+               dark_mode: dark_mode,
+               rainbow_mode: this.get('rainbow_mode'),
+               location: this.get('location') || '',
+               military_time: this.get('military_time')
+             };
              var return_to = query('return_to', 'pebblejs://close#');
              document.location = return_to + encodeURIComponent(JSON.stringify(response_data));
            });
