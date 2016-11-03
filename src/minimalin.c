@@ -101,6 +101,8 @@ typedef enum {
 
 typedef struct {
   Config * config;
+  bool bluetooth_connected;
+  BatteryChargeState charge_state;
   tm * time;
 } Context;
 
@@ -155,7 +157,6 @@ static void schedule_weather_request(int timeout);
 static void update_times();
 static void mark_dirty_minute_hand_layer();
 static void step_handler(HealthEventType event, void *context);
-static void update_watch_layer();
 
 static void update_current_time() {
 #ifdef SCREENSHOT
@@ -231,7 +232,7 @@ static void config_info_color_updated(DictionaryIterator * iter, Tuple * tuple){
   text_block_mark_dirty(s_date_info);
   step_handler(HealthEventSignificantUpdate, NULL);
   update_weather_layer();
-  update_watch_layer();
+  text_block_mark_dirty(s_watch_info);
 }
 
 static void config_background_color_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -266,12 +267,12 @@ static void config_temperature_unit_updated(DictionaryIterator * iter, Tuple * t
 
 static void config_bluetooth_icon_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyBluetoothIcon, tuple->value->int32);
-  update_watch_layer();
+  text_block_mark_dirty(s_watch_info);
 }
 
 static void config_battery_displayed_at_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyBatteryDisplayedAt, tuple->value->int32);
-  update_watch_layer();
+  text_block_mark_dirty(s_watch_info);
 }
 
 static void config_date_displayed_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -450,14 +451,17 @@ static void update_weather_layer(){
   text_block_set_text(s_weather_info, info_buffer, info_color);
 }
 
-static void update_watch_layer(){
+static void watch_info_update_proc(TextBlock * block){
+  const Context * const context = (Context *) text_block_get_context(block);
+  const Config * const config = context->config;
+  const BatteryChargeState charge_state = context->charge_state;
   char info_buffer[4] = {0};
-  if(s_battery_percent < config_get_int(s_config, ConfigKeyBatteryDisplayedAt)){
+  if(charge_state.charge_percent < config_get_int(config, ConfigKeyBatteryDisplayedAt)){
     strncat(info_buffer, "w", 2);
   }
-  const BluetoothIcon new_icon = config_get_int(s_config, ConfigKeyBluetoothIcon);
+  const BluetoothIcon new_icon = config_get_int(config, ConfigKeyBluetoothIcon);
 #ifndef NO_BT
-  if(!s_bt_connected){
+  if(!context->bluetooth_connected){
 #endif
     if(new_icon == Bluetooth){
       strncat(info_buffer, "z", 2);
@@ -468,17 +472,17 @@ static void update_watch_layer(){
   }
 #endif
   const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
-  text_block_set_text(s_watch_info, info_buffer, info_color);
+  text_block_set_text(block, info_buffer, info_color);
 }
 
 static void bt_handler(bool connected){
-  s_bt_connected = connected;
-  update_watch_layer();
+  s_context.bluetooth_connected = connected;
+  text_block_mark_dirty(s_watch_info);
 }
 
 static void battery_handler(BatteryChargeState charge){
-  s_battery_percent = charge.charge_percent;
-  update_watch_layer();
+  s_context.charge_state = charge;
+  text_block_mark_dirty(s_watch_info);
 }
 
 static void step_handler(HealthEventType event, void *context){
@@ -546,6 +550,8 @@ static void main_window_load(Window *window) {
   update_weather_layer();
 
   s_watch_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Tail, s_current_time);
+  text_block_set_context(s_watch_info, &s_context);
+  text_block_set_update_proc(s_watch_info, watch_info_update_proc);
   bluetooth_connection_service_subscribe(bt_handler);
   bt_handler(connection_service_peek_pebble_app_connection());
   battery_state_service_subscribe(battery_handler);
@@ -639,6 +645,12 @@ static void init() {
   s_config = config_load(PersistKeyConfig, CONF_SIZE, CONF_DEFAULTS);
   s_context = (Context) {
     .config = s_config,
+    .bluetooth_connected = false,
+    .charge_state = (BatteryChargeState) {
+      .charge_percent = 100,
+      .is_charging = false,
+      .is_plugged = false
+    },
     .time = NULL
   };
   if(persist_exists(PersistKeyWeather)){
