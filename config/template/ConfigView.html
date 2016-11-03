@@ -33,7 +33,7 @@
   {{#if date_displayed}}
   <text text-anchor="middle" x="255" y="195.5" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">31</text>
   {{/if}}
-  {{#if health_enabled}}
+  {{#if platform != 'aplite' && health_enabled}}
   <text text-anchor="middle" x="177" y="250" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">y8.5k</text>
   {{/if}}
   <text text-anchor="middle" x="100" y="195.5" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ info_text }}</text>
@@ -62,7 +62,7 @@
   <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
   <ItemColor color="{{ background_color }}" label="Background color"/>
   {{/if}}
-  <Toggle label="Vibrate every full hour" value="{{ vibrate_on_the_hour }}" footer="Off during sleep tracked with Pebble Health" />
+  <Toggle label="Vibrate every full hour" value="{{ vibrate_on_the_hour }}" footer="{{ platform == 'aplite' ? '' : 'Off during sleep tracked with Pebble Health' }}" />
   <Toggle label="Use 24h format" value="{{ military_time }}"/>
   <div class="section">
     <div>Complications</div>
@@ -75,7 +75,9 @@
   <Input header="Fixed location (empty to use phone location)" placeholder="Ex: Dublin,Ireland" value="{{ location }}"/>
   <Tabs source="{{ temperature_unit_source }}" value="{{ temperature_unit }}" header="Temperature unit"/>
   <Tabs source="{{ refresh_rate_source }}" value="{{ refresh_rate }}" header="Refresh rate"/>
+  {{#if platform != 'aplite'}}
   <Toggle value="{{ health_enabled }}" label="Steps (requires Pebble Health)"/>
+  {{/if}}
   <Tabs source="{{ bluetooth_source }}" value="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show"/>
   <Tabs source="{{ battery_displayed_at_source }}" value="{{ battery_displayed_at }}" header="Display a battery icon when battery goes below"/>
   <div class="donation">
