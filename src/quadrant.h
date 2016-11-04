@@ -4,7 +4,7 @@
 
 #define FOUR 4
 
-typedef enum { North = 0, South, East, West } Position;
+typedef enum { North = 0, South, West, East } Position;
 typedef enum { Tail, Low, Normal, High, Head } Priority;
 typedef enum { First, Second, Third, Fourth } Index;
 typedef struct {

@@ -20,7 +20,7 @@
 #define EAST_BLOCK grect_from_center_and_size(EAST_INFO_CENTER, BLOCK_SIZE)
 #define WEST_BLOCK grect_from_center_and_size(WEST_INFO_CENTER, BLOCK_SIZE)
 
-static bool intersect_with_position(Segment segment, Position position){
+static bool segment_intersect_with_position(Segment segment, Position position){
   GRect blocks[4] = {
     [North] = NORTH_BLOCK,
     [South] = SOUTH_BLOCK,
@@ -131,25 +131,38 @@ TextBlock * quadrants_add_text_block(Quadrants * quadrants, Layer * root_layer, 
   return block;
 }
 
-static void quadrants_try_takeover_quadrant(Quadrants * quadrants, Index index, tm * time){
+static bool time_intersect_with_position(Quadrants * quadrants, tm * time, Position pos){
   GPoint center = quadrants->center;
   int angle = angle_hour(time, true);
   Segment hour_hand = SEGMENT(quadrants->center, gpoint_on_circle(center, angle, quadrants->hour_hand_radius));
   angle = angle_minute(time);
   Segment minute_hand = SEGMENT(quadrants->center, gpoint_on_circle(center, angle, quadrants->minute_hand_radius));
-  for(int pos=0; pos<POSTIONS_COUNT; pos++){
-    if(!intersect_with_position(hour_hand, pos) && !intersect_with_position(minute_hand, pos)){
-      if(quadrants_takeover_quadrant(quadrants, index, pos)){
-        return;
-      }
+  return segment_intersect_with_position(hour_hand, pos) || segment_intersect_with_position(minute_hand, pos);
+}
+
+static bool quadrants_try_takeover_quadrant_in_order(Quadrants * quadrants, Index index, tm * time, Position intersect_positions[POSTIONS_COUNT], bool check_intersect){
+  for(int index_pos=0; index_pos<POSTIONS_COUNT; index_pos++){
+    Position pos = intersect_positions[index_pos];
+    if(check_intersect && time_intersect_with_position(quadrants, time, pos)){
+      continue;
+    }
+    if(quadrants_takeover_quadrant(quadrants, index, pos)){
+      return true;
     }
   }
-  Position positions[POSTIONS_COUNT] = { North, South, East, West };
-  for(int index_pos = 0; index_pos < POSTIONS_COUNT; index_pos++){
-    if(quadrants_takeover_quadrant(quadrants, index, positions[index_pos])){
-      return;
-    }
+  return false;
+}
+
+static void quadrants_try_takeover_quadrant(Quadrants * quadrants, Index index, tm * time){
+  Position order[POSTIONS_COUNT] = { North, South, East, West };
+  if(time->tm_hour % 12 == 3){
+    order[2] = West;
+    order[3] = East;
+  };
+  if(quadrants_try_takeover_quadrant_in_order(quadrants, index, time, order, true)){
+    return;
   }
+  quadrants_try_takeover_quadrant_in_order(quadrants, index, time, order, false);
 }
 
 void quadrants_ready(Quadrants * quadrants){
