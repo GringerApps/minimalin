@@ -61,7 +61,7 @@ void text_block_set_text(TextBlock * text_block, const char * text, const GColor
 
 void text_block_set_visible(TextBlock * text_block, const bool visible){
   layer_set_hidden(text_block->layer, !visible);
-  layer_mark_dirty(text_block->layer);
+  text_block_mark_dirty(text_block);
 }
 
 bool text_block_get_visible(TextBlock * text_block){
@@ -70,6 +70,7 @@ bool text_block_get_visible(TextBlock * text_block){
 
 void text_block_set_ready(TextBlock * text_block, const bool ready){
   text_block->ready = ready;
+  text_block_mark_dirty(text_block);
 }
 
 bool text_block_get_ready(TextBlock * text_block){
@@ -78,6 +79,7 @@ bool text_block_get_ready(TextBlock * text_block){
 
 void text_block_set_enabled(TextBlock * text_block, const bool enabled){
   text_block->enabled = enabled;
+  text_block_mark_dirty(text_block);
 }
 
 bool text_block_get_enabled(TextBlock * text_block){

@@ -103,18 +103,20 @@ typedef enum {
 } PersistKey;
 
 typedef struct {
+  int32_t timestamp;
+  int8_t icon;
+  int8_t temperature;
+} __attribute__((__packed__)) Weather;
+
+typedef struct {
   Config * config;
+  Weather weather;
   int steps;
   bool bluetooth_connected;
   BatteryChargeState charge_state;
   tm * time;
 } Context;
 
-typedef struct {
-  int32_t timestamp;
-  int8_t icon;
-  int8_t temperature;
-} __attribute__((__packed__)) Weather;
 
 static Context s_context;
 
@@ -142,7 +144,6 @@ static Quadrants * s_quadrants;
 
 static Config * s_config;
 static Messenger * s_messenger;
-static Weather s_weather;
 
 static AppTimer * s_weather_request_timer;
 static int s_weather_request_timeout;
@@ -153,7 +154,6 @@ static GFont s_font;
 
 static tm * s_current_time;
 
-static void update_weather_layer();
 static void schedule_weather_request(int timeout);
 static void mark_dirty_minute_hand_layer();
 
@@ -168,50 +168,13 @@ static void update_current_time() {
   s_context.time = s_current_time;
 }
 
-static void send_weather_request_callback(void * context){
-  s_weather_request_timer = NULL;
-  const int timeout = config_get_int(s_config, ConfigKeyRefreshRate) * 60;
-  const int expiration =  s_weather.timestamp + timeout;
-  const bool almost_expired = time(NULL) > expiration;
-  const bool can_update_weather = almost_expired && s_js_ready;
-  if(can_update_weather){
-    if(config_get_bool(s_config, ConfigKeyWeatherEnabled)){
-      DictionaryIterator *out_iter;
-      AppMessageResult result = app_message_outbox_begin(&out_iter);
-      if(result == APP_MSG_OK) {
-        const int value = 1;
-        dict_write_int(out_iter, AppKeyWeatherRequest, &value, sizeof(int), true);
-        result = app_message_outbox_send();
-        if(result != APP_MSG_OK) {
-          schedule_weather_request(5000);
-          // e("Error sending the outbox: %d", (int)result);
-        }
-      } else {
-        schedule_weather_request(5000);
-        // e("Error preparing the outbox: %d", (int)result);
-      }
-    }
-  }
-}
-
-static void schedule_weather_request(int timeout){
-  int expiration = time(NULL) + timeout;
-  if(s_weather_request_timer){
-    if(expiration < s_weather_request_timeout){
-      s_weather_request_timeout = expiration;
-      app_timer_reschedule(s_weather_request_timer, timeout);
-    }
-  }else{
-    s_weather_request_timeout = expiration;
-    s_weather_request_timer = app_timer_register(timeout, send_weather_request_callback, NULL);
-  }
-}
+// Messenger
 
 static void config_info_color_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyInfoColor, tuple->value->int32);
   text_block_mark_dirty(s_date_info);
   text_block_mark_dirty(s_steps_info);
-  update_weather_layer();
+  text_block_mark_dirty(s_weather_info);
   text_block_mark_dirty(s_watch_info);
 }
 
@@ -243,7 +206,7 @@ static void config_refresh_rate_updated(DictionaryIterator * iter, Tuple * tuple
 
 static void config_temperature_unit_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyTemperatureUnit, tuple->value->int32);
-  update_weather_layer();
+  text_block_mark_dirty(s_weather_info);
 }
 
 static void config_bluetooth_icon_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -268,9 +231,9 @@ static void config_rainbow_mode_updated(DictionaryIterator * iter, Tuple * tuple
 }
 
 static void config_weather_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
-  config_set_bool(s_config, ConfigKeyWeatherEnabled, tuple->value->int8);
-  text_block_set_enabled(s_weather_info, tuple->value->int8);
-  update_weather_layer();
+  const bool enabled = tuple->value->int8;
+  config_set_bool(s_config, ConfigKeyWeatherEnabled, enabled);
+  text_block_set_enabled(s_weather_info, enabled);
 }
 
 static void config_hourly_vibrate_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -297,26 +260,26 @@ static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple)
   Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);
   Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
   if(icon_tuple && temp_tuple){
-    s_weather.timestamp = time(NULL);
-    s_weather.icon = icon_tuple->value->int8;
-    s_weather.temperature = temp_tuple->value->int8;
+    s_context.weather.timestamp = time(NULL);
+    s_context.weather.icon = icon_tuple->value->int8;
+    s_context.weather.temperature = temp_tuple->value->int8;
   }
-  persist_write_data(PersistKeyWeather, &s_weather, sizeof(Weather));
-  update_weather_layer();
+  persist_write_data(PersistKeyWeather, &s_context.weather, sizeof(Weather));
+  text_block_mark_dirty(s_weather_info);
   quadrants_update(s_quadrants, s_current_time);
 }
 
 static void messenger_callback(DictionaryIterator * iter){
   if(dict_find(iter, AppKeyConfig)){
     config_save(s_config, PersistKeyConfig);
-    s_weather.timestamp = 0;
+    s_context.weather.timestamp = 0;
     schedule_weather_request(0);
   }
   quadrants_update(s_quadrants, s_current_time);
   layer_mark_dirty(s_root_layer);
 }
 
-// Hands
+// Time
 
 static bool times_conflicting(const tm * const time){
   return time->tm_hour % 12 == time->tm_min / 5;
@@ -377,9 +340,11 @@ static void minute_time_update_proc(TextBlock * block){
   }
 }
 
-void date_info_update_proc(TextBlock * block){
-  Context * context = (Context *) text_block_get_context(block);
-  Config * config = context->config;
+// Date
+
+static void date_info_update_proc(TextBlock * block){
+  const Context * const context = (Context *) text_block_get_context(block);
+  const Config * const config = context->config;
   if(config_get_bool(config, ConfigKeyDateDisplayed)){
     const GColor date_color = config_get_color(config, ConfigKeyInfoColor);
     char buffer[] = "00";
@@ -387,6 +352,8 @@ void date_info_update_proc(TextBlock * block){
     text_block_set_text(block, buffer, date_color);
   }
 }
+
+// Hands
 
 static void mark_dirty_minute_hand_layer(){
   layer_mark_dirty(s_minute_hand_layer);
@@ -418,6 +385,7 @@ static void update_center_circle_layer(Layer * layer, GContext * ctx){
 }
 
 // Ticks
+
 static void draw_tick(GContext *ctx, const int index){
   graphics_draw_line(ctx, ticks_points[index][0], ticks_points[index][1]);
 }
@@ -434,59 +402,86 @@ static void tick_layer_update_callback(Layer *layer, GContext *graphic_ctx) {
   draw_tick(graphic_ctx, time->tm_min / 5);
 }
 
-// Infos: bluetooth + weather
+// Weather
 
-static void update_weather_layer(){
+static void weather_info_update_proc(TextBlock * block){
+  const Context * const context = (Context *) text_block_get_context(block);
+  const Config * const config = context->config;
+  const Weather weather = context->weather;
   char info_buffer[6] = {0};
-  const int timeout = (config_get_int(s_config, ConfigKeyRefreshRate) + 5) * 60;
-  const int expiration =  s_weather.timestamp + timeout;
+  const int timeout = (config_get_int(config, ConfigKeyRefreshRate) + 5) * 60;
+  const int expiration =  weather.timestamp + timeout;
   const bool weather_valid = time(NULL) < expiration;
-  if(weather_valid && config_get_bool(s_config, ConfigKeyWeatherEnabled)){
-    int temp = s_weather.temperature;
-    if(config_get_int(s_config, ConfigKeyTemperatureUnit) == Fahrenheit){
-      temp = temp * 9 / 5 + 32;
-    }
-    char temp_buffer[6];
-    snprintf(temp_buffer, 6, "%c%d°", s_weather.icon, temp);
-    strcat(info_buffer, temp_buffer);
+  if(weather_valid){
+    const int temp = weather.temperature;
+    const bool is_farhrenheit = config_get_int(config, ConfigKeyTemperatureUnit) == Fahrenheit;
+    const int converted_temp = is_farhrenheit ? temp * 9 / 5 + 32 : temp;
+    snprintf(info_buffer, 6, "%c%d°", weather.icon, converted_temp);
   }
   const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
-  text_block_set_text(s_weather_info, info_buffer, info_color);
+  text_block_set_text(block, info_buffer, info_color);
 }
+
+static void send_weather_request_callback(void * context){
+  s_weather_request_timer = NULL;
+  const int timeout = config_get_int(s_config, ConfigKeyRefreshRate) * 60;
+  const int expiration =  s_context.weather.timestamp + timeout;
+  const bool almost_expired = time(NULL) > expiration;
+  const bool can_update_weather = almost_expired && s_js_ready;
+  if(can_update_weather){
+    if(config_get_bool(s_config, ConfigKeyWeatherEnabled)){
+      DictionaryIterator *out_iter;
+      AppMessageResult result = app_message_outbox_begin(&out_iter);
+      if(result == APP_MSG_OK) {
+        const int value = 1;
+        dict_write_int(out_iter, AppKeyWeatherRequest, &value, sizeof(int), true);
+        result = app_message_outbox_send();
+        if(result != APP_MSG_OK) {
+          schedule_weather_request(5000);
+        }
+      } else {
+        schedule_weather_request(5000);
+      }
+    }
+  }
+}
+
+static void schedule_weather_request(const int timeout){
+  const int expiration = time(NULL) + timeout;
+  if(s_weather_request_timer){
+    if(expiration < s_weather_request_timeout){
+      s_weather_request_timeout = expiration;
+      app_timer_reschedule(s_weather_request_timer, timeout);
+    }
+  }else{
+    s_weather_request_timeout = expiration;
+    s_weather_request_timer = app_timer_register(timeout, send_weather_request_callback, NULL);
+  }
+}
+
+// Battery + Bluetooth
 
 static void watch_info_update_proc(TextBlock * block){
   const Context * const context = (Context *) text_block_get_context(block);
   const Config * const config = context->config;
   const BatteryChargeState charge_state = context->charge_state;
   char info_buffer[4] = {0};
-  if(charge_state.charge_percent < config_get_int(config, ConfigKeyBatteryDisplayedAt)){
+  const BluetoothIcon bluetooth_icon = config_get_int(config, ConfigKeyBluetoothIcon);
+  const bool bluetooth_disconneted = !context->bluetooth_connected;
+  const bool bluetooth_icon_set = bluetooth_icon != NoIcon;
+  if(bluetooth_disconneted && bluetooth_icon_set){
+    strncat(info_buffer, bluetooth_icon == Bluetooth ? "z" : "Z", 2);
+  }
+  const int battery_threshold = config_get_int(config, ConfigKeyBatteryDisplayedAt);
+  const bool battery_below_threshold = charge_state.charge_percent < battery_threshold;
+  if(battery_below_threshold){
     strncat(info_buffer, "w", 2);
   }
-  const BluetoothIcon new_icon = config_get_int(config, ConfigKeyBluetoothIcon);
-#ifndef NO_BT
-  if(!context->bluetooth_connected){
-#endif
-    if(new_icon == Bluetooth){
-      strncat(info_buffer, "z", 2);
-    }else if(new_icon == Heart){
-      strncat(info_buffer, "Z", 2);
-    }
-#ifndef NO_BT
-  }
-#endif
   const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
   text_block_set_text(block, info_buffer, info_color);
 }
 
-static void bt_handler(bool connected){
-  s_context.bluetooth_connected = connected;
-  text_block_mark_dirty(s_watch_info);
-}
-
-static void battery_handler(BatteryChargeState charge){
-  s_context.charge_state = charge;
-  text_block_mark_dirty(s_watch_info);
-}
+// Steps
 
 static void steps_info_update_proc(TextBlock * block){
   const Context * const context = (Context *) text_block_get_context(block);
@@ -510,9 +505,21 @@ static void fetch_step(Context * const context){
   }
 }
 
+// Event handlers
+
+static void bt_handler(bool connected){
+  s_context.bluetooth_connected = connected;
+  text_block_mark_dirty(s_watch_info);
+}
+
+static void battery_handler(BatteryChargeState charge){
+  s_context.charge_state = charge;
+  text_block_mark_dirty(s_watch_info);
+}
 static void step_handler(HealthEventType event, void * context){
   if(event == HealthEventSignificantUpdate){
     fetch_step((Context *)context);
+    text_block_mark_dirty(s_steps_info);
   }
 }
 
@@ -563,7 +570,9 @@ static void main_window_load(Window *window) {
 
   s_weather_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Head, s_current_time);
   text_block_set_enabled(s_weather_info, config_get_bool(s_config, ConfigKeyWeatherEnabled));
-  update_weather_layer();
+  text_block_mark_dirty(s_weather_info);
+  text_block_set_context(s_weather_info, &s_context);
+  text_block_set_update_proc(s_weather_info, weather_info_update_proc);
 
   s_watch_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Tail, s_current_time);
   text_block_set_context(s_watch_info, &s_context);
@@ -616,26 +625,7 @@ static void main_window_load(Window *window) {
 
   text_block_mark_dirty(s_hour_text);
   text_block_mark_dirty(s_date_info);
-  Message messages[] = {
-    { AppKeyJsReady, js_ready_callback },
-    { AppKeyBackgroundColor, config_background_color_updated },
-    { AppKeyHourHandColor, config_hour_hand_color_updated },
-    { AppKeyInfoColor, config_info_color_updated },
-    { AppKeyMinuteHandColor, config_minute_hand_color_updated },
-    { AppKeyTimeColor, config_time_color_updated },
-    { AppKeyDateDisplayed, config_date_displayed_updated },
-    { AppKeyRainbowMode, config_rainbow_mode_updated },
-    { AppKeyBluetoothIcon, config_bluetooth_icon_updated },
-    { AppKeyRefreshRate, config_refresh_rate_updated },
-    { AppKeyTemperatureUnit, config_temperature_unit_updated },
-    { AppKeyWeatherEnabled, config_weather_enabled_updated },
-    { AppKeyWeatherTemperature, weather_requested_callback },
-    { AppKeyVibrateOnTheHour, config_hourly_vibrate_updated },
-    { AppKeyMilitaryTime, config_military_time_updated },
-    { AppKeyHealthEnabled, config_health_enabled_updated },
-    { AppKeyBatteryDisplayedAt, config_battery_displayed_at_updated }
-  };
-  s_messenger = messenger_create(17, messenger_callback, messages);
+
 }
 
 static void main_window_unload(Window *window) {
@@ -664,6 +654,26 @@ static void main_window_unload(Window *window) {
 }
 
 static void init() {
+  Message messages[] = {
+    { AppKeyJsReady, js_ready_callback },
+    { AppKeyBackgroundColor, config_background_color_updated },
+    { AppKeyHourHandColor, config_hour_hand_color_updated },
+    { AppKeyInfoColor, config_info_color_updated },
+    { AppKeyMinuteHandColor, config_minute_hand_color_updated },
+    { AppKeyTimeColor, config_time_color_updated },
+    { AppKeyDateDisplayed, config_date_displayed_updated },
+    { AppKeyRainbowMode, config_rainbow_mode_updated },
+    { AppKeyBluetoothIcon, config_bluetooth_icon_updated },
+    { AppKeyRefreshRate, config_refresh_rate_updated },
+    { AppKeyTemperatureUnit, config_temperature_unit_updated },
+    { AppKeyWeatherEnabled, config_weather_enabled_updated },
+    { AppKeyWeatherTemperature, weather_requested_callback },
+    { AppKeyVibrateOnTheHour, config_hourly_vibrate_updated },
+    { AppKeyMilitaryTime, config_military_time_updated },
+    { AppKeyHealthEnabled, config_health_enabled_updated },
+    { AppKeyBatteryDisplayedAt, config_battery_displayed_at_updated }
+  };
+  s_messenger = messenger_create(17, messenger_callback, messages);
   s_weather_request_timeout = 0;
   s_js_ready = false;
   s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_NUPE_23));
@@ -680,7 +690,7 @@ static void init() {
     .time = NULL
   };
   if(persist_exists(PersistKeyWeather)){
-    persist_read_data(PersistKeyWeather, &s_weather, sizeof(Weather));
+    persist_read_data(PersistKeyWeather, &s_context.weather, sizeof(Weather));
   }
   s_main_window = window_create();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
@@ -695,8 +705,9 @@ static void deinit() {
   app_message_deregister_callbacks();
   window_stack_remove(s_main_window, true);
   window_destroy(s_main_window);
-  config_destroy(s_config);
+  s_config = config_destroy(s_config);
   fonts_unload_custom_font(s_font);
+  s_messenger = messenger_destroy(s_messenger);
 }
 
 int main(void) {
