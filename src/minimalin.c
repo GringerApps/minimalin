@@ -10,6 +10,9 @@
 // #define e(string, ...) APP_LOG (APP_LOG_LEVEL_ERROR, string, ##__VA_ARGS__)
 // #define i(string, ...) APP_LOG (APP_LOG_LEVEL_INFO, string, ##__VA_ARGS__)
 
+#define MINUTE_HAND_RADIUS 52
+#define HOUR_HAND_RADIUS 39
+
 #ifdef PBL_ROUND
 static GPoint ticks_points[12][2] = {
   {{90, 0}  , {90, 6}  },
@@ -154,7 +157,6 @@ static tm * s_current_time;
 
 static void update_weather_layer();
 static void schedule_weather_request(int timeout);
-static void update_times();
 static void mark_dirty_minute_hand_layer();
 static void step_handler(HealthEventType event, void *context);
 
@@ -243,7 +245,8 @@ static void config_background_color_updated(DictionaryIterator * iter, Tuple * t
 static void config_time_color_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyTimeColor, tuple->value->int32);
   layer_mark_dirty(s_tick_layer);
-  update_times();
+
+  text_block_mark_dirty(s_hour_text);
 }
 
 static void config_hour_hand_color_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -299,7 +302,8 @@ static void config_hourly_vibrate_updated(DictionaryIterator * iter, Tuple * tup
 static void config_military_time_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyMilitaryTime, tuple->value->int8);
   layer_mark_dirty(s_tick_layer);
-  update_times();
+
+  text_block_mark_dirty(s_hour_text);
 }
 
 static void config_health_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -336,40 +340,64 @@ static void messenger_callback(DictionaryIterator * iter){
 }
 
 // Hands
-static void update_times(){
-  GColor color = config_get_color(s_config, ConfigKeyTimeColor);
+
+static bool times_conflicting(const tm * const time){
+  return time->tm_hour % 12 == time->tm_min / 5;
+}
+
+static bool times_conflicting_north_or_south(const tm * const time){
+  if(!times_conflicting(time))
+    return false;
+  const int hour_mod_12 = time->tm_hour % 12;
+  return hour_mod_12 <= 1 || hour_mod_12 >= 11 || (hour_mod_12 >= 5 && hour_mod_12 <= 7);
+}
+
+static void hour_time_update_proc(TextBlock * block){
+  const Context * const context = (Context *) text_block_get_context(block);
+  const Config * const config = context->config;
+  const GColor color = config_get_color(s_config, ConfigKeyTimeColor);
   char buffer[] = "00:00";
-  GPoint hour_box_center   = time_points[index_hour()];
-  GPoint minute_box_center = time_points[index_minute()];
-  const int hour_12 = index_hour();
-  const bool conflicts = time_conflicts();
-  const bool horizontal_display = conflicts && (hour_12 <= 1 || hour_12 >= 11 || (hour_12 >= 5 && hour_12 <= 7));
-  if(horizontal_display){
+  const int hour = context->time->tm_hour;
+  const int hour_mod_12 = hour % 12;
+  const GPoint block_center = time_points[hour_mod_12];
+  if(times_conflicting_north_or_south(context->time)){
     clock_copy_time_string(buffer, sizeof(buffer));
-    text_block_set_text(s_hour_text, buffer, color);
-    text_block_set_enabled(s_minute_text, false);
+    text_block_set_text(block, buffer, color);
+    text_block_move(block, block_center);
+  }else{
+    if(config_get_bool(config, ConfigKeyMilitaryTime)){
+      snprintf(buffer, sizeof(buffer), "%d", hour);
+    }else{
+      snprintf(buffer, sizeof(buffer), "%d", hour_mod_12 == 0 ? 0 : hour_mod_12);
+    }
+    text_block_set_text(block, buffer, color);
+    if(times_conflicting(context->time)){
+      text_block_move(block, GPoint(block_center.x, block_center.y - 10));
+    }else{
+      text_block_move(block, block_center);
+    }
+  }
+}
+
+static void minute_time_update_proc(TextBlock * block){
+  const Context * const context = (Context *) text_block_get_context(block);
+  const Config * const config = context->config;
+  const GColor color = config_get_color(config, ConfigKeyTimeColor);
+  char buffer[] = "00";
+  const int min = context->time->tm_min;
+  const GPoint block_center = time_points[min / 5];
+  if(times_conflicting_north_or_south(context->time)){
+    text_block_set_text(s_minute_text, "", color);
   }else{
     text_block_set_enabled(s_minute_text, true);
-    bool vertical_display = conflicts && ((hour_12 > 1 && hour_12 < 5) || (hour_12 > 7 && hour_12 < 11));
-    if(vertical_display){
-      hour_box_center.y -= 10;
-      minute_box_center.y += 10;
+    snprintf(buffer, sizeof(buffer), "%02d", min);
+    if(times_conflicting(context->time)){
+      text_block_move(s_minute_text, GPoint(block_center.x, block_center.y + 10));
+    }else{
+      text_block_move(s_minute_text, block_center);
     }
-    int h = s_current_time->tm_hour;
-    if(!config_get_bool(s_config, ConfigKeyMilitaryTime)){
-      if (h > 12) {
-        h -= 12;
-      }else if(h == 0){
-        h = 12;
-      }
-    }
-    snprintf(buffer, sizeof(buffer), "%d", h);
-    text_block_set_text(s_hour_text, buffer, color);
-    snprintf(buffer, sizeof(buffer), "%02d", s_current_time->tm_min);
     text_block_set_text(s_minute_text, buffer, color);
   }
-  text_block_move(s_hour_text, hour_box_center);
-  text_block_move(s_minute_text, minute_box_center);
 }
 
 void date_info_update_proc(TextBlock * block){
@@ -390,9 +418,6 @@ static void mark_dirty_minute_hand_layer(){
   layer_set_hidden((Layer*)s_rainbow_hand_layer, !rainbow_mode);
 }
 
-
-#define MINUTE_HAND_RADIUS 52
-
 static void update_minute_hand_layer(Layer *layer, GContext * ctx){
   if(!config_get_bool(s_config, ConfigKeyRainbowMode)){
     const GPoint hand_end = gpoint_on_circle(s_center, angle_minute(s_current_time), MINUTE_HAND_RADIUS);
@@ -401,8 +426,6 @@ static void update_minute_hand_layer(Layer *layer, GContext * ctx){
     graphics_draw_line(ctx, s_center, hand_end);
   }
 }
-
-#define HOUR_HAND_RADIUS 39
 
 static void update_hour_hand_layer(Layer * layer, GContext * ctx){
   const GPoint hand_end = gpoint_on_circle(s_center, angle_hour(s_current_time, true), HOUR_HAND_RADIUS);
@@ -518,7 +541,8 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   update_current_time();
   layer_mark_dirty(s_hour_hand_layer);
   mark_dirty_minute_hand_layer();
-  update_times();
+
+  text_block_mark_dirty(s_hour_text);
   text_block_mark_dirty(s_date_info);
   layer_mark_dirty(s_tick_layer);
   step_handler(HealthEventSignificantUpdate, NULL);
@@ -561,7 +585,12 @@ static void main_window_load(Window *window) {
   quadrants_update(s_quadrants, s_current_time);
 
   s_hour_text = text_block_create(s_root_layer, time_points[6] , s_font);
+  text_block_set_context(s_hour_text, &s_context);
+  text_block_set_update_proc(s_hour_text, hour_time_update_proc);
+
   s_minute_text = text_block_create(s_root_layer, time_points[0] , s_font);
+  text_block_set_context(s_minute_text, &s_context);
+  text_block_set_update_proc(s_minute_text, minute_time_update_proc);
 
   s_tick_layer = layer_create(s_root_layer_bounds);
   layer_set_update_proc(s_tick_layer, tick_layer_update_callback);
@@ -589,7 +618,8 @@ static void main_window_load(Window *window) {
 
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   update_current_time();
-  update_times();
+
+  text_block_mark_dirty(s_hour_text);
   text_block_mark_dirty(s_date_info);
   Message messages[] = {
     { AppKeyJsReady, js_ready_callback },
