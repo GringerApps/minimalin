@@ -20,20 +20,24 @@
 #define EAST_BLOCK grect_from_center_and_size(EAST_INFO_CENTER, BLOCK_SIZE)
 #define WEST_BLOCK grect_from_center_and_size(WEST_INFO_CENTER, BLOCK_SIZE)
 
-static bool segment_intersect_with_position(Segment segment, Position position){
-  GRect blocks[4] = {
+static GRect rect_translate(const GRect rect, const int x, const int y){
+  const GPoint origin = rect.origin;
+  return (GRect) { .origin = GPoint(origin.x + x, origin.y + y), .size = rect.size };
+}
+
+static bool segment_intersect_with_position(const Segment segment, const Position position){
+  const GRect blocks[4] = {
     [North] = NORTH_BLOCK,
     [South] = SOUTH_BLOCK,
     [West] = WEST_BLOCK,
     [East] = EAST_BLOCK
   };
-  GRect rect = blocks[position];
-  rect.origin.y += 4;
-  return intersect(segment, rect);
+  const GRect rect = blocks[position];
+  return intersect(segment, rect_translate(rect, 0, 4));
 }
 
-static void quadrants_move_quadrant(Quadrants * quadrants, Index index, Position position){
-  GPoint centers[POSTIONS_COUNT] = {
+static void quadrants_move_quadrant(Quadrants * const quadrants, const Index index, const Position position){
+  const GPoint centers[POSTIONS_COUNT] = {
     [North] = NORTH_INFO_CENTER,
     [South] = SOUTH_INFO_CENTER,
     [West] = WEST_INFO_CENTER,
@@ -42,20 +46,20 @@ static void quadrants_move_quadrant(Quadrants * quadrants, Index index, Position
   if(index >= POSTIONS_COUNT){
     return;
   }
-  Quadrant * quadrant = quadrants->quadrants[index];
+  Quadrant * const quadrant = quadrants->quadrants[index];
   quadrant->position = position;
   text_block_move(quadrant->block, centers[position]);
 }
 
-static void quadrants_swap(Quadrants * quadrants, Index first, Index second){
-  Quadrant * first_quadrant = quadrants->quadrants[first];
-  Quadrant * second_quadrant = quadrants->quadrants[second];
-  Position first_position = first_quadrant->position;
+static void quadrants_swap(Quadrants * quadrants, const Index first, const Index second){
+  Quadrant * const first_quadrant = quadrants->quadrants[first];
+  Quadrant * const second_quadrant = quadrants->quadrants[second];
+  const Position first_position = first_quadrant->position;
   quadrants_move_quadrant(quadrants, first, second_quadrant->position);
   quadrants_move_quadrant(quadrants, second, first_position);
 }
 
-static bool quadrants_takeover_quadrant(Quadrants * quadrants, Index index, Position position){
+static bool quadrants_takeover_quadrant(Quadrants * const quadrants, const Index index, const Position position){
   if(index >= QUADRANT_COUNT){
     return false;
   }
@@ -74,8 +78,8 @@ quadrants_move_quadrant(quadrants, index, position);
 return true;
 }
 
-Quadrants * quadrants_create(GPoint center, int hour_hand_radius, int minute_hand_radius){
-  Quadrants * quadrants = (Quadrants *) malloc(sizeof(Quadrants));
+Quadrants * quadrants_create(const GPoint center, const int hour_hand_radius, const int minute_hand_radius){
+  Quadrants * const quadrants = (Quadrants *) malloc(sizeof(Quadrants));
   quadrants->center = center;
   quadrants->size = 0;
   quadrants->hour_hand_radius = hour_hand_radius;
@@ -86,9 +90,9 @@ Quadrants * quadrants_create(GPoint center, int hour_hand_radius, int minute_han
   return quadrants;
 }
 
-Quadrants * quadrants_destroy(Quadrants * quadrants){
+Quadrants * quadrants_destroy(Quadrants * const quadrants){
   for(int i=0; i<quadrants->size; i++){
-    Quadrant * quadrant = quadrants->quadrants[i];
+    Quadrant * const quadrant = quadrants->quadrants[i];
     if(quadrant != NULL){
       free(quadrant);
     }
@@ -97,7 +101,7 @@ Quadrants * quadrants_destroy(Quadrants * quadrants){
   return NULL;
 }
 
-TextBlock * quadrants_add_text_block(Quadrants * quadrants, Layer * root_layer, GFont font, Priority priority, tm * time){
+TextBlock * quadrants_add_text_block(Quadrants * const quadrants, Layer * const root_layer, const GFont font, const Priority priority, const tm * const time){
   static bool free_positions[POSTIONS_COUNT] = { true, true, true, true };
   Position position = North;
   for(int pos=0;pos<POSTIONS_COUNT;pos++){
@@ -107,19 +111,19 @@ TextBlock * quadrants_add_text_block(Quadrants * quadrants, Layer * root_layer, 
       break;
     }
   }
-   GPoint centers[POSTIONS_COUNT] = {
+  const GPoint centers[POSTIONS_COUNT] = {
     [North] = NORTH_INFO_CENTER,
     [South] = SOUTH_INFO_CENTER,
     [West] = WEST_INFO_CENTER,
     [East] = EAST_INFO_CENTER
   };
-  TextBlock * block = text_block_create(root_layer, centers[position], font);
+  TextBlock * const block = text_block_create(root_layer, centers[position], font);
   text_block_set_ready(block, false);
-  int size = quadrants->size;
+  const int size = quadrants->size;
   if(size >= QUADRANT_COUNT){
     return NULL;
   }
-  Quadrant * quadrant = (Quadrant *) malloc(sizeof(Quadrant));
+  Quadrant * const quadrant = (Quadrant *) malloc(sizeof(Quadrant));
   *quadrant = QUADRANT(block, priority, position);
   int i = size;
   while(i > 0 && quadrants->quadrants[i-1] != NULL && PRIORITY(quadrants, i-1) < priority){
@@ -131,18 +135,18 @@ TextBlock * quadrants_add_text_block(Quadrants * quadrants, Layer * root_layer, 
   return block;
 }
 
-static bool time_intersect_with_position(Quadrants * quadrants, tm * time, Position pos){
-  GPoint center = quadrants->center;
-  int angle = angle_hour(time, true);
-  Segment hour_hand = SEGMENT(quadrants->center, gpoint_on_circle(center, angle, quadrants->hour_hand_radius));
-  angle = angle_minute(time);
-  Segment minute_hand = SEGMENT(quadrants->center, gpoint_on_circle(center, angle, quadrants->minute_hand_radius));
+static bool time_intersect_with_position(Quadrants * const quadrants, const tm * const time, const Position pos){
+  const GPoint center = quadrants->center;
+  const int hour_handle = angle_hour(time, true);
+  const Segment hour_hand = SEGMENT(quadrants->center, gpoint_on_circle(center, hour_handle, quadrants->hour_hand_radius));
+  const int minute_angle = angle_minute(time);
+  const Segment minute_hand = SEGMENT(quadrants->center, gpoint_on_circle(center, minute_angle, quadrants->minute_hand_radius));
   return segment_intersect_with_position(hour_hand, pos) || segment_intersect_with_position(minute_hand, pos);
 }
 
-static bool quadrants_try_takeover_quadrant_in_order(Quadrants * quadrants, Index index, tm * time, Position intersect_positions[POSTIONS_COUNT], bool check_intersect){
+static bool quadrants_try_takeover_quadrant_in_order(Quadrants * const quadrants, const Index index, const tm * const time, const Position intersect_positions[POSTIONS_COUNT], const bool check_intersect){
   for(int index_pos=0; index_pos<POSTIONS_COUNT; index_pos++){
-    Position pos = intersect_positions[index_pos];
+    const Position pos = intersect_positions[index_pos];
     if(check_intersect && time_intersect_with_position(quadrants, time, pos)){
       continue;
     }
@@ -153,7 +157,7 @@ static bool quadrants_try_takeover_quadrant_in_order(Quadrants * quadrants, Inde
   return false;
 }
 
-static void quadrants_try_takeover_quadrant(Quadrants * quadrants, Index index, tm * time){
+static void quadrants_try_takeover_quadrant(Quadrants * const quadrants, const Index index, const tm * const time){
   Position order[POSTIONS_COUNT] = { North, South, East, West };
   if(time->tm_hour % 12 == 3){
     order[2] = West;
@@ -165,15 +169,15 @@ static void quadrants_try_takeover_quadrant(Quadrants * quadrants, Index index, 
   quadrants_try_takeover_quadrant_in_order(quadrants, index, time, order, false);
 }
 
-void quadrants_ready(Quadrants * quadrants){
+void quadrants_ready(Quadrants * const quadrants){
   for(int index = 0; index < quadrants->size; index++){
     text_block_set_ready(BLOCK(quadrants, index), true);
   }
 }
 
-void quadrants_update(Quadrants * quadrants, tm * time){
+void quadrants_update(Quadrants * const quadrants, const tm * const time){
   for(int index = 0; index < quadrants->size; index++){
-    TextBlock * block = BLOCK(quadrants, index);
+    TextBlock * const block = BLOCK(quadrants, index);
     if(text_block_get_visible(block)){
       quadrants_try_takeover_quadrant(quadrants, index, time);
     }

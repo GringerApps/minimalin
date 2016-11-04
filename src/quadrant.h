@@ -21,8 +21,8 @@ typedef struct {
   int minute_hand_radius;
 } Quadrants;
 
-Quadrants * quadrants_create(GPoint center, int hour_hand_radius, int minute_hand_radius);
-Quadrants * quadrants_destroy(Quadrants * quadrants);
-TextBlock * quadrants_add_text_block(Quadrants * quadrants, Layer * root_layer, GFont font, Priority priority, tm * time);
-void quadrants_update(Quadrants * quadrants, tm * time);
-void quadrants_ready(Quadrants * quadrants);
+Quadrants * quadrants_create(const GPoint center, const int hour_hand_radius, const int minute_hand_radius);
+Quadrants * quadrants_destroy(Quadrants * const quadrants);
+TextBlock * quadrants_add_text_block(Quadrants * const quadrants, Layer * const root_layer, const GFont font, const Priority priority, const tm * const time);
+void quadrants_update(Quadrants * const quadrants, const tm * const time);
+void quadrants_ready(Quadrants * const quadrants);
