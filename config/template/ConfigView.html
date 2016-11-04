@@ -72,9 +72,13 @@
   {{/if}}
   <Toggle label="Date" value="{{ date_displayed }}" inverted/>
   <Toggle value="{{ weather_enabled }}" label="Weather"/>
-  <Input header="Fixed location (empty to use phone location)" placeholder="Ex: Dublin,Ireland" value="{{ location }}"/>
-  <Tabs source="{{ temperature_unit_source }}" value="{{ temperature_unit }}" header="Temperature unit"/>
-  <Tabs source="{{ refresh_rate_source }}" value="{{ refresh_rate }}" header="Refresh rate"/>
+  {{#if weather_enabled}}
+  <div intro-outro='slide'>
+    <Input header="Fixed location (empty to use phone location)" placeholder="Ex: Dublin,Ireland" value="{{ location }}"/>
+    <Tabs source="{{ temperature_unit_source }}" value="{{ temperature_unit }}" header="Temperature unit"/>
+    <Tabs source="{{ refresh_rate_source }}" value="{{ refresh_rate }}" header="Refresh rate"/>
+  </div>
+  {{/if}}
   {{#if platform != 'aplite'}}
   <Toggle value="{{ health_enabled }}" label="Steps (requires Pebble Health)"/>
   {{/if}}
