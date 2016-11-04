@@ -104,6 +104,7 @@ typedef enum {
 
 typedef struct {
   Config * config;
+  int steps;
   bool bluetooth_connected;
   BatteryChargeState charge_state;
   tm * time;
@@ -143,9 +144,6 @@ static Config * s_config;
 static Messenger * s_messenger;
 static Weather s_weather;
 
-static bool s_bt_connected;
-static int s_battery_percent;
-
 static AppTimer * s_weather_request_timer;
 static int s_weather_request_timeout;
 
@@ -158,7 +156,6 @@ static tm * s_current_time;
 static void update_weather_layer();
 static void schedule_weather_request(int timeout);
 static void mark_dirty_minute_hand_layer();
-static void step_handler(HealthEventType event, void *context);
 
 static void update_current_time() {
 #ifdef SCREENSHOT
@@ -170,25 +167,6 @@ static void update_current_time() {
 #endif
   s_context.time = s_current_time;
 }
-
-static int index_hour(){
-  return s_current_time->tm_hour % 12;
-}
-
-static int index_minute(){
-  return s_current_time->tm_min / 5;
-}
-
-static bool time_conflicts(){
-  return index_hour() == index_minute();
-}
-
-typedef enum { Min = 0, Hour } TmMember;
-typedef struct {
-  int lower_bound;
-  int upper_bound;
-} Range;
-typedef enum { IndexWeather, IndexSteps, IndexDate } BlockIndex;
 
 static void send_weather_request_callback(void * context){
   s_weather_request_timer = NULL;
@@ -232,7 +210,7 @@ static void schedule_weather_request(int timeout){
 static void config_info_color_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyInfoColor, tuple->value->int32);
   text_block_mark_dirty(s_date_info);
-  step_handler(HealthEventSignificantUpdate, NULL);
+  text_block_mark_dirty(s_steps_info);
   update_weather_layer();
   text_block_mark_dirty(s_watch_info);
 }
@@ -305,8 +283,9 @@ static void config_military_time_updated(DictionaryIterator * iter, Tuple * tupl
 }
 
 static void config_health_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
-  config_set_bool(s_config, ConfigKeyHealthEnabled, tuple->value->int8);
-  text_block_set_enabled(s_steps_info, tuple->value->int8);
+  const bool enabled = tuple->value->int8;
+  config_set_bool(s_config, ConfigKeyHealthEnabled, enabled);
+  text_block_set_enabled(s_steps_info, enabled);
 }
 
 static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
@@ -509,14 +488,12 @@ static void battery_handler(BatteryChargeState charge){
   text_block_mark_dirty(s_watch_info);
 }
 
-static void step_handler(HealthEventType event, void *context){
-  if(!config_get_bool(s_config, ConfigKeyHealthEnabled) || event != HealthEventSignificantUpdate){
-    return;
-  }
+static void steps_info_update_proc(TextBlock * block){
+  const Context * const context = (Context *) text_block_get_context(block);
+  const Config * const config = context->config;
+  const int steps = context->steps;
   char step_text[8] = {0};
-  const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
-
-  const int steps = (int)health_service_sum_today(HealthMetricStepCount);
+  const GColor info_color = config_get_color(config, ConfigKeyInfoColor);
   if(steps > 10000){
     snprintf(step_text, sizeof(step_text), "y%dk", steps / 1000);
   }else if(steps > 1000){
@@ -524,7 +501,19 @@ static void step_handler(HealthEventType event, void *context){
   }else{
     snprintf(step_text, sizeof(step_text), "y%d", steps);
   }
-  text_block_set_text(s_steps_info, step_text, info_color);
+  text_block_set_text(block, step_text, info_color);
+}
+
+static void fetch_step(Context * const context){
+  if(config_get_bool(context->config, ConfigKeyHealthEnabled)){
+    context->steps = (int)health_service_sum_today(HealthMetricStepCount);
+  }
+}
+
+static void step_handler(HealthEventType event, void * context){
+  if(event == HealthEventSignificantUpdate){
+    fetch_step((Context *)context);
+  }
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
@@ -542,13 +531,12 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   update_current_time();
 
   layer_mark_dirty(s_hour_hand_layer);
+  layer_mark_dirty(s_tick_layer);
   mark_dirty_minute_hand_layer();
 
   text_block_mark_dirty(s_hour_text);
   text_block_mark_dirty(s_date_info);
-  layer_mark_dirty(s_tick_layer);
-
-  step_handler(HealthEventSignificantUpdate, NULL);
+  text_block_mark_dirty(s_steps_info);
 
   quadrants_update(s_quadrants, s_current_time);
 }
@@ -567,11 +555,11 @@ static void main_window_load(Window *window) {
   text_block_set_update_proc(s_date_info, date_info_update_proc);
 
   s_steps_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, High, s_current_time);
-
-  health_service_events_subscribe(step_handler, NULL);
-
-  step_handler(HealthEventSignificantUpdate, NULL);
   text_block_set_enabled(s_steps_info, config_get_bool(s_config, ConfigKeyHealthEnabled));
+  text_block_set_context(s_steps_info, &s_context);
+  text_block_set_update_proc(s_steps_info, steps_info_update_proc);
+  health_service_events_subscribe(step_handler, &s_context);
+  fetch_step(&s_context);
 
   s_weather_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Head, s_current_time);
   text_block_set_enabled(s_weather_info, config_get_bool(s_config, ConfigKeyWeatherEnabled));
@@ -682,6 +670,7 @@ static void init() {
   s_config = config_load(PersistKeyConfig, CONF_SIZE, CONF_DEFAULTS);
   s_context = (Context) {
     .config = s_config,
+    .steps = 0,
     .bluetooth_connected = false,
     .charge_state = (BatteryChargeState) {
       .charge_percent = 100,
