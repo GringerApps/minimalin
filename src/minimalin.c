@@ -301,8 +301,6 @@ static void config_hourly_vibrate_updated(DictionaryIterator * iter, Tuple * tup
 
 static void config_military_time_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_bool(s_config, ConfigKeyMilitaryTime, tuple->value->int8);
-  layer_mark_dirty(s_tick_layer);
-
   text_block_mark_dirty(s_hour_text);
 }
 
@@ -445,13 +443,16 @@ static void draw_tick(GContext *ctx, const int index){
   graphics_draw_line(ctx, ticks_points[index][0], ticks_points[index][1]);
 }
 
-static void tick_layer_update_callback(Layer *layer, GContext *ctx) {
-  graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyTimeColor));
-  graphics_context_set_stroke_width(ctx, 2);
-  draw_tick(ctx, index_hour());
-  if(!time_conflicts()){
-    draw_tick(ctx, index_minute());
+static void tick_layer_update_callback(Layer *layer, GContext *graphic_ctx) {
+  const Context * const context = * (Context**) layer_get_data(layer);
+  graphics_context_set_stroke_color(graphic_ctx, config_get_color(context->config, ConfigKeyTimeColor));
+  graphics_context_set_stroke_width(graphic_ctx, 2);
+  const tm * const time = context->time;
+  draw_tick(graphic_ctx, time->tm_hour % 12);
+  if(times_conflicting(time)){
+    return;
   }
+  draw_tick(graphic_ctx, time->tm_min / 5);
 }
 
 // Infos: bluetooth + weather
@@ -539,13 +540,16 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   }
   schedule_weather_request(10000);
   update_current_time();
+
   layer_mark_dirty(s_hour_hand_layer);
   mark_dirty_minute_hand_layer();
 
   text_block_mark_dirty(s_hour_text);
   text_block_mark_dirty(s_date_info);
   layer_mark_dirty(s_tick_layer);
+
   step_handler(HealthEventSignificantUpdate, NULL);
+
   quadrants_update(s_quadrants, s_current_time);
 }
 
@@ -593,6 +597,9 @@ static void main_window_load(Window *window) {
   text_block_set_update_proc(s_minute_text, minute_time_update_proc);
 
   s_tick_layer = layer_create(s_root_layer_bounds);
+  s_tick_layer = layer_create_with_data(s_root_layer_bounds, sizeof(Context*));
+  Context ** data = (Context**) layer_get_data(s_tick_layer);
+  *data = &s_context;
   layer_set_update_proc(s_tick_layer, tick_layer_update_callback);
   layer_add_child(s_root_layer, s_tick_layer);
 
