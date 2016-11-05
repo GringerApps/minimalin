@@ -82,7 +82,12 @@
   {{#if platform != 'aplite'}}
   <Toggle value="{{ health_enabled }}" label="Steps (requires Pebble Health)"/>
   {{/if}}
-  <Tabs source="{{ bluetooth_source }}" value="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show"/>
+  <Toggle value="{{ bluetooth_icon_enabled }}" label="Bluetooth disconnected icon"/>
+  {{#if bluetooth_icon_enabled }}
+  <div intro-outro='slide'>
+    <Tabs source="{{ bluetooth_source }}" value="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show"/>
+  </div>
+  {{/if}}
   <Tabs source="{{ battery_displayed_at_source }}" value="{{ battery_displayed_at }}" header="Display a battery icon when battery goes below"/>
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
@@ -243,7 +248,6 @@
      },
      bluetooth_source: function(){
        return [
-       { label: "No icon", value: 0 },
        { label: "Bluetooth", value: 1 },
        { label: "Broken heart", value: 2 }
        ];

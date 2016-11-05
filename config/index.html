@@ -81,7 +81,7 @@
        vibrate_on_the_hour: false,
        military_time: false
      };
-
+     var bluetooth_icon = queryIn('bluetooth_icon', [0,1,2], defaults.bluetooth_icon);
      var data = {
        defaults: defaults,
        minute_hand_color: color('minute_hand_color', defaults.minute_hand_color),
@@ -89,7 +89,8 @@
        date_displayed:  bool('date_displayed', defaults.date_displayed),
        battery_displayed_at:  queryIn('battery_displayed_at', [-1, 10, 20, 30], defaults.battery_displayed_at),
        health_enabled:  bool('health_enabled', defaults.health_enabled),
-       bluetooth_icon: queryIn('bluetooth_icon', [0,1,2], defaults.bluetooth_icon),
+       bluetooth_icon_enabled: bluetooth_icon != 0,
+       bluetooth_icon: bluetooth_icon,
        temperature_unit: queryIn('temperature_unit', [0,1], defaults.temperature_unit),
        refresh_rate: queryIn('refresh_rate', [5,20,40], defaults.refresh_rate),
        rainbow_mode: bool('rainbow_mode', defaults.rainbow_mode),
@@ -132,7 +133,7 @@
                date_displayed: this.get('date_displayed'),
                battery_displayed_at: this.get('battery_displayed_at'),
                health_enabled: this.get('health_enabled'),
-               bluetooth_icon: this.get('bluetooth_icon'),
+               bluetooth_icon: this.get('bluetooth_icon_enabled') ? this.get('bluetooth_icon') : 0,
                background_color: background('background_color'),
                time_color: foreground('time_color'),
                info_color: foreground('info_color'),
