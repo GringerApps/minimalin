@@ -516,6 +516,7 @@ static void battery_handler(BatteryChargeState charge){
   s_context.charge_state = charge;
   text_block_mark_dirty(s_watch_info);
 }
+
 static void step_handler(HealthEventType event, void * context){
   if(event == HealthEventSignificantUpdate){
     fetch_step((Context *)context);
@@ -536,6 +537,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   }
   schedule_weather_request(10000);
   update_current_time();
+  fetch_step(&s_context);
 
   layer_mark_dirty(s_hour_hand_layer);
   layer_mark_dirty(s_tick_layer);
