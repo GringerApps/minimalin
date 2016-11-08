@@ -115,13 +115,16 @@
   {{#if platform != 'aplite'}}
   <Toggle value="{{ health_enabled }}" label="Steps (requires Pebble Health)"/>
   {{/if}}
-  <Toggle value="{{ bluetooth_icon_enabled }}" label="Bluetooth disconnected icon"/>
-  {{#if bluetooth_icon_enabled }}
+  <Toggle value="{{ bluetoothIconEnabled }}" label="Bluetooth disconnected icon"/>
+  {{#if bluetoothIconEnabled }}
   <div intro-outro='slide'>
     <Tabs source="{{ bluetoothSource }}" value="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show"/>
   </div>
   {{/if}}
-  <Tabs source="{{ batteryDisplayedAtSource }}" value="{{ battery_displayed_at }}" header="Display a battery icon when battery goes below"/>
+  <Toggle value="{{ batteryIconEnabled }}" label="Low battery icon"/>
+  {{#if batteryIconEnabled }}
+    <Tabs source="{{ batteryDisplayedAtSource }}" value="{{ battery_displayed_at }}" header="Display a battery icon when battery goes below"/>
+  {{/if}}
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
   </div>
@@ -361,7 +364,6 @@
      },
      batteryDisplayedAtSource: function(){
        return [
-         { label: "Never", value: -1 },
          { label: "10%", value: 10 },
          { label: "20%", value: 20 },
          { label: "30%", value: 30 }
@@ -435,11 +437,21 @@
      return this.get('themes')[this.get('selected_theme')];
    },
    oninit: function(){
-     this.set('bluetooth_icon_enabled', this.get('bluetooth_icon') !== 0);
-     this.observe('bluetooth_icon_enabled', function(enabled){
+     this.set('bluetoothIconEnabled', this.get('bluetooth_icon') !== 0);
+     this.observe('bluetoothIconEnabled', function(enabled){
        var icon = this.get('bluetooth_icon');
        this.set('bluetooth_icon', enabled ? icon || 1 : 0);
-     })
+     });
+     this.set('batteryIconEnabled', this.get('battery_displayed_at') !== -1);
+     this.observe('batteryIconEnabled', function(enabled){
+       var value = this.get('battery_displayed_at');
+       if(enabled){
+         this.set('battery_displayed_at', value !== -1 ? value : 10);
+       }else{
+         this.set('battery_displayed_at', -1);
+       }
+
+     });
      this.on('theme_selected', function(event, i){
        var values = Object.assign({
         selected_theme: i,
