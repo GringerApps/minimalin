@@ -308,7 +308,7 @@ static void hour_time_update_proc(TextBlock * block){
     if(config_get_bool(config, ConfigKeyMilitaryTime)){
       snprintf(buffer, sizeof(buffer), "%d", hour);
     }else{
-      snprintf(buffer, sizeof(buffer), "%d", hour_mod_12 == 0 ? 0 : hour_mod_12);
+      snprintf(buffer, sizeof(buffer), "%d", hour_mod_12 == 0 ? 12 : hour_mod_12);
     }
     text_block_set_text(block, buffer, color);
     if(times_conflicting(context->time)){
