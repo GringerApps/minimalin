@@ -5,9 +5,8 @@ var Config = function(name){
       if(config !== null){
         return JSON.parse(config);
       }
-    }catch(e){
-      return {};
-    }
+    }catch(e){}
+    return {};
   };
   var store = function(data){
     try{
