@@ -87,6 +87,7 @@
        defaultsThemes = [
          {
            name: 'Default',
+           rainbow_mode: false,
            minute_hand_color: 0xFFFFFF,
            hour_hand_color:  0xFF0000,
            background_color: 0x000000,
@@ -94,23 +95,26 @@
            info_color: 0x555555
          },
          {
-           name: 'Sky',
-           minute_hand_color: 0xFFFFFF,
-           hour_hand_color:  0x00AAFF,
+           name: 'Rainbow',
+           rainbow_mode: true,
+           minute_hand_color: 0xFF0000,
+           hour_hand_color:  0xFFFFFF,
            background_color: 0x000000,
            time_color: 0xAAAAAA,
            info_color: 0x555555
          },
          {
-           name: 'Solarized',
-           minute_hand_color: 0x000000,
-           hour_hand_color:  0x005555,
-           background_color: 0xffffff,
-           time_color: 0xaaaaaa,
-           info_color: 0x555555
+           name: 'Night',
+           rainbow_mode: false,
+           minute_hand_color: 0xFFFFFF,
+           hour_hand_color: 0x55AAAA,
+           background_color: 0x000055,
+           time_color: 0xFFFF00,
+           info_color: 0x5555AA
          },
          {
-           name: 'Hipster',
+           name: 'Lobster',
+           rainbow_mode: false,
            background_color: 0xaaaaaa,
            hour_hand_color: 0xf56c38,
            minute_hand_color: 0xffffff,
@@ -125,7 +129,6 @@
        health_enabled: false,
        bluetooth_icon: 1,
        battery_displayed_at: -1,
-       rainbow_mode: false,
        temperature_unit: 0,
        refresh_rate: 20,
        weather_enabled: true,

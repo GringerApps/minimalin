@@ -461,7 +461,7 @@
      return '#' + new Array(6 - hex.length + 1).join('0') + hex;
    },
    currentTheme: function(){
-     return this.get('themes')[this.get('selected_theme')];
+     return this.get('themes')[this.get('selected_theme')] || null;
    },
    oninit: function(){
      this.set('bluetoothIconEnabled', this.get('bluetooth_icon') !== 0);
@@ -480,10 +480,13 @@
 
      });
      this.on('theme_selected', function(event, i){
-       var values = Object.assign({
-        selected_theme: i,
-       }, event.context);
-       this.set(values);
+       this.set('selected_theme', i);
+       this.set(event.context);
+     });
+     this.on('Toggle.clicked', function(event){
+       if(event.node.id === 'rainbow_container'){
+         this.set('selected_theme', false);
+       }
      });
      this.on('ItemColor.setColor', function(){
        this.set('selected_theme', false);
@@ -504,6 +507,7 @@
      this.on('saveTheme', function(e, name, theme){
        Object.assign(theme, {
          name: name,
+         rainbow_mode: this.get('rainbow_mode'),
          hour_hand_color: this.get('hour_hand_color'),
          minute_hand_color: this.get('minute_hand_color'),
          info_color: this.get('info_color'),
