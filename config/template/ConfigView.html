@@ -7,10 +7,10 @@
 <div id="preview">
   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
   viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
-  {{#if platform == 'basalt' || platform == "aplite" || platform == "diorite"}}
+  {{#if platform === 'basalt' || platform === "aplite" || platform === "diorite"}}
   <g>
-    <rect fill="{{_background_color}}" x="33.635" y="11.156" width="287.73" height="335.685"/>
-    <g fill="{{_time_color}}">
+    <rect fill="{{ backgroundColor }}" x="33.635" y="11.156" width="287.73" height="335.685"/>
+    <g fill="{{ timeColor }}">
       <path d="M271.2,11.2l-5.8,10c-0.6,1-0.2,2.2,0.7,2.7c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.7-1l6.9-12H271.2z"/>
       <path d="M45.3,100l-11.6-6.7v4.6l9.6,5.6c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.7-1   C46.5,101.8,46.2,100.6,45.3,100z"/>
       <text text-anchor="middle" x="260" y="65" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ military_time ? 13 : 1 }}</text>
@@ -18,28 +18,30 @@
     </g>
   </g>
   {{/if}}
-  {{#if platform == 'chalk' }}
-  <circle fill="{{_background_color}}" cx="177.5" cy="177.5" r="177.5"/>
-  <g fill="{{_time_color}}">
+  {{#if platform === 'chalk' }}
+  <circle fill="{{ backgroundColor }}" cx="177.5" cy="177.5" r="177.5"/>
+  <g fill="{{ timeColor }}">
     <path d="M263.8,22.4l-4.4,7.6c-0.6,1-0.2,2.2,0.7,2.8c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.8-1l4.4-7.6   C266.2,23.7,265,23,263.8,22.4z"/>
     <path d="M31.5,95.9c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.8-1c0.6-1,0.2-2.2-0.7-2.8l-8.9-5.1   c-0.7,1.2-1.4,2.3-2,3.5L31.5,95.9z"/>
     <text text-anchor="middle" x="250" y="70" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ military_time ? 13 : 1 }}</text>
     <text text-anchor="middle" x="55" y="125" style="font-family:'Nupe-CondensedRegular'; font-size:42;">51</text>
   </g>
   {{/if}}
-  {{#if weather_enabled}}
-  <text text-anchor="middle" x="177" y="123" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">b18°</text>
-  {{/if}}
-  {{#if date_displayed}}
-  <text text-anchor="middle" x="255" y="195.5" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">31</text>
-  {{/if}}
-  {{#if platform != 'aplite' && health_enabled}}
-  <text text-anchor="middle" x="177" y="250" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">y8.5k</text>
-  {{/if}}
-  <text text-anchor="middle" x="100" y="195.5" fill="{{ _info_color }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ info_text }}</text>
-  <path fill="{{_hour_hand_color}}" d="M177,184.4c-1.5,0-3.1-0.6-4.2-1.8c-2.3-2.3-2.3-6.1,0-8.5l55.2-55.2c2.3-2.3,6.1-2.3,8.5,0   c2.3,2.3,2.3,6.1,0,8.5l-55.2,55.2C180.1,183.8,178.5,184.4,177,184.4z"/>
+  <g>
+    {{#if weather_enabled}}
+    <text x="177" y="123" text-anchor="middle" fill="{{ infoColor }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">b18°</text>
+    {{/if}}
+    {{#if date_displayed}}
+    <text x="255" y="195.5" text-anchor="middle" fill="{{ infoColor }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">31</text>
+    {{/if}}
+    {{#if platform != 'aplite' && health_enabled}}
+    <text x="177" y="250" text-anchor="middle" fill="{{ infoColor }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">y8.5k</text>
+    {{/if}}
+    <text x="100" y="195.5" text-anchor="middle" fill="{{ infoColor }}" style="font-family:'Nupe-CondensedRegular'; font-size:42;">{{ btBatteryText }}</text>
+  </g>
+  <path fill="{{ hourHandColor }}" d="M177,184.4c-1.5,0-3.1-0.6-4.2-1.8c-2.3-2.3-2.3-6.1,0-8.5l55.2-55.2c2.3-2.3,6.1-2.3,8.5,0   c2.3,2.3,2.3,6.1,0,8.5l-55.2,55.2C180.1,183.8,178.5,184.4,177,184.4z"/>
   {{#if !rainbow_mode}}
-  <path fill="{{_minute_hand_color}}"  d="M177.5,184.3c-1.5,0.1-3.1-0.3-4.4-1.3l-80.3-66.1c-2.6-2.1-2.9-5.9-0.8-8.4c2.1-2.6,5.9-2.9,8.4-0.8   l80.3,66.1c2.6,2.1,2.9,5.9,0.8,8.4C180.5,183.4,179,184.2,177.5,184.3z"/>
+  <path fill="{{ minuteHandColor }}"  d="M177.5,184.3c-1.5,0.1-3.1-0.3-4.4-1.3l-80.3-66.1c-2.6-2.1-2.9-5.9-0.8-8.4c2.1-2.6,5.9-2.9,8.4-0.8   l80.3,66.1c2.6,2.1,2.9,5.9,0.8,8.4C180.5,183.4,179,184.2,177.5,184.3z"/>
   {{else}}
   <g>
     <path fill="#FF0000" d="M113.3,120.5c0.1,1.5-0.3,3.1-1.3,4.4c-2.1,2.6-5.9,2.9-8.4,0.8l-10.8-8.9c-2.6-2.1-2.9-5.9-0.8-8.4     c2.1-2.6,5.9-2.9,8.4-0.8l10.8,8.9C112.5,117.5,113.2,119,113.3,120.5z"/>
@@ -49,25 +51,56 @@
     <rect x="159" y="155.5" transform="matrix(-0.6358 0.7719 -0.7719 -0.6358 399.951 148.3838)" fill="#0055FF" width="12" height="26.1"/>
   </g>
   {{/if}}
-  <circle fill="{{ rainbow_mode ? '#AA00FF' : _hour_hand_color }}" cx="177.5" cy="178.499" r="9.991"/>
+  <circle fill="{{ rainbow_mode ? '#AA00FF' : hourHandColor }}" cx="177.5" cy="178.499" r="9.991"/>
 </svg>
 </div>
 <div id="preview_spacer"></div>
 <div id="content">
-  {{#if platform == 'aplite' || platform == 'diorite'}}
-  <Tabs source="{{ dark_mode_source }}" value="{{ dark_mode }}" header="Color theme"/>
-  {{else}}
+  <div class="section">
+    <div>Themes</div>
+  </div>
+  <div id="theme_modal" class="modal">
+    <div class="modal-content">
+      <Input header="Write theme name" value="{{ themeName }}"/>
+      <Tabs source="{{ themeSource }}" value="{{ overrideTheme }}" header="Select theme to override"/>
+      <div class="item-container">
+        <div class="item-container-content">
+          <div class="item" id="modal_button_container">
+            <input type="button" class="item-button" value="SAVE" on-click="saveTheme:{{ themeName }},{{ overrideTheme }}"/>
+            <input type="button" class="item-button" value="CANCEL" on-click="closeModal"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="item-container">
+    <div class="item-container-content">
+      <div id="themes" class="item">
+        {{#each themes:i}}
+        <input type="button" class="{{ selected_theme === i ? 'disabled' : ''}} item-button theme-button {{ bw ? 'theme-button-n2' : 'theme-button-n4' }}" value="{{ name }}" on-click="theme_selected:{{ i }}">
+        {{/each}}
+      </div>
+      {{#if !bw }}
+      <div class="button-container" id="save_theme_button_container">
+        <input id="save_theme_button" type="button" class="item-button" value="SAVE CURRENT THEME" on-click="openModal">
+      </div>
+      {{/if}}
+    </div>
+  </div>
+  <div class="section">
+  </div>
+  {{#if !bw }}
   <ItemColor color="{{ hour_hand_color }}" label="Hour hand color"/>
   <ToggleWithItemColor toggleLabel="Use rainbow minute hand" toggleValue="{{ rainbow_mode }}" colorItemValue="{{ minute_hand_color }}" colorItemLabel="Minute hand color" footer="Overrides color selection for the minute hand" toggleFirst/>
   <ItemColor color="{{ time_color }}" label="Numbers and ticks color"/>
   <ItemColor color="{{ background_color }}" label="Background color"/>
   {{/if}}
-  <Toggle label="Vibrate every full hour" value="{{ vibrate_on_the_hour }}" footer="{{ platform == 'aplite' ? '' : 'Off during sleep tracked with Pebble Health' }}" />
+  <Toggle label="Vibrate every full hour" value="{{ vibrate_on_the_hour }}" footer="{{ platform === 'aplite' ? '' : 'Off during sleep tracked with Pebble Health' }}" />
   <Toggle label="24h format" value="{{ military_time }}"/>
   <div class="section">
     <div>Complications</div>
   </div>
-  {{#if platform != 'aplite' && platform != 'diorite'}}
+  {{#if !bw }}
   <ItemColor color="{{ info_color }}" label="Color"/>
   {{/if}}
   <Toggle label="Date" value="{{ date_displayed }}" inverted/>
@@ -75,8 +108,8 @@
   {{#if weather_enabled}}
   <div intro-outro='slide'>
     <Input header="Fixed location (empty to use phone location)" placeholder="Ex: Dublin,Ireland" value="{{ location }}"/>
-    <Tabs source="{{ temperature_unit_source }}" value="{{ temperature_unit }}" header="Temperature unit"/>
-    <Tabs source="{{ refresh_rate_source }}" value="{{ refresh_rate }}" header="Refresh rate"/>
+    <Tabs source="{{ temparetureUnitSource }}" value="{{ temperature_unit }}" header="Temperature unit"/>
+    <Tabs source="{{ refreshRateSource }}" value="{{ refresh_rate }}" header="Refresh rate"/>
   </div>
   {{/if}}
   {{#if platform != 'aplite'}}
@@ -85,23 +118,22 @@
   <Toggle value="{{ bluetooth_icon_enabled }}" label="Bluetooth disconnected icon"/>
   {{#if bluetooth_icon_enabled }}
   <div intro-outro='slide'>
-    <Tabs source="{{ bluetooth_source }}" value="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show"/>
+    <Tabs source="{{ bluetoothSource }}" value="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show"/>
   </div>
   {{/if}}
-  <Tabs source="{{ battery_displayed_at_source }}" value="{{ battery_displayed_at }}" header="Display a battery icon when battery goes below"/>
+  <Tabs source="{{ batteryDisplayedAtSource }}" value="{{ battery_displayed_at }}" header="Display a battery icon when battery goes below"/>
   <div class="donation">
     Minimalin is open source software. If you want, you can easily make a <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZJYBKJHT2EXT4">donation here</a>.
   </div>
-
   <div class="item-container">
     <div id="reset_button_container" class="button-container">
-      <input id="reset_button" type="button" class="item-button" value="RESET DEFAULTS" on-click="reset-defaults">
+      <input id="reset_button" type="button" class="item-button" value="RESET DEFAULTS COLORS" on-click="reset-defaults">
     </div>
   </div>
 </div>
 <div id="footer" class="item-container">
   <div class="button-container">
-    <input id="submit_button" type="button" class="item-button" value="SAVE" on-click="save">
+    <input id="submit_button" type="button" class="item-button" value="APPLY" on-click="save">
   </div>
 </div>
 <style>
@@ -115,15 +147,22 @@
 
  * {
    font-family: sans-serif;
+   word-wrap: break-word;
  }
 
  #content {
+   min-width: 500px
    margin-top: 10px;
    padding-bottom: 40px;
  }
 
  .hidden {
    visibility: hidden;
+ }
+
+ .item-button:active:not(.disabled) {
+   box-shadow: 0px 1px #666;
+   transform: translateY(1px);
  }
 
  .section {
@@ -164,6 +203,97 @@
    padding: 10px;
  }
 
+ .modal {
+   display: none;
+   position: fixed;
+   z-index: 2;
+   padding-top: 100px;
+   left: 0;
+   top: 0;
+   width: 100%;
+   height: 100%;
+   overflow: auto;
+   background-color: rgba(0,0,0,0.4);
+ }
+
+ .modal-content {
+   background-color: #f7f7f7;
+   margin: auto;
+   padding: 20px;
+   border: 1px solid #f7f7f7;
+   border-radius: 4px;
+   width: 80%;
+   box-shadow: 0 19px 38px rgba(0,0,0,0.15), 0 15px 12px rgba(0,0,0,0.15);
+ }
+
+ .modal-content .item-container-content {
+   border: 0px;
+ }
+
+ .modal-content .item-container:first-child {
+   padding-bottom: 4px;
+ }
+
+ .modal-content .item {
+   padding-top: 8px;
+ }
+
+ #modal_button_container .item-button {
+   width: 20%;
+   float: right;
+   font-weight: 500;
+   background-color: transparent;
+   color: #ff4700;
+   padding-top: 10px;
+ }
+
+ #modal_button_container .item-button:active:not(.disabled) {
+   box-shadow: 0 0px #666;
+   transform: translateY(0px);
+ }
+
+ #modal_button_container .item-button:last-child {
+  margin-right: 10px;
+ }
+
+ #modal_button_container {
+   margin-bottom: -10px;
+   right: 0;
+ }
+
+ #themes {
+   margin: 0 10px;
+   display: flex;
+   justify-content: space-between;
+ }
+
+ .theme-button-n4 {
+   width: 22%;
+ }
+
+.theme-button-n2 {
+   width: 45%;
+ }
+
+ .theme-button {
+   display: inline-block;
+ }
+
+ .theme-button.disabled {
+   color: rgba(0, 0, 0, 0.26);
+   background-color: rgba(0, 0, 0, 0.12);
+   border-color: rgba(0, 0, 0, 0.26);
+ }
+
+ #save_theme_button_container {
+   margin: 10px;
+   padding: 0 10px;
+ }
+
+ #save_theme_button {
+   width: 100%;
+ }
+
  #reset_button {
    width: 100%;
    color: black;
@@ -173,7 +303,7 @@
 
  #preview {
    position: fixed;
-   z-index: 999;
+   z-index: 1;
    top:      0;
    left:     0;
    width:    100%;
@@ -203,7 +333,7 @@
 
  #footer {
    position: fixed;
-   z-index: 999;
+   z-index: 1;
    bottom: 0;
    left:0;
    width: 100%;
@@ -223,7 +353,49 @@
 <script>
  component.exports = {
    computed: {
-     info_text: function(){
+     bluetoothSource: function(){
+       return [
+         { label: "Bluetooth", value: 1 },
+         { label: "Broken heart", value: 2 }
+       ];
+     },
+     batteryDisplayedAtSource: function(){
+       return [
+         { label: "Never", value: -1 },
+         { label: "10%", value: 10 },
+         { label: "20%", value: 20 },
+         { label: "30%", value: 30 }
+       ];
+     },
+     temparetureUnitSource: function(){
+       return [
+         { label: "Celsius", value: 0 },
+         { label: "Fahrenheit", value: 1 }
+       ];
+     },
+     refreshRateSource: function(){
+       return [
+         { label: "5 min", value: 5 },
+         { label: "20 min", value: 20 },
+         { label: "40 min", value: 40 }
+       ];
+     },
+     infoColor: function(){
+       return this.color(this.get('info_color'))
+     },
+     timeColor: function(){
+       return this.color(this.get('time_color'))
+     },
+     hourHandColor: function(){
+       return this.color(this.get('hour_hand_color'))
+     },
+     minuteHandColor: function(){
+       return this.color(this.get('minute_hand_color'))
+     },
+     backgroundColor: function(){
+       return this.color(this.get('background_color'))
+     },
+     btBatteryText: function(){
        var info;
        switch(this.get("bluetooth_icon")){
          case 1:
@@ -240,89 +412,105 @@
        }
        return info;
      },
-     dark_mode_source: function(){
-       return [
-       { label: "Dark", value: true },
-       { label: "Light", value: false }
-       ];
+     themeSource: function(){
+       var themeSource = [];
+       this.get('themes').forEach( function(element, index) {
+         themeSource.push({
+           label: element.name,
+           value: element
+         });
+       });
+       return themeSource;
      },
-     bluetooth_source: function(){
-       return [
-       { label: "Bluetooth", value: 0 },
-       { label: "Broken heart", value: 1 }
-       ];
-     },
-     battery_displayed_at_source: function(){
-       return [
-       { label: "Never", value: -1 },
-       { label: "10", value: 10 },
-       { label: "20", value: 20 },
-       { label: "30", value: 30 }
-       ];
-     },
-     temperature_unit_source: function(){
-       return [
-       { label: "Celsius", value: 0 },
-       { label: "Fahrenheit", value: 1 }
-       ];
-     },
-     refresh_rate_source: function(){
-       return [
-       { label: "5 min", value: 5 },
-       { label: "20 min", value: 20 },
-       { label: "40 min", value: 40 }
-       ];
-     },
-     _hour_hand_color: function(){
-       if(!this.is_bw()){
-         return this.get("hour_hand_color");
-       }
-       return this.foregroundColor();
-     },
-     _minute_hand_color: function(){
-       if(!this.is_bw()){
-         return this.get("minute_hand_color");
-       }
-       return this.foregroundColor();
-     },
-     _info_color: function(){
-       if(!this.is_bw()){
-         return this.get("info_color");
-       }
-       return this.foregroundColor();
-     },
-     _time_color: function(){
-       if(!this.is_bw()){
-         return this.get("time_color");
-       }
-       return this.foregroundColor();
-     },
-     _background_color: function(){
-       if(!this.is_bw()){
-         return this.get("background_color");
-       }
-       return this.backgroundColor();
+     bw: function(){
+      var platform = this.get("platform");
+      return platform === "aplite" || platform === "diorite";
      }
    },
-   backgroundColor: function(){
-     if(this.get("dark_mode") == 0){
-       return "#000000";
-     }
-     return "#FFFFFF";
+   color: function(value){
+     var hex = value.toString(16);
+     return '#' + new Array(6 - hex.length + 1).join('0') + hex;
    },
-   foregroundColor: function(){
-     if(this.get("dark_mode") == 0){
-       return "#FFFFFF";
-     }
-     return "#000000";
+   currentTheme: function(){
+     return this.get('themes')[this.get('selected_theme')];
    },
-   is_bw: function(){
-     return this.get("platform") == "aplite" ||
-     this.get("platform") == "diorite";
-   },
-   onrender: function(){
+   oninit: function(){
+     this.set('bluetooth_icon_enabled', this.get('bluetooth_icon') !== 0);
+     this.observe('bluetooth_icon_enabled', function(enabled){
+       var icon = this.get('bluetooth_icon');
+       this.set('bluetooth_icon', enabled ? icon || 1 : 0);
+     })
+     this.on('theme_selected', function(event, i){
+       var values = Object.assign({
+        selected_theme: i,
+       }, event.context);
+       this.set(values);
+     });
+     this.on('ItemColor.setColor', function(){
+       this.set('selected_theme', false);
+     });
      this.on('reset-defaults', function() {
-       this.set(this.get('defaults'));
+       var themes = this.get('defaults').themes;
+       var themesCopy = JSON.parse(JSON.stringify(themes));
+       var setters = { themes: themesCopy };
+       var selectedTheme = this.get('selected_theme');
+       if(selectedTheme){
+         Object.assign(setters, themesCopy[selectedTheme]);
+       }
+       this.set(setters);
+     });
+     this.on('closeModal', function(){
+       this.find('#theme_modal').style.display = "none";
+     });
+     this.on('saveTheme', function(e, name, theme){
+       Object.assign(theme, {
+         name: name,
+         hour_hand_color: this.get('hour_hand_color'),
+         minute_hand_color: this.get('minute_hand_color'),
+         info_color: this.get('info_color'),
+         background_color: this.get('background_color'),
+         time_color: this.get('time_color'),
+       });
+       var themes = this.get('themes');
+       for(var i = 0; i < themes.length; i++){
+         if(theme === themes[i]){
+            this.set('selected_theme', i);
+            break;
+         }
+       }
+       this.update('themes');
+       this.find('#theme_modal').style.display = "none";
+     })
+     this.on('openModal', function() {
+       var currentTheme = this.currentTheme();
+       var firstTheme = this.get('themes')[0];
+       this.set('themeName', currentTheme ? currentTheme.name : firstTheme.name);
+       this.set('overrideTheme', currentTheme ? currentTheme : firstTheme);
+       this.find('#theme_modal').style.display = "block";
+     });
+     this.on('save', function() {
+       var response_data = {
+         selected_theme: this.get('selected_theme'),
+         minute_hand_color: this.get('minute_hand_color'),
+         hour_hand_color: this.get('hour_hand_color'),
+         date_displayed: this.get('date_displayed'),
+         battery_displayed_at: this.get('battery_displayed_at'),
+         health_enabled: this.get('health_enabled'),
+         bluetooth_icon: this.get('bluetooth_icon'),
+         background_color: this.get('background_color'),
+         time_color: this.get('time_color'),
+         info_color: this.get('info_color'),
+         weather_enabled: this.get('weather_enabled'),
+         refresh_rate: this.get('refresh_rate'),
+         temperature_unit: this.get('temperature_unit'),
+         vibrate_on_the_hour: this.get('vibrate_on_the_hour'),
+         rainbow_mode: this.get('rainbow_mode'),
+         location: this.get('location') || '',
+         military_time: this.get('military_time'),
+         themes: this.get('themes')
+       };
+       var returnTo = query('return_to', 'pebblejs://close#');
+       document.location = returnTo + encodeURIComponent(JSON.stringify(response_data));
      });
    }
  }
