@@ -131,7 +131,7 @@
     </div>
     <div class="item-container">
       <div id="reset_button_container" class="button-container">
-        <input id="reset_button" type="button" class="item-button" value="RESET DEFAULTS COLORS" on-click="reset-defaults">
+        <input id="reset_button" type="button" class="item-button" value="RESET DEFAULT THEMES" on-click="reset-defaults">
       </div>
     </div>
   </div>
@@ -171,7 +171,6 @@
  }
 
  .item-button:active:not(.disabled) {
-   box-shadow: 0px 1px #666;
    transform: translateY(1px);
  }
 
@@ -214,10 +213,10 @@
  }
 
  .modal {
+   padding-top: 100px ;
    display: none;
    position: fixed;
    z-index: 2;
-   padding-top: 100px;
    left: 0;
    top: 0;
    width: 100%;
@@ -227,8 +226,9 @@
  }
 
  .modal-content {
+   margin: auto auto auto;
    background-color: #f7f7f7;
-   margin: auto;
+   z-index: 5;
    padding: 20px;
    border: 1px solid #f7f7f7;
    border-radius: 4px;
@@ -292,7 +292,7 @@
  }
 
  #themes {
-   margin: 0 10px;
+   margin: 10px 0;
    display: flex;
    justify-content: space-between;
  }
@@ -307,6 +307,9 @@
 
  .theme-button {
    display: inline-block;
+   color: #ff4700;
+   background-color: white;
+   box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
  }
 
  .theme-button.disabled {
@@ -316,15 +319,17 @@
  }
 
  #save_theme_button_container {
-   margin: 10px;
+   margin: 10px 0;
    padding: 0 10px;
  }
 
  #save_theme_button {
    width: 100%;
+   box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
  }
 
  #reset_button {
+   box-shadow: 0px 5px 5px rgba(0,0,0,0.12);
    width: 100%;
    color: black;
    background-color: #c1c1c1;
@@ -463,6 +468,10 @@
    currentTheme: function(){
      return this.get('themes')[this.get('selected_theme')] || null;
    },
+   closeModal: function(){
+     this.find('#theme_modal').style.display = "none";
+     window.history.back();
+   },
    oninit: function(){
      this.set('bluetoothIconEnabled', this.get('bluetooth_icon') !== 0);
      this.observe('bluetoothIconEnabled', function(enabled){
@@ -502,7 +511,7 @@
        this.set(setters);
      });
      this.on('closeModal', function(){
-       this.find('#theme_modal').style.display = "none";
+       this.closeModal();
      });
      this.on('saveTheme', function(e, name, theme){
        Object.assign(theme, {
@@ -523,8 +532,10 @@
        }
        this.update('themes');
        this.find('#theme_modal').style.display = "none";
+       window.history.back();
      })
      this.on('openModal', function() {
+       window.location.hash = "#save_theme";
        var currentTheme = this.currentTheme();
        var firstTheme = this.get('themes')[0];
        this.set('themeName', currentTheme ? currentTheme.name : firstTheme.name);
@@ -554,6 +565,21 @@
        };
        var returnTo = query('return_to', 'pebblejs://close#');
        document.location = returnTo + encodeURIComponent(JSON.stringify(response_data));
+     });
+     var ractive = this;
+     window.addEventListener("hashchange", function(){
+       if(window.location.hash !== "#save_theme"){
+         ractive.find('#theme_modal').style.display = "none";
+       }
+     });
+   },
+   oncomplete: function(){
+     var ractive = this;
+     this.find(".modal-content").addEventListener("click", function(e){
+       e.stopPropagation();
+     });
+     this.find(".modal").addEventListener("click", function(){
+       ractive.closeModal();
      });
    }
  }
