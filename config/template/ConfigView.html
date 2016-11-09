@@ -67,8 +67,8 @@
         <div class="item-container">
           <div class="item-container-content">
             <div class="item" id="modal_button_container">
-              <input type="button" class="item-button" value="SAVE" on-click="saveTheme:{{ themeName }},{{ overrideTheme }}"/>
-              <input type="button" class="item-button" value="CANCEL" on-click="closeModal"/>
+              <a class="item-button" on-click="closeModal">CANCEL</a>
+              <a class="item-button" on-click="saveTheme:{{ themeName }},{{ overrideTheme }}">SAVE</a>
             </div>
           </div>
         </div>
@@ -78,12 +78,12 @@
       <div class="item-container-content">
         <div id="themes" class="item">
           {{#each themes:i}}
-          <input type="button" class="{{ selected_theme === i ? 'disabled' : ''}} item-button theme-button {{ bw ? 'theme-button-n2' : 'theme-button-n4' }}" value="{{ name }}" on-click="theme_selected:{{ i }}">
+          <input type="button" class="{{ selected_theme === i ? 'disabled' : ''}} secondary-button item-button theme-button {{ bw ? 'theme-button-n2' : 'theme-button-n4' }}" value="{{ name }}" on-click="theme_selected:{{ i }}">
           {{/each}}
         </div>
         {{#if !bw }}
         <div class="button-container" id="save_theme_button_container">
-          <input id="save_theme_button" type="button" class="item-button" value="SAVE CURRENT THEME" on-click="openModal">
+          <input id="save_theme_button" type="button" class="item-button secondary-button" value="SAVE CURRENT THEME" on-click="openModal">
         </div>
         {{/if}}
       </div>
@@ -119,7 +119,7 @@
     <Toggle value="{{ bluetoothIconEnabled }}" label="Bluetooth disconnected icon"/>
     {{#if bluetoothIconEnabled }}
     <div intro-outro='slide'>
-      <Tabs source="{{ bluetoothSource }}" value="{{ bluetooth_icon }}" header="When bluetooth is disconnected, show"/>
+      <Tabs source="{{ bluetoothSource }}" value="{{ bluetooth_icon }}"/>
     </div>
     {{/if}}
     <Toggle value="{{ batteryIconEnabled }}" label="Low battery icon"/>
@@ -236,11 +236,11 @@
    box-shadow: 0 19px 38px rgba(0,0,0,0.15), 0 15px 12px rgba(0,0,0,0.15);
  }
 
- .modal-content *{
+ .modal-content * {
     font-size: 14pt;
  }
 
- .modal-content a{
+ .modal-content .tab-button {
     font-size: 12pt;
  }
 
@@ -256,14 +256,6 @@
    padding-top: 8px;
  }
 
- #modal_button_container .item-button {
-   width: initial;
-   float: right;
-   font-weight: 700;
-   background-color: transparent;
-   color: #ff4700;
-   padding-top: 10px;
- }
 
  .modal-content .tab-button {
    padding: 6px 0;
@@ -277,18 +269,28 @@
    height: 40px;
  }
 
- #modal_button_container .item-button:active:not(.disabled) {
-   box-shadow: 0 0px #666;
-   transform: translateY(0px);
- }
-
- #modal_button_container .item-button:last-child {
-  margin-right: 20px;
+ #modal_button_container .item-button {
+   display: table-cell;
+   position: relative;
+   text-align: right;
+   right: -1px;
+   font-weight: 500;
+   background-color: transparent;
+   color: #ff4700;
+   padding-top: 10px;
  }
 
  #modal_button_container {
+   display: table;
+   box-sizing: border-box;
+   table-layout: fixed;
+   position: relative;
+   text-align: center;
+   padding: 8px 10px 0px 0px;
+   margin-left: 50%;
+   right: 0px;
+   width: 50%;
    margin-bottom: -10px;
-   right: 0;
  }
 
  #themes {
@@ -305,11 +307,14 @@
    width: 45%;
  }
 
- .theme-button {
-   display: inline-block;
+ .secondary-button {
    color: #ff4700;
    background-color: white;
    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+ }
+
+ .theme-button {
+   display: inline-block;
  }
 
  .theme-button.disabled {
@@ -390,7 +395,7 @@
    computed: {
      bluetoothSource: function(){
        return [
-         { label: "Bluetooth", value: 1 },
+         { label: "Bluetooth icon", value: 1 },
          { label: "Broken heart", value: 2 }
        ];
      },
@@ -468,7 +473,14 @@
    currentTheme: function(){
      return this.get('themes')[this.get('selected_theme')] || null;
    },
+   preventDefault: function(e) {
+     e = e || window.event;
+     if (e.preventDefault)
+         e.preventDefault();
+     e.returnValue = false;
+   },
    closeModal: function(){
+     window.ontouchmove  = null;
      this.find('#theme_modal').style.display = "none";
      window.history.back();
    },
@@ -532,6 +544,7 @@
        window.history.back();
      })
      this.on('openModal', function() {
+       window.ontouchmove  = this.preventDefault;
        window.location.hash = "#save_theme";
        var currentTheme = this.currentTheme();
        var firstTheme = this.get('themes')[0];
@@ -566,6 +579,7 @@
      var ractive = this;
      window.addEventListener("hashchange", function(){
        if(window.location.hash !== "#save_theme"){
+         window.ontouchmove  = null;
          ractive.find('#theme_modal').style.display = "none";
        }
      });
