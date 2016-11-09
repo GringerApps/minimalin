@@ -159,10 +159,21 @@ static bool quadrants_try_takeover_quadrant_in_order(Quadrants * const quadrants
 
 static void quadrants_try_takeover_quadrant(Quadrants * const quadrants, const Index index, const tm * const time){
   Position order[POSTIONS_COUNT] = { North, South, East, West };
-  if(time->tm_hour % 12 == 3){
-    order[2] = West;
-    order[3] = East;
-  };
+  const int hour_mod_12 = time->tm_hour % 12;
+  const int min_fifth = time->tm_min / 5;
+  const bool hour_at_3 = hour_mod_12 == 3;
+  const bool hour_at_9 = hour_mod_12 == 9;
+  const bool min_at_3 = min_fifth == 3;
+  const bool min_at_9 = min_fifth == 9;
+  if(hour_at_3 || hour_at_9 || min_at_3 || min_at_9){
+    if((hour_at_3 && !min_at_9) || (!hour_at_9 && min_at_3)){
+      order[2] = West;
+      order[3] = East;
+    }else if(!((hour_at_9 && !min_at_3) || (!hour_at_3 && min_at_9))){
+      quadrants_try_takeover_quadrant_in_order(quadrants, index, time, order, false);
+      return;
+    }
+  }
   if(quadrants_try_takeover_quadrant_in_order(quadrants, index, time, order, true)){
     return;
   }
