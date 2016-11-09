@@ -111,6 +111,7 @@ typedef struct {
 typedef struct {
   Config * config;
   Weather weather;
+  bool reset_weather;
   int steps;
   bool bluetooth_connected;
   BatteryChargeState charge_state;
@@ -172,10 +173,6 @@ static void update_current_time() {
 
 static void config_info_color_updated(DictionaryIterator * iter, Tuple * tuple){
   config_set_int(s_config, ConfigKeyInfoColor, tuple->value->int32);
-  text_block_mark_dirty(s_date_info);
-  text_block_mark_dirty(s_steps_info);
-  text_block_mark_dirty(s_weather_info);
-  text_block_mark_dirty(s_watch_info);
 }
 
 static void config_background_color_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -188,6 +185,7 @@ static void config_time_color_updated(DictionaryIterator * iter, Tuple * tuple){
   layer_mark_dirty(s_tick_layer);
 
   text_block_mark_dirty(s_hour_text);
+  text_block_mark_dirty(s_minute_text);
 }
 
 static void config_hour_hand_color_updated(DictionaryIterator * iter, Tuple * tuple){
@@ -257,8 +255,9 @@ static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
 }
 
 static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple){
-  Tuple * icon_tuple = dict_find(iter, AppKeyWeatherIcon);
-  Tuple * temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
+  s_context.reset_weather = false;
+  const Tuple * const icon_tuple = dict_find(iter, AppKeyWeatherIcon);
+  const Tuple * const temp_tuple = dict_find(iter, AppKeyWeatherTemperature);
   if(icon_tuple && temp_tuple){
     s_context.weather.timestamp = time(NULL);
     s_context.weather.icon = icon_tuple->value->int8;
@@ -272,7 +271,7 @@ static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple)
 static void messenger_callback(DictionaryIterator * iter){
   if(dict_find(iter, AppKeyConfig)){
     config_save(s_config, PersistKeyConfig);
-    s_context.weather.timestamp = 0;
+    s_context.reset_weather = true;
     schedule_weather_request(0);
   }
   quadrants_update(s_quadrants, s_current_time);
@@ -427,7 +426,7 @@ static void send_weather_request_callback(void * context){
   const int timeout = config_get_int(s_config, ConfigKeyRefreshRate) * 60;
   const int expiration =  s_context.weather.timestamp + timeout;
   const bool almost_expired = time(NULL) > expiration;
-  const bool can_update_weather = almost_expired && s_js_ready;
+  const bool can_update_weather = (s_context.reset_weather || almost_expired) && s_js_ready;
   if(can_update_weather){
     if(config_get_bool(s_config, ConfigKeyWeatherEnabled)){
       DictionaryIterator *out_iter;
@@ -473,7 +472,7 @@ static void watch_info_update_proc(TextBlock * block){
     strncat(info_buffer, bluetooth_icon == Bluetooth ? "z" : "Z", 2);
   }
   const int battery_threshold = config_get_int(config, ConfigKeyBatteryDisplayedAt);
-  const bool battery_below_threshold = charge_state.charge_percent < battery_threshold;
+  const bool battery_below_threshold = context->charge_state.charge_percent < battery_threshold;
   if(battery_below_threshold){
     strncat(info_buffer, "w", 2);
   }
@@ -544,6 +543,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   mark_dirty_minute_hand_layer();
 
   text_block_mark_dirty(s_hour_text);
+  text_block_mark_dirty(s_minute_text);
   text_block_mark_dirty(s_date_info);
   text_block_mark_dirty(s_steps_info);
 
@@ -623,11 +623,6 @@ static void main_window_load(Window *window) {
   mark_dirty_minute_hand_layer();
 
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-  update_current_time();
-
-  text_block_mark_dirty(s_hour_text);
-  text_block_mark_dirty(s_date_info);
-
 }
 
 static void main_window_unload(Window *window) {
@@ -683,6 +678,7 @@ static void init() {
   s_context = (Context) {
     .config = s_config,
     .steps = 0,
+    .reset_weather = false,
     .bluetooth_connected = false,
     .charge_state = (BatteryChargeState) {
       .charge_percent = 100,
