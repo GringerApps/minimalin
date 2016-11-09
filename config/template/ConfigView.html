@@ -503,26 +503,23 @@
      this.on('reset-defaults', function() {
        var themes = this.get('defaults').themes;
        var themesCopy = JSON.parse(JSON.stringify(themes));
-       var setters = { themes: themesCopy };
+       this.set('themes', themesCopy);
        var selectedTheme = this.get('selected_theme');
        if(selectedTheme){
-         Object.assign(setters, themesCopy[selectedTheme]);
+         this.set(themesCopy[selectedTheme]);
        }
-       this.set(setters);
      });
      this.on('closeModal', function(){
        this.closeModal();
      });
      this.on('saveTheme', function(e, name, theme){
-       Object.assign(theme, {
-         name: name,
-         rainbow_mode: this.get('rainbow_mode'),
-         hour_hand_color: this.get('hour_hand_color'),
-         minute_hand_color: this.get('minute_hand_color'),
-         info_color: this.get('info_color'),
-         background_color: this.get('background_color'),
-         time_color: this.get('time_color'),
-       });
+       theme.name = name;
+       theme.rainbow_mode = this.get('rainbow_mode');
+       theme.hour_hand_color = this.get('hour_hand_color');
+       theme.minute_hand_color = this.get('minute_hand_color');
+       theme.info_color = this.get('info_color');
+       theme.background_color = this.get('background_color');
+       theme.time_color = this.get('time_color');
        var themes = this.get('themes');
        for(var i = 0; i < themes.length; i++){
          if(theme === themes[i]){
