@@ -120,7 +120,7 @@ Pebble.addEventListener('ready', function (e) {
 
 
 Pebble.addEventListener('showConfiguration', function() {
-  var URL = 'https://cdn.rawgit.com/groyoh/minimalin/07c3f04ccce9d8dbd92d6983a864b297f7e1a5cc/config/index.html';
+  var URL = 'https://cdn.rawgit.com/groyoh/minimalin/53bdcb764dac8da68254243787c72c73037b16c1/config/index.html';
   var config = Config('config');
   var params = config.load();
   params.platform = Pebble.getActiveWatchInfo().platform;
