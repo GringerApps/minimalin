@@ -1,25 +1,32 @@
 # minimalin ![Travis build](https://api.travis-ci.org/groyoh/minimalin.svg?branch=master)
 
-![banner](design/store/marketing-banner.png)
+[![banner](design/store/marketing-banner.png)](https://apps.getpebble.com/en_US/application/56f93a5361a01637e5000036)
 
 Minimalin is a fully customizable watchface that blends analog and digital for a modern and elegant look. <br><br>
-Minimalin uses Nupe, a custom font with numbers and icons, optimized with bitmap mapping to perfectly fit the pixel grid of the Pebble watch (at size 23).
+Minimalin uses Nupe, a custom font with numbers and icons, optimized with bitmap mapping to perfectly fit the pixel grid of the Pebble watch.
 
 Some key features of Minimalin:
 * Fully configurable colors
-* Date display
 * Weather conditions and temperature
+* Date display
+* Steps from Pebble Health
+* Low battery icon
 * Bluetooth disconnected icon (pick your favorite)
-* Rainbow hand, and more great and fun features to come!
+* Rainbow hand :rainbow:
 
 Go and grab it [here](https://apps.getpebble.com/en_US/application/56f93a5361a01637e5000036).
 
-![Preview](design/minimalin_preview.png)
+[![Preview](design/minimalin_preview.png)](https://apps.getpebble.com/en_US/application/56f93a5361a01637e5000036)
 
 ## License
 
 [MIT](LICENSE.md) for the code.
 [OFL](design/font/LICENSE.md) for the Nupe font.
+
+## Dependencies
+
+* [Ractive](https://github.com/ractivejs/ractive/blob/dev/LICENSE.md)
+* [Slate](https://github.com/pebble/slate/blob/master/LICENSE)
 
 ## Contributing
 If you would like a new feature, please comment on https://github.com/groyoh/minimalin/issues/69 and we'll see what we can do.
