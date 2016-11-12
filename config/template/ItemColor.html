@@ -108,7 +108,11 @@
        }
      });
      this.on('setColor', function(event, color){
-       this.set('color', color);
+       if(color !== false){
+         this.set('color', color);
+         return;
+       }
+       return false;
      });
    },
    css_color: function(color){
