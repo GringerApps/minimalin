@@ -12,6 +12,7 @@
 
 #define MINUTE_HAND_RADIUS 52
 #define HOUR_HAND_RADIUS 39
+#define NOW 0
 
 #ifdef PBL_ROUND
 static GPoint ticks_points[12][2] = {
@@ -251,7 +252,7 @@ static void config_health_enabled_updated(DictionaryIterator * iter, Tuple * tup
 
 static void js_ready_callback(DictionaryIterator * iter, Tuple * tuple){
   s_js_ready = true;
-  schedule_weather_request(0);
+  schedule_weather_request(NOW);
 }
 
 static void weather_requested_callback(DictionaryIterator * iter, Tuple * tuple){
@@ -272,7 +273,7 @@ static void messenger_callback(DictionaryIterator * iter){
   if(dict_find(iter, AppKeyConfig)){
     config_save(s_config, PersistKeyConfig);
     s_context.reset_weather = true;
-    schedule_weather_request(0);
+    schedule_weather_request(NOW);
   }
   quadrants_update(s_quadrants, s_current_time);
   layer_mark_dirty(s_root_layer);
@@ -507,6 +508,9 @@ static void fetch_step(Context * const context){
 // Event handlers
 
 static void bt_handler(bool connected){
+  if(connected){
+    schedule_weather_request(NOW);
+  }
   s_context.bluetooth_connected = connected;
   text_block_mark_dirty(s_watch_info);
 }
