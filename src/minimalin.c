@@ -300,16 +300,15 @@ static void hour_time_update_proc(TextBlock * block){
   const int hour = context->time->tm_hour;
   const int hour_mod_12 = hour % 12;
   const GPoint block_center = time_points[hour_mod_12];
+  const bool military_time = config_get_bool(config, ConfigKeyMilitaryTime);
+  const int printed_hour = military_time ? hour : hour_mod_12 == 0 ? 12 : hour_mod_12;
   if(times_conflicting_north_or_south(context->time)){
-    clock_copy_time_string(buffer, sizeof(buffer));
+    const int min = context->time->tm_min;
+    snprintf(buffer, sizeof(buffer), "%d:%02d", printed_hour, min);
     text_block_set_text(block, buffer, color);
     text_block_move(block, block_center);
   }else{
-    if(config_get_bool(config, ConfigKeyMilitaryTime)){
-      snprintf(buffer, sizeof(buffer), "%d", hour);
-    }else{
-      snprintf(buffer, sizeof(buffer), "%d", hour_mod_12 == 0 ? 12 : hour_mod_12);
-    }
+    snprintf(buffer, sizeof(buffer), "%d", printed_hour);
     text_block_set_text(block, buffer, color);
     if(times_conflicting(context->time)){
       text_block_move(block, GPoint(block_center.x, block_center.y - 10));
