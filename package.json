@@ -65,7 +65,8 @@
       "basalt",
       "chalk",
       "aplite",
-      "diorite"
+      "diorite",
+      "emery"
     ],
     "capabilities": [
       "configurable",

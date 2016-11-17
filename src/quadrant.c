@@ -11,10 +11,23 @@
 #define PRIORITY(quadrants, index) quadrants->quadrants[index]->priority
 #define POS(quadrants, index) quadrants->quadrants[index]->position
 
-#define SOUTH_INFO_CENTER GPoint(PBL_IF_ROUND_ELSE(90, 72), PBL_IF_ROUND_ELSE(122, 118))
-#define NORTH_INFO_CENTER GPoint(PBL_IF_ROUND_ELSE(90, 72), PBL_IF_ROUND_ELSE(52, 42))
-#define EAST_INFO_CENTER GPoint(PBL_IF_ROUND_ELSE(130, 108), PBL_IF_ROUND_ELSE(86, 82))
-#define WEST_INFO_CENTER GPoint(PBL_IF_ROUND_ELSE(50, 36), PBL_IF_ROUND_ELSE(86, 82))
+#ifdef PBL_PLATFORM_EMERY
+  #define SOUTH_INFO_CENTER GPoint(100, 165)
+  #define NORTH_INFO_CENTER GPoint(100, 65)
+  #define EAST_INFO_CENTER GPoint(150, 115)
+  #define WEST_INFO_CENTER GPoint(50, 115)
+#elif PBL_ROUND
+  #define SOUTH_INFO_CENTER GPoint(90, 122)
+  #define NORTH_INFO_CENTER GPoint(90, 52)
+  #define EAST_INFO_CENTER GPoint(130, 86)
+  #define WEST_INFO_CENTER GPoint(50, 86)
+#else
+  #define SOUTH_INFO_CENTER GPoint(72, 118)
+  #define NORTH_INFO_CENTER GPoint(72, 42)
+  #define EAST_INFO_CENTER GPoint(108, 82)
+  #define WEST_INFO_CENTER GPoint(36, 82)
+#endif
+
 #define SOUTH_BLOCK grect_from_center_and_size(SOUTH_INFO_CENTER, BLOCK_SIZE)
 #define NORTH_BLOCK grect_from_center_and_size(NORTH_INFO_CENTER, BLOCK_SIZE)
 #define EAST_BLOCK grect_from_center_and_size(EAST_INFO_CENTER, BLOCK_SIZE)

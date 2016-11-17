@@ -8,7 +8,7 @@
   <div id="preview">
     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
     viewBox="0 0 355 355" enable-background="new 0 0 355 355" xml:space="preserve">
-    {{#if platform === 'basalt' || platform === "aplite" || platform === "diorite"}}
+    {{#if platform !== 'chalk' }}
     <g>
       <rect fill="{{ backgroundColor }}" x="33.635" y="11.156" width="287.73" height="335.685"/>
       <g fill="{{ timeColor }}">
@@ -18,8 +18,7 @@
         <text text-anchor="middle" x="67" y="130" style="font-family:'Nupe-CondensedRegular'; font-size:42;">51</text>
       </g>
     </g>
-    {{/if}}
-    {{#if platform === 'chalk' }}
+    {{else}}
     <circle fill="{{ backgroundColor }}" cx="177.5" cy="177.5" r="177.5"/>
     <g fill="{{ timeColor }}">
       <path d="M263.8,22.4l-4.4,7.6c-0.6,1-0.2,2.2,0.7,2.8c0.3,0.2,0.7,0.3,1,0.3c0.7,0,1.4-0.4,1.8-1l4.4-7.6   C266.2,23.7,265,23,263.8,22.4z"/>

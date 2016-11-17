@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "consts.h"
 #include "config.h"
 #include "text_block.h"
 #include "quadrant.h"
@@ -9,70 +10,6 @@
 // #define d(string, ...) APP_LOG (APP_LOG_LEVEL_DEBUG, string, ##__VA_ARGS__)
 // #define e(string, ...) APP_LOG (APP_LOG_LEVEL_ERROR, string, ##__VA_ARGS__)
 // #define i(string, ...) APP_LOG (APP_LOG_LEVEL_INFO, string, ##__VA_ARGS__)
-
-#define MINUTE_HAND_RADIUS 52
-#define HOUR_HAND_RADIUS 39
-#define NOW 0
-
-#ifdef PBL_ROUND
-static GPoint ticks_points[12][2] = {
-  {{90, 0}  , {90, 6}  },
-  {{135,12} , {132,18}  },
-  {{168,45} , {162,48} },
-  {{180,90} , {174,90} },
-  {{168,135}, {162,132}},
-  {{135,168}, {132,162}},
-  {{90, 180}, {90, 174}},
-  {{45, 168}, {48, 162}},
-  {{12, 135}, {18, 132}},
-  {{0,  90} , {6,  90} },
-  {{12, 45} , {18, 48} },
-  {{45, 12} , {48, 18}  }
-};
-static GPoint time_points[12] = {
-  {90,  17} ,
-  {124, 28} ,
-  {150, 50} ,
-  {161, 86} ,
-  {148, 124},
-  {124, 146},
-  {90,  159},
-  {54,  147},
-  {29,  124},
-  {18,  87} ,
-  {30,  52} ,
-  {54,  28} ,
-};
-#else
-static GPoint ticks_points[12][2] = {
-  {{72, 0}  , {72, 7}  },
-  {{120,0}  , {117,7}  },
-  {{144,42} , {137,46} },
-  {{144,84} , {137,84} },
-  {{144,126}, {137,122}},
-  {{120,168}, {117,161}},
-  {{72, 168}, {72, 161}},
-  {{24, 168}, {27, 161}},
-  {{0,  126}, {7,  122}},
-  {{0,  84} , {7,  84} },
-  {{0,  42} , {7,  46} },
-  {{24, 0}  , {27, 7}  }
-};
-static GPoint time_points[12] = {
-  {72,  15} ,
-  {112, 15} ,
-  {126, 47} ,
-  {126, 82},
-  {126, 117},
-  {112, 145} ,
-  {72,  145},
-  {32,  145},
-  {18,  117},
-  {18,  82} ,
-  {18,  47} ,
-  {32,  15} ,
-};
-#endif
 
 typedef enum {
   AppKeyMinuteHandColor = 0,
@@ -311,7 +248,7 @@ static void hour_time_update_proc(TextBlock * block){
     snprintf(buffer, sizeof(buffer), "%d", printed_hour);
     text_block_set_text(block, buffer, color);
     if(times_conflicting(context->time)){
-      text_block_move(block, GPoint(block_center.x, block_center.y - 10));
+      text_block_move(block, GPoint(block_center.x, block_center.y - TIME_CONFLICT_OFFSET));
     }else{
       text_block_move(block, block_center);
     }
@@ -331,7 +268,7 @@ static void minute_time_update_proc(TextBlock * block){
     text_block_set_enabled(s_minute_text, true);
     snprintf(buffer, sizeof(buffer), "%02d", min);
     if(times_conflicting(context->time)){
-      text_block_move(s_minute_text, GPoint(block_center.x, block_center.y + 10));
+      text_block_move(s_minute_text, GPoint(block_center.x, block_center.y + TIME_CONFLICT_OFFSET));
     }else{
       text_block_move(s_minute_text, block_center);
     }
@@ -364,7 +301,7 @@ static void mark_dirty_minute_hand_layer(){
 static void update_minute_hand_layer(Layer *layer, GContext * ctx){
   if(!config_get_bool(s_config, ConfigKeyRainbowMode)){
     const GPoint hand_end = gpoint_on_circle(s_center, angle_minute(s_current_time), MINUTE_HAND_RADIUS);
-    graphics_context_set_stroke_width(ctx, 6);
+    graphics_context_set_stroke_width(ctx, MINUTE_HAND_WIDTH);
     graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
     graphics_draw_line(ctx, s_center, hand_end);
   }
@@ -372,7 +309,7 @@ static void update_minute_hand_layer(Layer *layer, GContext * ctx){
 
 static void update_hour_hand_layer(Layer * layer, GContext * ctx){
   const GPoint hand_end = gpoint_on_circle(s_center, angle_hour(s_current_time, true), HOUR_HAND_RADIUS);
-  graphics_context_set_stroke_width(ctx, 6);
+  graphics_context_set_stroke_width(ctx, HOUR_HAND_WIDTH);
   graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
   graphics_draw_line(ctx, s_center, hand_end);
 }
@@ -380,7 +317,7 @@ static void update_hour_hand_layer(Layer * layer, GContext * ctx){
 static void update_center_circle_layer(Layer * layer, GContext * ctx){
   GColor color = config_get_bool(s_config, ConfigKeyRainbowMode) ? GColorVividViolet : config_get_color(s_config, ConfigKeyHourHandColor);
   graphics_context_set_fill_color(ctx, color);
-  graphics_fill_circle(ctx, s_center, 5);
+  graphics_fill_circle(ctx, s_center, CENTER_CIRCLE_RADIUS);
 }
 
 // Ticks
@@ -392,7 +329,7 @@ static void draw_tick(GContext *ctx, const int index){
 static void tick_layer_update_callback(Layer *layer, GContext *graphic_ctx) {
   const Context * const context = * (Context**) layer_get_data(layer);
   graphics_context_set_stroke_color(graphic_ctx, config_get_color(context->config, ConfigKeyTimeColor));
-  graphics_context_set_stroke_width(graphic_ctx, 2);
+  graphics_context_set_stroke_width(graphic_ctx, TICK_WIDTH);
   const tm * const time = context->time;
   draw_tick(graphic_ctx, time->tm_hour % 12);
   if(times_conflicting(time)){
@@ -531,8 +468,8 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
     bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
     if (vibrate_on_the_hour) {
       if( PBL_IF_HEALTH_ELSE(config_get_bool(s_config, ConfigKeyHealthEnabled), false)  ||
-          !(health_service_peek_current_activities() &
-            (HealthActivitySleep | HealthActivityRestfulSleep)) ){
+        !(health_service_peek_current_activities() &
+          (HealthActivitySleep | HealthActivityRestfulSleep)) ){
         vibes_short_pulse();
       }
     }
@@ -611,7 +548,8 @@ static void main_window_load(Window *window) {
   s_center_circle_layer = layer_create(s_root_layer_bounds);
   s_rainbow_hand_layer  = rot_bitmap_layer_create(s_rainbow_bitmap);
   rot_bitmap_set_compositing_mode(s_rainbow_hand_layer, GCompOpSet);
-  rot_bitmap_set_src_ic(s_rainbow_hand_layer, GPoint(5, 55));
+  const GPoint png_center = GPoint(RAINBOW_HAND_OFFSET_X, RAINBOW_HAND_OFFSET_Y);
+  rot_bitmap_set_src_ic(s_rainbow_hand_layer, png_center);
   GRect frame = layer_get_frame((Layer *) s_rainbow_hand_layer);
   frame.origin.x = s_center.x - frame.size.w / 2;
   frame.origin.y = s_center.y - frame.size.h / 2;

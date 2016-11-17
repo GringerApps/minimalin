@@ -13,7 +13,7 @@ config_test:
 
 screenshots:
 	rm -Rf screenshots/
-	mkdir -p screenshots/aplite screenshots/basalt screenshots/chalk screenshots/diorite
+	mkdir -p screenshots/aplite screenshots/basalt screenshots/chalk screenshots/diorite screenshots/emery
 	$(MAKE) screenshot CONFIG=CONFIG_DEFAULT
 	$(MAKE) screenshot CONFIG=CONFIG_MILITARY_TIME CONFIG_VALUE=true
 	$(MAKE) screenshot CONFIG=CONFIG_DATE_DISPLAYED CONFIG_VALUE=false
@@ -26,7 +26,7 @@ screenshots:
 
 screenshot:
 	yes | $(CONFIG)=$(CONFIG_VALUE) SCREENSHOT=1 $(ARGS) pebble build
-	scripts/screenshot.sh $(CONFIG)_$(CONFIG_VALUE)
+	scripts/screenshots.sh $(CONFIG)_$(CONFIG_VALUE)
 
 build:
 	yes | pebble build
