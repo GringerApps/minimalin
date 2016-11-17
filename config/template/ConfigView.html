@@ -502,10 +502,8 @@
        this.set('selected_theme', i);
        this.set(event.context);
      });
-     this.on('Toggle.clicked', function(event){
-       if(event.node.id === 'rainbow_container'){
-         this.set('selected_theme', false);
-       }
+     this.on('ToggleWithItemColor.clicked', function(event){
+       this.set('selected_theme', false);
      });
      this.on('ItemColor.setColor', function(){
        this.set('selected_theme', false);

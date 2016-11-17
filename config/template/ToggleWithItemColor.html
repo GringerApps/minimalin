@@ -22,6 +22,9 @@
      }
    },
    oninit: function(){
+     this.on('Toggle.clicked', function(event){
+       this.fire('clicked', event);
+     });
      this.on("buzz", function () {
        if(this.get("colorItemDisabled")){
          if(!this.get("buzzing")){
