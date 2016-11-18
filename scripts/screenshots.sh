@@ -3,15 +3,22 @@
 dt=$(date -I)
 
 function screenshots(){
-  pebble install --emulator $2 -v
-  for hour in `seq 0 3 23`
+  mkdir -p screenshots/${2}
+  pebble install --emulator $2 -v || exit 1
+  i=0
+  for hour in `seq 0 4 23`
   do
-    for minute in `seq 0 5 50`
+    for minute in `seq 0 10 50`
     do
       export PEBBLE_QEMU_TIME="${dt}T$hour:$minute:00"
-      pebble kill && pebble screenshot --emulator $2 screenshots/${2}/${1}${date}_${hour}_${minute}_00.png
+      pebble screenshot --emulator $2 screenshots/${2}/${1}${i}.png || exit 1
+      i=$(($i+1))
     done
   done
+  pebble kill --force
+  killall qemu-pebble
+  tmpdir=$(dirname $(mktemp tmp.XXXXXXXXXX -ut))
+  rm $tmpdir/pb-emulator.json
 }
 
 if [[ $1 ]]; then
@@ -20,8 +27,10 @@ else
   prefix="NO_CONFIG_"
 fi
 
-(screenshots $prefix "aplite")
-(screenshots $prefix "basalt")
-(screenshots $prefix "chalk")
-(screenshots $prefix "diorite")
+screenshots $prefix "aplite"
+screenshots $prefix "basalt"
 screenshots $prefix "emery"
+screenshots $prefix "chalk"
+screenshots $prefix "diorite"
+
+wait

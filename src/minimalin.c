@@ -211,9 +211,9 @@ static void messenger_callback(DictionaryIterator * iter){
     config_save(s_config, PersistKeyConfig);
     s_context.reset_weather = true;
     schedule_weather_request(NOW);
+    quadrants_update(s_quadrants, s_current_time);
+    layer_mark_dirty(s_root_layer);
   }
-  quadrants_update(s_quadrants, s_current_time);
-  layer_mark_dirty(s_root_layer);
 }
 
 // Time
@@ -290,32 +290,44 @@ static void date_info_update_proc(TextBlock * block){
 }
 
 // Hands
+int s_animation_percent;
 
 static void mark_dirty_minute_hand_layer(){
   layer_mark_dirty(s_minute_hand_layer);
   const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
-  rot_bitmap_layer_set_angle(s_rainbow_hand_layer, angle_minute(s_current_time));
+  if(rainbow_mode){
+    const float minute_angle = angle_minute(s_current_time);
+    rot_bitmap_layer_set_angle(s_rainbow_hand_layer, minute_angle);
+  }
   layer_set_hidden((Layer*)s_rainbow_hand_layer, !rainbow_mode);
 }
 
 static void update_minute_hand_layer(Layer *layer, GContext * ctx){
   if(!config_get_bool(s_config, ConfigKeyRainbowMode)){
-    const GPoint hand_end = gpoint_on_circle(s_center, angle_minute(s_current_time), MINUTE_HAND_RADIUS);
+    const float start_angle = angle(270, 360);
+    const float minute_angle = angle_minute(s_current_time);
+    const float hand_angle = minute_angle - start_angle * (100 - s_animation_percent) / 100;
+    const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
     graphics_context_set_stroke_width(ctx, MINUTE_HAND_WIDTH);
     graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
     graphics_draw_line(ctx, s_center, hand_end);
   }
 }
 
+
 static void update_hour_hand_layer(Layer * layer, GContext * ctx){
-  const GPoint hand_end = gpoint_on_circle(s_center, angle_hour(s_current_time, true), HOUR_HAND_RADIUS);
+  const float hour_angle = angle_hour(s_current_time, true);
+  const float start_angle = angle(90, 360);
+  const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
+  const float hand_angle = rainbow_mode ? hour_angle : hour_angle - start_angle * (100 - s_animation_percent) / 100;
+  const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
   graphics_context_set_stroke_width(ctx, HOUR_HAND_WIDTH);
   graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
   graphics_draw_line(ctx, s_center, hand_end);
 }
 
 static void update_center_circle_layer(Layer * layer, GContext * ctx){
-  GColor color = config_get_bool(s_config, ConfigKeyRainbowMode) ? GColorVividViolet : config_get_color(s_config, ConfigKeyHourHandColor);
+  const GColor color = config_get_bool(s_config, ConfigKeyRainbowMode) ? GColorVividViolet : config_get_color(s_config, ConfigKeyHourHandColor);
   graphics_context_set_fill_color(ctx, color);
   graphics_fill_circle(ctx, s_center, CENTER_CIRCLE_RADIUS);
 }
@@ -400,7 +412,6 @@ static void schedule_weather_request(const int timeout){
 static void watch_info_update_proc(TextBlock * block){
   const Context * const context = (Context *) text_block_get_context(block);
   const Config * const config = context->config;
-  const BatteryChargeState charge_state = context->charge_state;
   char info_buffer[4] = {0};
   const BluetoothIcon bluetooth_icon = config_get_int(config, ConfigKeyBluetoothIcon);
   const bool bluetooth_disconneted = !context->bluetooth_connected;
@@ -409,7 +420,8 @@ static void watch_info_update_proc(TextBlock * block){
     strncat(info_buffer, bluetooth_icon == Bluetooth ? "z" : "Z", 2);
   }
   const int battery_threshold = config_get_int(config, ConfigKeyBatteryDisplayedAt);
-  const bool battery_below_threshold = context->charge_state.charge_percent < battery_threshold;
+  const BatteryChargeState charge_state = context->charge_state;
+  const bool battery_below_threshold = charge_state.charge_percent < battery_threshold;
   if(battery_below_threshold){
     strncat(info_buffer, "w", 2);
   }
@@ -490,6 +502,17 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
   quadrants_update(s_quadrants, s_current_time);
 }
 
+static void implementation_update(Animation *animation,
+                                  const AnimationProgress progress) {
+  s_animation_percent = ((int)progress * 100) / ANIMATION_NORMALIZED_MAX;
+  layer_mark_dirty(s_hour_hand_layer);
+  layer_mark_dirty(s_minute_hand_layer);
+}
+
+const AnimationImplementation implementation = {
+  .update = implementation_update,
+};
+
 static void main_window_load(Window *window) {
   s_root_layer = window_get_root_layer(window);
   s_root_layer_bounds = layer_get_bounds(s_root_layer);
@@ -517,15 +540,13 @@ static void main_window_load(Window *window) {
   text_block_set_update_proc(s_weather_info, weather_info_update_proc);
 
   s_watch_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Tail, s_current_time);
+  text_block_set_enabled(s_watch_info, false);
   text_block_set_context(s_watch_info, &s_context);
   text_block_set_update_proc(s_watch_info, watch_info_update_proc);
   bluetooth_connection_service_subscribe(bt_handler);
   bt_handler(connection_service_peek_pebble_app_connection());
   battery_state_service_subscribe(battery_handler);
   battery_handler(battery_state_service_peek());
-
-  quadrants_ready(s_quadrants);
-  quadrants_update(s_quadrants, s_current_time);
 
   s_hour_text = text_block_create(s_root_layer, time_points[6] , s_font);
   text_block_set_context(s_hour_text, &s_context);
@@ -564,6 +585,18 @@ static void main_window_load(Window *window) {
   mark_dirty_minute_hand_layer();
 
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+
+  quadrants_update(s_quadrants, s_current_time);
+
+  Animation *animation = animation_create();
+  animation_set_curve(animation, AnimationCurveEaseInOut);
+
+  animation_set_delay(animation, 0);
+  animation_set_duration(animation, 1000);
+
+  animation_set_implementation(animation, &implementation);
+
+  animation_schedule(animation);
 }
 
 static void main_window_unload(Window *window) {

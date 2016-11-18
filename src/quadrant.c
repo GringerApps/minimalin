@@ -5,7 +5,7 @@
 
 #define QUADRANT_COUNT 4
 #define POSTIONS_COUNT 4
-#define BLOCK_SIZE GSize(32, 18)
+#define BLOCK_SIZE GSize(38, 20)
 #define QUADRANT(blck, prio, pos) (Quadrant) { .block = block, .priority = prio, .position = pos }
 #define BLOCK(quadrants, index) quadrants->quadrants[index]->block
 #define PRIORITY(quadrants, index) quadrants->quadrants[index]->priority
@@ -28,24 +28,23 @@
   #define WEST_INFO_CENTER GPoint(36, 82)
 #endif
 
-#define SOUTH_BLOCK grect_from_center_and_size(SOUTH_INFO_CENTER, BLOCK_SIZE)
-#define NORTH_BLOCK grect_from_center_and_size(NORTH_INFO_CENTER, BLOCK_SIZE)
-#define EAST_BLOCK grect_from_center_and_size(EAST_INFO_CENTER, BLOCK_SIZE)
-#define WEST_BLOCK grect_from_center_and_size(WEST_INFO_CENTER, BLOCK_SIZE)
-
 static GRect rect_translate(const GRect rect, const int x, const int y){
   const GPoint origin = rect.origin;
   return (GRect) { .origin = GPoint(origin.x + x, origin.y + y), .size = rect.size };
 }
 
 static bool segment_intersect_with_position(const Segment segment, const Position position){
-  const GRect blocks[4] = {
-    [North] = NORTH_BLOCK,
-    [South] = SOUTH_BLOCK,
-    [West] = WEST_BLOCK,
-    [East] = EAST_BLOCK
-  };
-  const GRect rect = blocks[position];
+  GPoint center;
+  if(position == North){
+    center = NORTH_INFO_CENTER;
+  }else if(position == South){
+    center = SOUTH_INFO_CENTER;
+  }else if(position == East){
+    center = EAST_INFO_CENTER;
+  }else{
+    center = WEST_INFO_CENTER;
+  }
+  const GRect rect = grect_from_center_and_size(center, BLOCK_SIZE);
   return intersect(segment, rect_translate(rect, 0, 4));
 }
 
@@ -77,75 +76,19 @@ static bool quadrants_takeover_quadrant(Quadrants * const quadrants, const Index
     return false;
   }
   for(int index_to_takeover=0; index_to_takeover<quadrants->size; index_to_takeover++){
-    if(index_to_takeover != index && POS(quadrants, index_to_takeover) == position){
-      if( PRIORITY(quadrants, index_to_takeover) >= PRIORITY(quadrants, index) &&
-        text_block_get_visible(BLOCK(quadrants, index_to_takeover))
-        ){
-        return false;
+    if(index_to_takeover == index || POS(quadrants, index_to_takeover) != position){
+      continue;
+    }
+    const bool has_higher_priority = PRIORITY(quadrants, index_to_takeover) >= PRIORITY(quadrants, index);
+    const TextBlock * const block = BLOCK(quadrants, index_to_takeover);
+    if(has_higher_priority && ((text_block_get_ready(block) && text_block_get_visible(block)) || text_block_get_enabled(block))){
+      return false;
     }
     quadrants_swap(quadrants, index_to_takeover, index);
     return true;
   }
-}
-quadrants_move_quadrant(quadrants, index, position);
-return true;
-}
-
-Quadrants * quadrants_create(const GPoint center, const int hour_hand_radius, const int minute_hand_radius){
-  Quadrants * const quadrants = (Quadrants *) malloc(sizeof(Quadrants));
-  quadrants->center = center;
-  quadrants->size = 0;
-  quadrants->hour_hand_radius = hour_hand_radius;
-  quadrants->minute_hand_radius = minute_hand_radius;
-  for(int i=0; i<QUADRANT_COUNT; i++){
-    quadrants->quadrants[i] = NULL;
-  }
-  return quadrants;
-}
-
-Quadrants * quadrants_destroy(Quadrants * const quadrants){
-  for(int i=0; i<quadrants->size; i++){
-    Quadrant * const quadrant = quadrants->quadrants[i];
-    if(quadrant != NULL){
-      free(quadrant);
-    }
-  }
-  free(quadrants);
-  return NULL;
-}
-
-TextBlock * quadrants_add_text_block(Quadrants * const quadrants, Layer * const root_layer, const GFont font, const Priority priority, const tm * const time){
-  static bool free_positions[POSTIONS_COUNT] = { true, true, true, true };
-  Position position = North;
-  for(int pos=0;pos<POSTIONS_COUNT;pos++){
-    if(free_positions[pos]){
-      free_positions[pos] = false;
-      position = pos;
-      break;
-    }
-  }
-  const GPoint centers[POSTIONS_COUNT] = {
-    [North] = NORTH_INFO_CENTER,
-    [South] = SOUTH_INFO_CENTER,
-    [West] = WEST_INFO_CENTER,
-    [East] = EAST_INFO_CENTER
-  };
-  TextBlock * const block = text_block_create(root_layer, centers[position], font);
-  text_block_set_ready(block, false);
-  const int size = quadrants->size;
-  if(size >= QUADRANT_COUNT){
-    return NULL;
-  }
-  Quadrant * const quadrant = (Quadrant *) malloc(sizeof(Quadrant));
-  *quadrant = QUADRANT(block, priority, position);
-  int i = size;
-  while(i > 0 && quadrants->quadrants[i-1] != NULL && PRIORITY(quadrants, i-1) < priority){
-    quadrants->quadrants[i] = quadrants->quadrants[i-1];
-    i--;
-  }
-  quadrants->quadrants[i] = quadrant;
-  quadrants->size++;
-  return block;
+  quadrants_move_quadrant(quadrants, index, position);
+  return true;
 }
 
 static bool time_intersect_with_position(Quadrants * const quadrants, const tm * const time, const Position pos){
@@ -193,17 +136,77 @@ static void quadrants_try_takeover_quadrant(Quadrants * const quadrants, const I
   quadrants_try_takeover_quadrant_in_order(quadrants, index, time, order, false);
 }
 
-void quadrants_ready(Quadrants * const quadrants){
-  for(int index = 0; index < quadrants->size; index++){
-    text_block_set_ready(BLOCK(quadrants, index), true);
+Quadrants * quadrants_create(const GPoint center, const int hour_hand_radius, const int minute_hand_radius){
+  Quadrants * const quadrants = (Quadrants *) malloc(sizeof(Quadrants));
+  quadrants->ready = false;
+  quadrants->center = center;
+  quadrants->size = 0;
+  for(int i = 0; i < QUADRANT_COUNT; i++){
+    quadrants->free_positions[i] = true;
   }
+  quadrants->hour_hand_radius = hour_hand_radius;
+  quadrants->minute_hand_radius = minute_hand_radius;
+  for(int i=0; i<QUADRANT_COUNT; i++){
+    quadrants->quadrants[i] = NULL;
+  }
+  return quadrants;
+}
+
+Quadrants * quadrants_destroy(Quadrants * const quadrants){
+  for(int i=0; i<quadrants->size; i++){
+    Quadrant * const quadrant = quadrants->quadrants[i];
+    if(quadrant != NULL){
+      free(quadrant);
+    }
+  }
+  free(quadrants);
+  return NULL;
+}
+
+TextBlock * quadrants_add_text_block(Quadrants * const quadrants, Layer * const root_layer, const GFont font, const Priority priority, const tm * const time){
+  Position position = North;
+  for(int pos=0;pos<POSTIONS_COUNT;pos++){
+    if(quadrants->free_positions[pos]){
+      quadrants->free_positions[pos] = false;
+      position = pos;
+      break;
+    }
+  }
+  const GPoint centers[POSTIONS_COUNT] = {
+    [North] = NORTH_INFO_CENTER,
+    [South] = SOUTH_INFO_CENTER,
+    [West] = WEST_INFO_CENTER,
+    [East] = EAST_INFO_CENTER
+  };
+  TextBlock * const block = text_block_create(root_layer, centers[position], font);
+  text_block_set_ready(block, false);
+  const int size = quadrants->size;
+  if(size >= QUADRANT_COUNT){
+    return NULL;
+  }
+  Quadrant * const quadrant = (Quadrant *) malloc(sizeof(Quadrant));
+  *quadrant = QUADRANT(block, priority, position);
+  int i = size;
+  while(i > 0 && quadrants->quadrants[i-1] != NULL && PRIORITY(quadrants, i-1) < priority){
+    quadrants->quadrants[i] = quadrants->quadrants[i-1];
+    i--;
+  }
+  quadrants->quadrants[i] = quadrant;
+  quadrants->size++;
+  return block;
 }
 
 void quadrants_update(Quadrants * const quadrants, const tm * const time){
   for(int index = 0; index < quadrants->size; index++){
-    TextBlock * const block = BLOCK(quadrants, index);
-    if(text_block_get_visible(block)){
+    const TextBlock * const block = BLOCK(quadrants, index);
+    if((text_block_get_ready(block) && text_block_get_visible(block)) || text_block_get_enabled(block)){
       quadrants_try_takeover_quadrant(quadrants, index, time);
+    }
+  }
+  if(!quadrants->ready){
+    quadrants->ready = true;
+    for(int index = 0; index < quadrants->size; index++){
+      text_block_set_ready(BLOCK(quadrants, index), true);
     }
   }
 }
