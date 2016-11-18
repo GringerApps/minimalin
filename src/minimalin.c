@@ -95,6 +95,7 @@ static tm * s_current_time;
 
 static void schedule_weather_request(int timeout);
 static void mark_dirty_minute_hand_layer();
+static void fetch_step(Context * const context);
 
 static void update_current_time() {
 #ifdef SCREENSHOT
@@ -184,6 +185,9 @@ static void config_military_time_updated(DictionaryIterator * iter, Tuple * tupl
 static void config_health_enabled_updated(DictionaryIterator * iter, Tuple * tuple){
   const bool enabled = tuple->value->int8;
   config_set_bool(s_config, ConfigKeyHealthEnabled, enabled);
+  if(enabled){
+    fetch_step(&s_context);
+  }
   text_block_set_enabled(s_steps_info, enabled);
 }
 
