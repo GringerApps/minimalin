@@ -455,16 +455,25 @@ static void fetch_step(Context * const context){
 
 // Event handlers
 
+static void update_watch_info_layer_visibility(){
+  const Config * const config = s_context.config;
+  const bool battery_icon_visible = s_context.charge_state.charge_percent < config_get_int(config, ConfigKeyBatteryDisplayedAt);
+  const bool bt_icon_visible = !s_context.bluetooth_connected && config_get_int(config, ConfigKeyBluetoothIcon) != NoIcon;
+  text_block_set_enabled(s_watch_info, battery_icon_visible || bt_icon_visible);
+}
+
 static void bt_handler(bool connected){
   if(connected){
     schedule_weather_request(NOW);
   }
   s_context.bluetooth_connected = connected;
+  update_watch_info_layer_visibility();
   text_block_mark_dirty(s_watch_info);
 }
 
 static void battery_handler(BatteryChargeState charge){
   s_context.charge_state = charge;
+  update_watch_info_layer_visibility();
   text_block_mark_dirty(s_watch_info);
 }
 
@@ -540,13 +549,13 @@ static void main_window_load(Window *window) {
   text_block_set_update_proc(s_weather_info, weather_info_update_proc);
 
   s_watch_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Tail, s_current_time);
-  text_block_set_enabled(s_watch_info, false);
   text_block_set_context(s_watch_info, &s_context);
   text_block_set_update_proc(s_watch_info, watch_info_update_proc);
   bluetooth_connection_service_subscribe(bt_handler);
   bt_handler(connection_service_peek_pebble_app_connection());
   battery_state_service_subscribe(battery_handler);
   battery_handler(battery_state_service_peek());
+  update_watch_info_layer_visibility();
 
   s_hour_text = text_block_create(s_root_layer, time_points[6] , s_font);
   text_block_set_context(s_hour_text, &s_context);
