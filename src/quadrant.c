@@ -12,10 +12,10 @@
 #define POS(quadrants, index) quadrants->quadrants[index]->position
 
 #ifdef PBL_PLATFORM_EMERY
-  #define SOUTH_INFO_CENTER GPoint(100, 165)
-  #define NORTH_INFO_CENTER GPoint(100, 65)
-  #define EAST_INFO_CENTER GPoint(150, 115)
-  #define WEST_INFO_CENTER GPoint(50, 115)
+  #define SOUTH_INFO_CENTER GPoint(100, 162)
+  #define NORTH_INFO_CENTER GPoint(100, 62)
+  #define EAST_INFO_CENTER GPoint(150, 112)
+  #define WEST_INFO_CENTER GPoint(50, 112)
 #elif PBL_ROUND
   #define SOUTH_INFO_CENTER GPoint(90, 122)
   #define NORTH_INFO_CENTER GPoint(90, 52)

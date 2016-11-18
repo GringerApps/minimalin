@@ -11,7 +11,7 @@ function screenshots(){
     for minute in `seq 0 10 50`
     do
       export PEBBLE_QEMU_TIME="${dt}T$hour:$minute:00"
-      pebble screenshot --emulator $2 screenshots/${2}/${1}${i}.png || exit 1
+      pebble screenshot --emulator $2 --no-correction screenshots/${2}/${1}${i}.png || exit 1
       i=$(($i+1))
     done
   done
@@ -27,10 +27,10 @@ else
   prefix="NO_CONFIG_"
 fi
 
-screenshots $prefix "aplite"
-screenshots $prefix "basalt"
+#screenshots $prefix "aplite"
+#screenshots $prefix "basalt"
 screenshots $prefix "emery"
-screenshots $prefix "chalk"
-screenshots $prefix "diorite"
+#screenshots $prefix "chalk"
+#screenshots $prefix "diorite"
 
 wait
