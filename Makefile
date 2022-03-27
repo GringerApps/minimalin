@@ -1,40 +1,59 @@
-CONFIG=
-CONFIG_VALUE=
-ARGS=
-MAIL_SUBJECT=""
-MAIL_CONTENT=""
 
-.PHONY: test build config_test screenshots screenshot travis clean wipe
+# platform
+#P="chalk"
 
-config_test:
-	@mkdir -p bin
-	gcc -std=c99 -g -lcmocka -o bin/config_test -Isrc -Itest src/config.c test/config_test.c -Wl,--wrap=GColorFromHEX -Wl,--wrap=persist_exists -Wl,--wrap=persist_write_data -Wl,--wrap=persist_read_data
-	valgrind ./bin/config_test --leak-check=full
+VERSION=$(shell cat package.json | grep version | grep -o "[0-9][0-9]*\.[0-9][0-9]*")
+NAME=$(shell cat package.json | grep '"name":' | head -1 | sed 's/,//g' |sed 's/"//g' | awk '{ print $2 }')
 
-screenshots:
-	rm -Rf screenshots/
-	$(MAKE) screenshot CONFIG=CONFIG_DEFAULT
-	$(MAKE) screenshot CONFIG=CONFIG_MILITARY_TIME CONFIG_VALUE=true
-	$(MAKE) screenshot CONFIG=CONFIG_DATE_DISPLAYED CONFIG_VALUE=false
-	$(MAKE) screenshot CONFIG=CONFIG_WEATHER_ENABLED CONFIG_VALUE=false
-	$(MAKE) screenshot CONFIG=CONFIG_RAINBOW_MODE CONFIG_VALUE=true
-	$(MAKE) screenshot CONFIG=CONFIG_TEMPERATURE_UNIT CONFIG_VALUE=Fahrenheit
-	$(MAKE) screenshot CONFIG=CONFIG_BLUETOOTH_ICON CONFIG_VALUE=NoIcon ARGS='NO_BT=1'
-	$(MAKE) screenshot CONFIG=CONFIG_BLUETOOTH_ICON CONFIG_VALUE=Heart ARGS='NO_BT=1'
-	pebble kill
+all: build install
 
-screenshot:
-	yes | $(CONFIG)=$(CONFIG_VALUE) SCREENSHOT=1 $(ARGS) pebble build
-	scripts/screenshots.sh $(CONFIG)_$(CONFIG_VALUE)
+init_overlays:
+	mkdir -p resources/data
+	touch resources/data/OVL_aplite.bin
+	touch resources/data/OVL_basalt.bin
+	touch resources/data/OVL_chalk.bin
+	touch resources/data/OVL_diorite.bin
 
-build:
-	yes | pebble build
+build: init_overlays
+	pebble build
 
-travis: build
+config:
+	pebble emu-app-config --emulator $(PEBBLE_EMULATOR)
+
+log:
+	pebble logs --emulator $(PEBBLE_EMULATOR)
+
+travis_build: init_overlays
+	yes | sdk/bin/pebble build
+
+install:
+	pebble install --emulator $(PEBBLE_EMULATOR)
 
 clean:
-	rm -Rf bin
-	yes | pebble clean
+	pebble clean
+
+size:
+	pebble analyze-size
+
+logs:
+	pebble logs --emulator $(PEBBLE_EMULATOR)
+
+phone-logs:
+	pebble logs --phone ${PEBBLE_PHONE}
+
+screenshot:
+	pebble screenshot --phone ${PEBBLE_PHONE}
+
+deploy:
+	pebble install --phone ${PEBBLE_PHONE}
+
+timeline-on:
+	pebble emu-set-timeline-quick-view on
+
+timeline-off:
+	pebble emu-set-timeline-quick-view off
 
 wipe:
-	yes | pebble wipe
+	pebble wipe
+
+.PHONY: all build config log install clean size logs screenshot deploy timeline-on timeline-off wipe phone-logs
